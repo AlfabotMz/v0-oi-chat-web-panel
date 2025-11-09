@@ -23,18 +23,43 @@ export default function AdminPage() {
   const [adminProfile, setAdminProfile] = useState<any>(null)
   const [users, setUsers] = useState<UserProfile[]>([])
   const [loading, setLoading] = useState(true)
+  const [checking, setChecking] = useState(true)
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [newPlan, setNewPlan] = useState<"free" | "pro" | "premium" | "">("")
 
   useEffect(() => {
     const checkAdmin = async () => {
-      const profile = await getUserProfile()
-      if (!profile || profile.role !== "admin") {
-        router.push("/dashboard")
-        return
+      try {
+        setChecking(true)
+        
+        // Obter o perfil do usuário diretamente
+        const profile = await getUserProfile()
+        
+        // Se não há perfil, o usuário não está autenticado
+        if (!profile) {
+          console.log("Usuário não autenticado, redirecionando para login")
+          router.push("/login")
+          return
+        }
+        
+        // Verificar se o usuário é admin
+        if (profile.role !== "admin") {
+          console.log("Usuário não é admin, redirecionando para dashboard")
+          router.push("/dashboard")
+          return
+        }
+        
+        // Se chegou aqui, o usuário é admin
+        setAdminProfile(profile)
+        await loadUsers()
+        setChecking(false)
+      } catch (error) {
+        console.error("Erro ao verificar admin:", error)
+        // Em caso de erro, redirecionar para dashboard após um breve delay
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 500)
       }
-      setAdminProfile(profile)
-      await loadUsers()
     }
     checkAdmin()
   }, [router])
@@ -66,7 +91,17 @@ export default function AdminPage() {
     router.push("/login")
   }
 
-  if (!adminProfile) return null
+  // Mostrar loading enquanto está verificando ou carregando
+  if (checking || !adminProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-background/80 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Verificando permissões de administrador...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
