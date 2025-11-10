@@ -66,34 +66,46 @@ export default function AdminPage() {
 
   const loadUsers = async () => {
     try {
+      setLoading(true)
       const supabase = createClient()
-      const { data, error } = await supabase
+      
+      console.log("Tentando carregar usuários...")
+      
+      // Primeiro, verificar se conseguimos ver qualquer perfil
+      const { data: testData, error: testError } = await supabase
         .from("profiles")
         .select("*")
-        .eq("role", "user")
+        .limit(1)
+      
+      console.log("Teste de acesso aos perfis:", { testData, testError })
+      
+      // Tentar buscar todos os perfis primeiro (para ver o que temos acesso)
+      const { data: allData, error: allError } = await supabase
+        .from("profiles")
+        .select("*")
         .order("created_at", { ascending: false })
-
-      if (error) {
-        console.error("Erro ao carregar usuários:", error)
-        // Tentar buscar sem filtro de role para debug
-        const { data: allData, error: allError } = await supabase
-          .from("profiles")
-          .select("*")
-          .order("created_at", { ascending: false })
-        
-        if (allError) {
-          console.error("Erro ao carregar todos os perfis:", allError)
-        } else {
-          console.log("Todos os perfis encontrados:", allData)
-          // Filtrar apenas usuários no cliente
-          const userProfiles = (allData || []).filter((p: any) => p.role === "user")
-          setUsers(userProfiles)
+      
+      console.log("Todos os perfis encontrados:", { allData, allError })
+      
+      if (allError) {
+        console.error("Erro ao carregar perfis:", allError)
+        // Se houver erro de permissão, mostrar mensagem específica
+        if (allError.code === "42501" || allError.message.includes("permission") || allError.message.includes("policy")) {
+          console.error("ERRO DE PERMISSÃO: As políticas RLS podem não estar configuradas corretamente.")
+          console.error("Execute o script scripts/011_fix_admin_view_profiles.sql no Supabase")
         }
+      } else if (allData) {
+        // Filtrar apenas usuários (não admins)
+        const userProfiles = allData.filter((p: any) => p.role === "user")
+        console.log("Perfis de usuários filtrados:", userProfiles)
+        setUsers(userProfiles)
       } else {
-        setUsers(data || [])
+        console.log("Nenhum perfil encontrado")
+        setUsers([])
       }
     } catch (err) {
       console.error("Erro ao carregar usuários:", err)
+      setUsers([])
     } finally {
       setLoading(false)
     }
@@ -198,9 +210,24 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-muted-foreground">Carregando...</p>
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  <p className="text-muted-foreground">Carregando usuários...</p>
+                </div>
+              </div>
             ) : users.length === 0 ? (
-              <p className="text-muted-foreground">Nenhum usuário cadastrado ainda</p>
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-2" />
+                <p className="text-muted-foreground">Nenhum usuário cadastrado ainda</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Os usuários aparecerão aqui quando se registrarem
+                </p>
+                <p className="text-xs text-muted-foreground mt-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg">
+                  <strong>Nota:</strong> Se você acabou de executar as migrações SQL, verifique se o script{" "}
+                  <code className="bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded">011_fix_admin_view_profiles.sql</code> foi executado.
+                </p>
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
