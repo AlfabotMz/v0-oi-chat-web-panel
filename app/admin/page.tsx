@@ -79,28 +79,28 @@ export default function AdminPage() {
       
       console.log("Teste de acesso aos perfis:", { testData, testError })
       
-      // Tentar buscar todos os perfis primeiro (para ver o que temos acesso)
-      const { data: allData, error: allError } = await supabase
+      // Buscar apenas usuários (não admins) - filtrar diretamente na query
+      const { data: userData, error: userError } = await supabase
         .from("profiles")
         .select("*")
+        .eq("role", "user")  // Filtrar apenas usuários, não admins
         .order("created_at", { ascending: false })
       
-      console.log("Todos os perfis encontrados:", { allData, allError })
+      console.log("Usuários encontrados:", { userData, userError })
       
-      if (allError) {
-        console.error("Erro ao carregar perfis:", allError)
+      if (userError) {
+        console.error("Erro ao carregar usuários:", userError)
         // Se houver erro de permissão, mostrar mensagem específica
-        if (allError.code === "42501" || allError.message.includes("permission") || allError.message.includes("policy")) {
+        if (userError.code === "42501" || userError.message.includes("permission") || userError.message.includes("policy")) {
           console.error("ERRO DE PERMISSÃO: As políticas RLS podem não estar configuradas corretamente.")
           console.error("Execute o script scripts/011_fix_admin_view_profiles.sql no Supabase")
         }
-      } else if (allData) {
-        // Filtrar apenas usuários (não admins)
-        const userProfiles = allData.filter((p: any) => p.role === "user")
-        console.log("Perfis de usuários filtrados:", userProfiles)
-        setUsers(userProfiles)
+        setUsers([])
+      } else if (userData) {
+        console.log("Perfis de usuários carregados:", userData.length)
+        setUsers(userData)
       } else {
-        console.log("Nenhum perfil encontrado")
+        console.log("Nenhum usuário encontrado")
         setUsers([])
       }
     } catch (err) {

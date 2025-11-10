@@ -105,9 +105,19 @@
 
 ### Variáveis de Ambiente
 ```env
+# Opção 1: URL completa do webhook (recomendado)
 N8N_WEBHOOK_URL=https://n8n.myoichat.online/webhook/connect-whatsapp
+
+# Opção 2: URL base do n8n (o código adiciona o caminho automaticamente)
+N8N_WEBHOOK_URL=https://n8n.myoichat.online
+# ou
+N8N_URL=https://n8n.myoichat.online
 ```
-**Nota**: Se não configurar, o padrão é `https://n8n.myoichat.online/webhook/connect-whatsapp`. O webhook n8n processa a conexão com WhatsApp.
+**Nota**: 
+- Se não configurar, o padrão é `https://n8n.myoichat.online/webhook/connect-whatsapp`
+- O código aceita tanto a URL completa quanto apenas a URL base
+- Se a URL não contém `/webhook/`, o código adiciona automaticamente `/webhook/connect-whatsapp`
+- Veja `docs/N8N_CONFIG.md` para mais detalhes
 
 ### Supabase Storage
 1. Crie o bucket `agent-attachments` no Supabase Dashboard

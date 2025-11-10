@@ -41,10 +41,16 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
         setQrCode(data.qr)
         setMessage(data.message || "Escaneie o QR code para conectar seu número de WhatsApp.")
       } else {
-        setError("QR code não foi retornado pela API")
+        setError(data.error || "QR code não foi retornado pela API")
       }
     } catch (err: any) {
-      setError(err.message || "Erro ao conectar WhatsApp")
+      console.error("Erro ao conectar WhatsApp:", err)
+      // Melhorar mensagem de erro
+      if (err.message.includes("fetch")) {
+        setError("Erro ao conectar com o servidor n8n. Verifique se a URL está configurada corretamente no arquivo .env")
+      } else {
+        setError(err.message || "Erro ao conectar WhatsApp. Verifique os logs do servidor.")
+      }
     } finally {
       setIsLoading(false)
     }
