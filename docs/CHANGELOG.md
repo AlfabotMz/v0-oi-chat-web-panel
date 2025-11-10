@@ -92,6 +92,27 @@
 - **Campo Opcional**: `phone_number`
 - **Componente**: `CreateAgentDialog` atualizado com campo de prompt obrigatório
 
+### Exclusão de Agentes via Webhook n8n
+- **Rota**: `/api/agents/[id]/delete` - Endpoint que chama webhook n8n para deletar agente
+- **Funcionalidade**: 
+  - Faz POST para `https://n8n.myoichat.online/webhook/delete-agent` com `agent_id`
+  - Após receber resposta do n8n, deleta o agente no Supabase
+  - Mesmo se o n8n falhar, tenta deletar no Supabase (pode ser que o agente não exista no n8n)
+- **Componente**: `AgentsList` atualizado com botão de deletar e diálogo de confirmação
+
+### Verificação de Status da Conexão WhatsApp
+- **Rota**: `/api/agents/[id]/status` - Endpoint que verifica status da conexão WhatsApp
+- **Funcionalidade**: 
+  - Faz POST para `https://n8n.myoichat.online/webhook/check-status` com `agent_id`
+  - Retorna status atual da conexão (`connected`, `disconnected`, `pending`)
+- **Componente**: `WhatsAppConnect` atualizado com:
+  - Verificação automática após 45 segundos após gerar QR code
+  - Verificação contínua a cada 10 segundos se ainda não conectado
+  - Badge de status (Conectado, Aguardando, Desconectado)
+  - Botão "Testar Conexão" para verificação manual
+  - Desabilita botão de gerar QR code quando conectado
+  - Permite gerar novo QR code apenas se desconectado
+
 ## 🗑️ Funcionalidades Removidas
 
 ### Campos Removidos da Tabela Agents

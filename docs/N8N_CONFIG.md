@@ -81,6 +81,58 @@ N8N_URL=https://n8n.myoichat.online
 }
 ```
 
+**Resposta Esperada:**
+```json
+{
+  "success": true,
+  "qr": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...",
+  "status": "pending",
+  "message": "Escaneie o QR code para conectar seu número de WhatsApp."
+}
+```
+
+### 3. Verificar Status da Conexão (`/webhook/check-status`)
+
+**Requisição:**
+```json
+{
+  "agent_id": "uuid-do-agente"
+}
+```
+
+**Resposta Esperada:**
+```json
+{
+  "success": true,
+  "status": "connected",
+  "message": "WhatsApp conectado"
+}
+```
+
+**Valores possíveis para `status`:**
+- `"connected"` ou `"open"` ou `"ready"` - WhatsApp está conectado
+- `"disconnected"` ou `"close"` - WhatsApp está desconectado
+- `"pending"` - Aguardando conexão
+
+### 4. Deletar Agente (`/webhook/delete-agent`)
+
+**Requisição:**
+```json
+{
+  "agent_id": "uuid-do-agente"
+}
+```
+
+**Resposta Esperada:**
+```json
+{
+  "success": true,
+  "message": "Agente deletado com sucesso!"
+}
+```
+
+**Nota**: O código também aceita o formato com wrapper `data`, similar ao create-agent.
+
 ## 📥 Formato da Resposta Esperada
 
 ### Resposta do Webhook de Conexão WhatsApp
@@ -102,6 +154,18 @@ O webhook n8n deve retornar uma resposta JSON no seguinte formato:
 - `qr` (string): QR code em formato base64 ou URL da imagem
 - `status` (string): Status da conexão (`pending`, `connected`, `disconnected`)
 - `message` (string): Mensagem para o usuário
+
+### Campos da Resposta (Verificar Status)
+
+- `success` (boolean): Indica se a operação foi bem-sucedida
+- `status` (string): Status atual da conexão (`connected`, `disconnected`, `pending`)
+- `message` (string, opcional): Mensagem descritiva do status
+- `connection_status` (string, opcional): Status alternativo (aceita `open`, `ready`, `close`)
+
+### Campos da Resposta (Deletar Agente)
+
+- `success` (boolean): Indica se a operação foi bem-sucedida
+- `message` (string): Mensagem de sucesso ou erro
 
 ### Campos da Resposta (Criar Agente)
 

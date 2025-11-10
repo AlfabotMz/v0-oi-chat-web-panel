@@ -1,11 +1,22 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Settings, MessageSquare } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Plus, Settings, MessageSquare, Trash2, Loader2 } from "lucide-react"
 import { CreateAgentDialog } from "./create-agent-dialog"
 
 interface AgentsListProps {
@@ -13,7 +24,47 @@ interface AgentsListProps {
 }
 
 export function AgentsList({ agents }: AgentsListProps) {
+  const router = useRouter()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [agentToDelete, setAgentToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDeleteClick = (agentId: string) => {
+    setAgentToDelete(agentId)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!agentToDelete) return
+
+    setIsDeleting(true)
+    setDeletingAgentId(agentToDelete)
+
+    try {
+      const response = await fetch(`/api/agents/${agentToDelete}/delete`, {
+        method: "DELETE",
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Erro ao deletar agente")
+      }
+
+      // Atualizar a lista
+      router.refresh()
+      setDeleteDialogOpen(false)
+      setAgentToDelete(null)
+    } catch (err: any) {
+      console.error("Erro ao deletar agente:", err)
+      alert(err.message || "Erro ao deletar agente")
+    } finally {
+      setIsDeleting(false)
+      setDeletingAgentId(null)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -61,6 +112,19 @@ export function AgentsList({ agents }: AgentsListProps) {
                       Messages
                     </Button>
                   </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 bg-transparent text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                    onClick={() => handleDeleteClick(agent.id)}
+                    disabled={deletingAgentId === agent.id}
+                  >
+                    {deletingAgentId === agent.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -69,6 +133,35 @@ export function AgentsList({ agents }: AgentsListProps) {
       </div>
 
       <CreateAgentDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja deletar este agente? Esta ação não pode ser desfeita.
+              O agente será removido do n8n e do banco de dados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deletando...
+                </>
+              ) : (
+                "Deletar"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
