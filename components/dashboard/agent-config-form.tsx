@@ -19,8 +19,6 @@ interface AgentConfigFormProps {
 export function AgentConfigForm({ agent }: AgentConfigFormProps) {
   const router = useRouter()
   const [name, setName] = useState(agent.name)
-  const [description, setDescription] = useState(agent.description || "")
-  const [welcomeMessage, setWelcomeMessage] = useState(agent.welcome_message)
   const [prompt, setPrompt] = useState(agent.prompt || "")
   const [status, setStatus] = useState(agent.status)
   const [webhookUrl, setWebhookUrl] = useState(agent.n8n_webhook_url || "")
@@ -48,8 +46,6 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
         .from("agents")
         .update({
           name,
-          description,
-          welcome_message: welcomeMessage,
           prompt,
           status,
           n8n_webhook_url: webhookUrl,
@@ -83,16 +79,6 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="prompt">Prompt do Agente</Label>
             <Textarea
               id="prompt"
@@ -104,16 +90,6 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
             <p className="text-xs text-muted-foreground">
               Instruções que definem como o agente deve se comportar e responder
             </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="welcome">Mensagem de Boas-vindas</Label>
-            <Textarea
-              id="welcome"
-              value={welcomeMessage}
-              onChange={(e) => setWelcomeMessage(e.target.value)}
-              rows={2}
-            />
           </div>
 
           <div className="space-y-2">

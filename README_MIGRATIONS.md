@@ -16,10 +16,19 @@ Adiciona campos de admin, planos e status à tabela profiles.
 Corrige o trigger de criação de profile para usar UPSERT e adicionar full_name.
 
 ### 4. `scripts/007_add_agents_fields.sql`
-Adiciona campos `prompt`, `anexos`, `instance_id` e `whatsapp_status` à tabela agents.
+Adiciona campos `prompt` e `anexos` à tabela agents.
 
 ### 5. `scripts/008_create_storage_bucket.sql`
 Cria políticas de acesso para o bucket de storage (execute após criar o bucket manualmente).
+
+### 6. `scripts/009_remove_welcome_description.sql`
+Remove campos `welcome_message` e `description` da tabela agents.
+
+### 7. `scripts/010_fix_profile_update_policy.sql`
+Garante que usuários possam atualizar seu próprio profile durante o signup.
+
+### 8. `scripts/011_fix_admin_view_profiles.sql`
+Corrige políticas RLS para permitir que admin veja todos os perfis de usuários usando função helper `is_admin()`.
 
 ## 📝 Como Executar
 
@@ -51,9 +60,14 @@ Veja `docs/STORAGE_SETUP.md` para mais detalhes.
 Após executar todas as migrações, verifique:
 
 - [ ] Tabela `profiles` tem campos `role`, `status`, `plan`, `full_name`
-- [ ] Tabela `agents` tem campos `prompt`, `anexos`, `instance_id`, `whatsapp_status`
-- [ ] Trigger `handle_new_user` está funcionando
+- [ ] Tabela `agents` tem campos `prompt` e `anexos`
+- [ ] Tabela `agents` NÃO tem campos `welcome_message` e `description`
+- [ ] Trigger `handle_new_user` está funcionando e lê metadata corretamente
+- [ ] Políticas RLS permitem que usuários atualizem seu próprio profile
+- [ ] Função `is_admin()` foi criada e funciona corretamente
+- [ ] Admin pode ver todos os perfis de usuários na página de admin
 - [ ] Bucket `agent-attachments` existe e tem políticas configuradas
+- [ ] Ao criar usuário admin, o profile tem `role = 'admin'` e `plan = 'premium'`
 
 ## 🐛 Problemas Comuns
 

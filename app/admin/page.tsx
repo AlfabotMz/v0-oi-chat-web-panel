@@ -65,15 +65,38 @@ export default function AdminPage() {
   }, [router])
 
   const loadUsers = async () => {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("role", "user")
-      .order("created_at", { ascending: false })
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "user")
+        .order("created_at", { ascending: false })
 
-    setUsers(data || [])
-    setLoading(false)
+      if (error) {
+        console.error("Erro ao carregar usuários:", error)
+        // Tentar buscar sem filtro de role para debug
+        const { data: allData, error: allError } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false })
+        
+        if (allError) {
+          console.error("Erro ao carregar todos os perfis:", allError)
+        } else {
+          console.log("Todos os perfis encontrados:", allData)
+          // Filtrar apenas usuários no cliente
+          const userProfiles = (allData || []).filter((p: any) => p.role === "user")
+          setUsers(userProfiles)
+        }
+      } else {
+        setUsers(data || [])
+      }
+    } catch (err) {
+      console.error("Erro ao carregar usuários:", err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handlePlanChange = async () => {

@@ -59,6 +59,7 @@
 - `scripts/006_fix_profile_trigger.sql` - Corrige trigger de profile
 - `scripts/007_add_agents_fields.sql` - Adiciona novos campos à tabela agents
 - `scripts/008_create_storage_bucket.sql` - Políticas de acesso para storage
+- `scripts/009_remove_welcome_description.sql` - Remove campos welcome_message e description
 
 ### Componentes
 - `components/dashboard/attachments-manager.tsx` - Gerenciador de anexos
@@ -81,15 +82,24 @@
 - **Funcionalidade**: Faz POST para `https://n8n.myoichat.online/webhook/connect-whatsapp` com `agent_id` e exibe o QR code retornado
 - **Simplicidade**: Sem polling, sem verificação de status, apenas chamar webhook n8n e mostrar QR code
 
+## 🗑️ Funcionalidades Removidas
+
+### Campos Removidos da Tabela Agents
+- **Removido**: Campo `welcome_message` - Mensagem de boas-vindas removida
+- **Removido**: Campo `description` - Descrição do agente removida
+- **Razão**: Simplificação da estrutura, esses campos não são mais necessários
+- **Script**: `scripts/009_remove_welcome_description.sql` - Remove os campos do banco de dados
+- **Frontend**: Campos removidos dos formulários de criação e edição de agentes
+
 ## 🔧 Arquivos Modificados
 
 ### Código
 - `lib/supabase/client.ts` - Atualizado para usar `createBrowserClient`
 - `lib/supabase/auth-actions.ts` - Modificado para usar `upsert` ao criar profile
 - `app/admin/page.tsx` - Melhorada verificação de admin
-- `components/dashboard/agent-config-form.tsx` - Adicionados campos de prompt e anexos
-- `components/dashboard/agents-list.tsx` - Adicionado status do WhatsApp
-- `components/dashboard/create-agent-dialog.tsx` - (Sem mudanças necessárias)
+- `components/dashboard/agent-config-form.tsx` - Removidos campos description e welcome_message
+- `components/dashboard/agents-list.tsx` - Removida exibição de description
+- `components/dashboard/create-agent-dialog.tsx` - Removidos campos description e welcome_message
 
 ## ⚙️ Configurações Necessárias
 

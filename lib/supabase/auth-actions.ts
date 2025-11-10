@@ -17,6 +17,12 @@ export async function signUp(email: string, password: string, isAdmin = false) {
     }
   }
 
+  // Preparar valores para role, status e plan
+  const userRole = isAdmin ? "admin" : "user"
+  const userStatus = isAdmin ? "active" : "inactive"
+  const userPlan = isAdmin ? "premium" : "free"
+  const userFullName = email.split("@")[0]
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -24,31 +30,82 @@ export async function signUp(email: string, password: string, isAdmin = false) {
       emailRedirectTo:
         process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
         `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard`,
+      data: {
+        role: userRole,
+        status: userStatus,
+        plan: userPlan,
+        full_name: userFullName,
+      },
     },
   })
 
   if (data?.user && !error) {
-    const role = isAdmin ? "admin" : "user"
-    const status = isAdmin ? "active" : "inactive"
-    const plan = isAdmin ? "premium" : "free"
+    // Aguardar um pouco para garantir que o trigger executou
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    // Usar UPSERT para evitar conflito com o trigger
-    // O trigger cria o profile primeiro, então fazemos UPDATE
-    await supabase
-      .from("profiles")
-      .upsert(
-        {
+    // Verificar e garantir que o profile foi criado com os valores corretos
+    // Tentar até 3 vezes para garantir que o profile está correto
+    let attempts = 0
+    let profileCorrect = false
+
+    while (attempts < 3 && !profileCorrect) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", data.user.id)
+        .single()
+
+      if (profile) {
+        // Verificar se os valores estão corretos
+        if (profile.role === userRole && profile.plan === userPlan && profile.status === userStatus) {
+          profileCorrect = true
+        } else {
+          // Atualizar com os valores corretos
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({
+              role: userRole,
+              status: userStatus,
+              plan: userPlan,
+              email: data.user.email || email,
+              full_name: userFullName,
+            })
+            .eq("id", data.user.id)
+
+          if (updateError) {
+            console.error("Erro ao atualizar profile (tentativa", attempts + 1, "):", updateError)
+          } else {
+            profileCorrect = true
+          }
+        }
+      } else {
+        // Se o profile não existe, criar manualmente
+        const { error: insertError } = await supabase.from("profiles").insert({
           id: data.user.id,
           email: data.user.email || email,
-          full_name: email.split("@")[0],
-          role,
-          status,
-          plan,
-        },
-        {
-          onConflict: "id",
+          full_name: userFullName,
+          role: userRole,
+          status: userStatus,
+          plan: userPlan,
+        })
+
+        if (insertError) {
+          console.error("Erro ao criar profile (tentativa", attempts + 1, "):", insertError)
+        } else {
+          profileCorrect = true
         }
-      )
+      }
+
+      attempts++
+      if (!profileCorrect && attempts < 3) {
+        // Aguardar um pouco antes de tentar novamente
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
+    }
+
+    if (!profileCorrect) {
+      console.error("Não foi possível garantir que o profile foi criado corretamente após", attempts, "tentativas")
+    }
   }
 
   return { data, error }

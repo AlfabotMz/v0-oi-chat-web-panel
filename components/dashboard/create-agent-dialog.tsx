@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 
 interface CreateAgentDialogProps {
   open: boolean
@@ -20,8 +19,6 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
   const router = useRouter()
   const [name, setName] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
-  const [description, setDescription] = useState("")
-  const [welcomeMessage, setWelcomeMessage] = useState("Hello! How can I help you?")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,8 +40,6 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
         user_id: user.id,
         name,
         phone_number: phoneNumber,
-        description,
-        welcome_message: welcomeMessage,
         status: "active",
       })
 
@@ -54,8 +49,6 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
       onOpenChange(false)
       setName("")
       setPhoneNumber("")
-      setDescription("")
-      setWelcomeMessage("Hello! How can I help you?")
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create agent")
     } finally {
@@ -94,21 +87,6 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
               onChange={(e) => setPhoneNumber(e.target.value)}
               required
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Describe what this agent does..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="welcome">Welcome Message</Label>
-            <Textarea id="welcome" value={welcomeMessage} onChange={(e) => setWelcomeMessage(e.target.value)} />
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}

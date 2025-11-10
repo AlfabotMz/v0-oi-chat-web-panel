@@ -48,9 +48,6 @@ export function AgentsList({ agents }: AgentsListProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {agent.description || "No description"}
-                </p>
                 <div className="flex gap-2">
                   <Link href={`/dashboard/agents/${agent.id}`} className="flex-1">
                     <Button variant="outline" size="sm" className="w-full gap-2 bg-transparent">
