@@ -25,7 +25,6 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
   const [status, setStatus] = useState(agent.status)
   const [webhookUrl, setWebhookUrl] = useState(agent.n8n_webhook_url || "")
   const [attachments, setAttachments] = useState<Record<string, string[]>>(agent.anexos || {})
-  const [whatsappStatus, setWhatsappStatus] = useState(agent.whatsapp_status || "disconnected")
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
@@ -36,9 +35,6 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
     }
     if (agent.prompt) {
       setPrompt(agent.prompt)
-    }
-    if (agent.whatsapp_status) {
-      setWhatsappStatus(agent.whatsapp_status)
     }
   }, [agent])
 
@@ -135,7 +131,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="webhook">URL do Webhook n8n</Label>
+            <Label htmlFor="webhook">URL do Webhook n8n (WhatsApp)</Label>
             <Input
               id="webhook"
               placeholder="https://n8n.example.com/webhook/..."
@@ -143,7 +139,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               onChange={(e) => setWebhookUrl(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Opcional: Conecte com n8n para automação avançada
+              URL do webhook n8n para conectar com WhatsApp e processar mensagens
             </p>
           </div>
 
@@ -169,20 +165,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
       <AttachmentsManager attachments={attachments} onAttachmentsChange={setAttachments} />
 
       {/* Conexão WhatsApp */}
-      <WhatsAppConnect
-        agentId={agent.id}
-        currentStatus={whatsappStatus}
-        onStatusChange={(newStatus) => {
-          setWhatsappStatus(newStatus)
-          // Atualizar no banco
-          const supabase = createClient()
-          supabase
-            .from("agents")
-            .update({ whatsapp_status: newStatus })
-            .eq("id", agent.id)
-            .then(() => router.refresh())
-        }}
-      />
+      <WhatsAppConnect agentId={agent.id} />
     </div>
   )
 }

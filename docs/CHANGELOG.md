@@ -21,8 +21,6 @@
 ### 1. Campos Adicionados na Tabela Agents
 - **prompt**: Campo de texto para instruções do agente de IA
 - **anexos**: Campo JSONB para armazenar anexos (chave-valor)
-- **instance_id**: ID da instância do WhatsApp na Evolution API
-- **whatsapp_status**: Status da conexão WhatsApp (disconnected, pending, connected, error)
 
 ### 2. Sistema de Anexos
 - **Componente**: `AttachmentsManager`
@@ -34,31 +32,26 @@
   - Sistema de chave-valor (nome do anexo → array de URLs)
 
 ### 3. Conexão com WhatsApp
-- **Rota**: `/webhook/connect-whatsapp`
-- **Funcionalidades**:
-  - Criação de instância na Evolution API
-  - Geração de QR code para conexão
-  - Atualização de status do WhatsApp
-  - Polling automático para verificar conexão
-- **Componente**: `WhatsAppConnect`
-  - Interface visual com QR code
-  - Status em tempo real
-  - Indicadores visuais de conexão
+- **Método**: Conexão através do webhook n8n
+- **Rota**: `/api/agents/connect-whatsapp` - Chama webhook n8n e retorna QR code
+- **Componente**: `WhatsAppConnect` - Exibe QR code para escanear com WhatsApp
+- **Funcionalidade**: 
+  - Faz POST para `https://n8n.myoichat.online/webhook/connect-whatsapp`
+  - Envia `agent_id` no body
+  - Webhook n8n processa e retorna QR code
+  - Usuário escaneia o QR code com WhatsApp
+  - Simples e direto, sem complexidade adicional
 
 ### 4. Atualização do Formulário de Agente
 - **Novos Campos**:
   - Prompt do agente (textarea expandido)
   - Gerenciamento de anexos
-  - Conexão WhatsApp
+  - URL do Webhook n8n (WhatsApp)
 - **Melhorias**:
   - Interface mais organizada
   - Tradução para português
   - Validação melhorada
-
-### 5. Lista de Agentes Atualizada
-- Exibição do status do WhatsApp
-- Badge visual para status de conexão
-- Informações mais detalhadas
+  - Campo de webhook n8n com descrição clara para conexão WhatsApp
 
 ## 📁 Arquivos Criados
 
@@ -72,14 +65,21 @@
 - `components/dashboard/whatsapp-connect.tsx` - Componente de conexão WhatsApp
 
 ### Rotas API
-- `app/webhook/connect-whatsapp/route.ts` - Webhook para conectar WhatsApp
-- `app/api/agents/[id]/status/route.ts` - API para verificar status do agente
+- `app/api/agents/connect-whatsapp/route.ts` - Endpoint para conectar WhatsApp
 
 ### Documentação
 - `docs/ANALYTICS_UPDATE.md` - Guia de atualização da tabela analytics
 - `docs/STORAGE_SETUP.md` - Guia de configuração do storage
 - `docs/CHANGELOG.md` - Este arquivo
 - `README_MIGRATIONS.md` - Guia de migrações do banco de dados
+
+## 🔄 Funcionalidades Atualizadas
+
+### Conexão com WhatsApp via Webhook n8n
+- **Rota**: `/api/agents/connect-whatsapp` - Endpoint que chama webhook n8n e retorna QR code
+- **Componente**: `WhatsAppConnect` - Componente simplificado que apenas mostra o QR code
+- **Funcionalidade**: Faz POST para `https://n8n.myoichat.online/webhook/connect-whatsapp` com `agent_id` e exibe o QR code retornado
+- **Simplicidade**: Sem polling, sem verificação de status, apenas chamar webhook n8n e mostrar QR code
 
 ## 🔧 Arquivos Modificados
 
@@ -94,11 +94,10 @@
 ## ⚙️ Configurações Necessárias
 
 ### Variáveis de Ambiente
-Adicione ao arquivo `.env.local`:
 ```env
-EVOLUTION_API_URL=https://api.evolution.com.br
-EVOLUTION_API_KEY=sua_chave_api
+N8N_WEBHOOK_URL=https://n8n.myoichat.online/webhook/connect-whatsapp
 ```
+**Nota**: Se não configurar, o padrão é `https://n8n.myoichat.online/webhook/connect-whatsapp`. O webhook n8n processa a conexão com WhatsApp.
 
 ### Supabase Storage
 1. Crie o bucket `agent-attachments` no Supabase Dashboard
