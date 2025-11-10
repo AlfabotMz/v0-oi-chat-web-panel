@@ -76,32 +76,61 @@ export async function POST(request: NextRequest) {
       
       console.log("Dados recebidos do n8n:", n8nData)
 
-      if (!n8nResponse.ok || !n8nData.success) {
+      // A resposta do n8n pode vir em dois formatos:
+      // 1. { success: true, agent: {...} } - formato direto
+      // 2. { data: { success: false, message: "...", agent: {...}, nome: "...", prompt: "...", status: "..." } } - formato com wrapper
+      let responseData = n8nData
+      
+      // Se a resposta tem um wrapper "data", extrair de lá
+      if (n8nData.data) {
+        responseData = n8nData.data
+      }
+
+      // Verificar sucesso
+      // O n8n pode retornar success: false mas com mensagem positiva, então verificamos ambos
+      const hasPositiveMessage = responseData.message && 
+        (responseData.message.toLowerCase().includes("sucesso") || 
+         responseData.message.toLowerCase().includes("success") ||
+         responseData.message.toLowerCase().includes("criado"))
+      
+      const isSuccess = responseData.success === true || 
+                       (n8nResponse.ok && hasPositiveMessage) ||
+                       (n8nResponse.ok && !responseData.error)
+      
+      if (!n8nResponse.ok || (!isSuccess && !hasPositiveMessage)) {
         return NextResponse.json(
           {
             success: false,
-            error: n8nData.message || n8nData.error || "Erro ao criar agente no n8n",
+            error: responseData.message || responseData.error || n8nData.message || n8nData.error || "Erro ao criar agente no n8n",
           },
           { status: n8nResponse.status || 500 }
         )
       }
 
       // Salvar o agente no Supabase com os dados retornados pelo n8n
-      const agentData = n8nData.agent
+      // Os dados podem estar em agent ou diretamente no responseData
+      // No formato do n8n, nome, prompt e status estão no mesmo nível que agent
+      const agentData = responseData.agent || {}
       
-      // O n8n retorna agent_id como string (ex: "agente_1234")
+      // O n8n retorna agent_id como string (ex: "agente_1234" ou UUID)
       // Mas a tabela agents usa UUID como id. Vamos gerar um UUID novo para o Supabase
       // O agent_id do n8n será usado apenas internamente pelo n8n
+      
+      // Garantir que temos os dados necessários
+      // Prioridade: agentData > responseData > dados da requisição original
+      const agentName = agentData.nome || responseData.nome || nome
+      const agentPrompt = agentData.prompt || responseData.prompt || prompt
+      const agentStatus = agentData.status || responseData.status || "disconnected"
       
       const { data: insertedAgent, error: insertError } = await supabase
         .from("agents")
         .insert({
           // Não especificar id, deixar o Supabase gerar um UUID automaticamente
           user_id: user.id,
-          name: agentData.nome,
-          prompt: agentData.prompt,
+          name: agentName,
+          prompt: agentPrompt,
           phone_number: phone_number || null,
-          status: agentData.status || "disconnected",
+          status: agentStatus,
         })
         .select()
         .single()

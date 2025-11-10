@@ -40,7 +40,7 @@ N8N_URL=https://n8n.myoichat.online
 }
 ```
 
-**Resposta Esperada:**
+**Resposta Esperada (Formato 1 - Direto):**
 ```json
 {
   "success": true,
@@ -53,6 +53,24 @@ N8N_URL=https://n8n.myoichat.online
   }
 }
 ```
+
+**Resposta Esperada (Formato 2 - Com wrapper data):**
+```json
+{
+  "data": {
+    "success": false,
+    "message": "Agente criado com sucesso!",
+    "agent": {
+      "agent_id": "647065c0-1f13-4fbc-93f8-0d44e79a6834"
+    },
+    "nome": "test4",
+    "prompt": "Agente de vendas",
+    "status": "disconnected"
+  }
+}
+```
+
+**Nota**: O código aceita ambos os formatos. No formato 2, os campos `nome`, `prompt` e `status` podem estar no mesmo nível que `agent`, não necessariamente dentro de `agent`.
 
 ### 2. Conectar WhatsApp (`/webhook/connect-whatsapp`)
 
@@ -87,13 +105,25 @@ O webhook n8n deve retornar uma resposta JSON no seguinte formato:
 
 ### Campos da Resposta (Criar Agente)
 
+**Formato 1 (Direto):**
 - `success` (boolean): Indica se a operação foi bem-sucedida
 - `message` (string): Mensagem de sucesso ou erro
 - `agent` (object): Objeto com os dados do agente criado
-  - `agent_id` (string): ID do agente no n8n (ex: "agente_1234")
+  - `agent_id` (string): ID do agente no n8n (ex: "agente_1234" ou UUID)
   - `nome` (string): Nome do agente
   - `prompt` (string): Prompt do agente
   - `status` (string): Status inicial do agente (geralmente "disconnected")
+
+**Formato 2 (Com wrapper data):**
+- `data` (object): Wrapper com os dados da resposta
+  - `success` (boolean): Pode ser `false` mesmo com sucesso (verificar `message`)
+  - `message` (string): Mensagem de sucesso ou erro (verificar palavras-chave: "sucesso", "criado")
+  - `agent` (object): Objeto com `agent_id` (pode estar vazio ou só com `agent_id`)
+  - `nome` (string): Nome do agente (no mesmo nível que `agent`)
+  - `prompt` (string): Prompt do agente (no mesmo nível que `agent`)
+  - `status` (string): Status inicial do agente (no mesmo nível que `agent`)
+
+**Nota**: O código detecta automaticamente o formato e extrai os dados corretamente. Se `success` for `false` mas a mensagem contiver "sucesso" ou "criado", a operação é considerada bem-sucedida.
 
 ## 🐛 Solução de Problemas
 
