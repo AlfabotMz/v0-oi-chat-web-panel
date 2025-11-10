@@ -1,0 +1,68 @@
+# 📋 Guia de Migrações do Banco de Dados
+
+Este documento lista todas as migrações SQL que precisam ser executadas no Supabase.
+
+## 🚀 Ordem de Execução
+
+Execute os scripts SQL na seguinte ordem:
+
+### 1. `scripts/001_create_tables.sql`
+Cria as tabelas básicas do sistema (profiles, agents, conversations, messages, analytics).
+
+### 2. `scripts/002_add_admin_and_plans.sql`
+Adiciona campos de admin, planos e status à tabela profiles.
+
+### 3. `scripts/006_fix_profile_trigger.sql`
+Corrige o trigger de criação de profile para usar UPSERT e adicionar full_name.
+
+### 4. `scripts/007_add_agents_fields.sql`
+Adiciona campos `prompt`, `anexos`, `instance_id` e `whatsapp_status` à tabela agents.
+
+### 5. `scripts/008_create_storage_bucket.sql`
+Cria políticas de acesso para o bucket de storage (execute após criar o bucket manualmente).
+
+## 📝 Como Executar
+
+1. Acesse o [Supabase Dashboard](https://app.supabase.com)
+2. Vá para **SQL Editor**
+3. Execute cada script na ordem listada acima
+4. Verifique se não há erros
+
+## ⚠️ Importante
+
+- **Não execute** `scripts/000_drop_all_tables.sql` em produção (apenas para desenvolvimento)
+- Execute as migrações em ordem
+- Faça backup do banco antes de executar migrações em produção
+- Após executar `scripts/008_create_storage_bucket.sql`, crie o bucket manualmente no Dashboard
+
+## 🔧 Configuração do Storage
+
+Após executar as migrações SQL, configure o storage:
+
+1. Vá para **Storage** > **Buckets**
+2. Crie um novo bucket chamado `agent-attachments`
+3. Configure como privado
+4. As políticas já estarão criadas pelo script `008_create_storage_bucket.sql`
+
+Veja `docs/STORAGE_SETUP.md` para mais detalhes.
+
+## ✅ Verificação
+
+Após executar todas as migrações, verifique:
+
+- [ ] Tabela `profiles` tem campos `role`, `status`, `plan`, `full_name`
+- [ ] Tabela `agents` tem campos `prompt`, `anexos`, `instance_id`, `whatsapp_status`
+- [ ] Trigger `handle_new_user` está funcionando
+- [ ] Bucket `agent-attachments` existe e tem políticas configuradas
+
+## 🐛 Problemas Comuns
+
+### Erro: "relation already exists"
+- Algumas tabelas já podem existir. Use `IF NOT EXISTS` ou `DROP TABLE IF EXISTS` antes de criar.
+
+### Erro: "permission denied"
+- Verifique se você tem permissões de administrador no Supabase.
+
+### Erro: "bucket does not exist"
+- Crie o bucket manualmente no Dashboard antes de executar as políticas.
+

@@ -32,15 +32,23 @@ export async function signUp(email: string, password: string, isAdmin = false) {
     const status = isAdmin ? "active" : "inactive"
     const plan = isAdmin ? "premium" : "free"
 
-    await supabase.from("profiles").insert([
-      {
-        id: data.user.id,
-        full_name: email.split("@")[0],
-        role,
-        status,
-        plan,
-      },
-    ])
+    // Usar UPSERT para evitar conflito com o trigger
+    // O trigger cria o profile primeiro, então fazemos UPDATE
+    await supabase
+      .from("profiles")
+      .upsert(
+        {
+          id: data.user.id,
+          email: data.user.email || email,
+          full_name: email.split("@")[0],
+          role,
+          status,
+          plan,
+        },
+        {
+          onConflict: "id",
+        }
+      )
   }
 
   return { data, error }

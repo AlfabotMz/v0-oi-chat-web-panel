@@ -42,7 +42,21 @@ export function AgentsList({ agents }: AgentsListProps) {
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-lg">{agent.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{agent.phone_number}</p>
+                    <p className="text-sm text-muted-foreground">{agent.phone_number || "Sem número"}</p>
+                    {agent.whatsapp_status && (
+                      <Badge
+                        variant={
+                          agent.whatsapp_status === "connected"
+                            ? "default"
+                            : agent.whatsapp_status === "pending"
+                              ? "secondary"
+                              : "destructive"
+                        }
+                        className="text-xs"
+                      >
+                        WhatsApp: {agent.whatsapp_status === "connected" ? "Conectado" : agent.whatsapp_status === "pending" ? "Aguardando" : "Desconectado"}
+                      </Badge>
+                    )}
                   </div>
                   <Badge variant={agent.status === "active" ? "default" : "secondary"}>{agent.status}</Badge>
                 </div>
