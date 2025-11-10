@@ -82,6 +82,16 @@
 - **Funcionalidade**: Faz POST para `https://n8n.myoichat.online/webhook/connect-whatsapp` com `agent_id` e exibe o QR code retornado
 - **Simplicidade**: Sem polling, sem verificação de status, apenas chamar webhook n8n e mostrar QR code
 
+### Criação de Agentes via Webhook n8n
+- **Rota**: `/api/agents/create` - Endpoint que chama webhook n8n para criar agente
+- **Funcionalidade**: 
+  - Faz POST para `https://n8n.myoichat.online/webhook/create-agent` com `user_id`, `nome` e `prompt`
+  - Após receber resposta do n8n, salva o agente no Supabase
+  - O agente é criado primeiro no n8n, depois sincronizado com o Supabase
+- **Campos Obrigatórios**: `nome` e `prompt`
+- **Campo Opcional**: `phone_number`
+- **Componente**: `CreateAgentDialog` atualizado com campo de prompt obrigatório
+
 ## 🗑️ Funcionalidades Removidas
 
 ### Campos Removidos da Tabela Agents

@@ -3,12 +3,12 @@
 import type React from "react"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 interface CreateAgentDialogProps {
   open: boolean
@@ -17,7 +17,8 @@ interface CreateAgentDialogProps {
 
 export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps) {
   const router = useRouter()
-  const [name, setName] = useState("")
+  const [nome, setNome] = useState("")
+  const [prompt, setPrompt] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,29 +29,33 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
     setIsLoading(true)
 
     try {
-      const supabase = createClient()
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser()
-
-      if (userError || !user) throw new Error("Not authenticated")
-
-      const { error: insertError } = await supabase.from("agents").insert({
-        user_id: user.id,
-        name,
-        phone_number: phoneNumber,
-        status: "active",
+      // Chamar a API que usa o webhook n8n
+      const response = await fetch("/api/agents/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nome,
+          prompt,
+          phone_number: phoneNumber || null,
+        }),
       })
 
-      if (insertError) throw insertError
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Erro ao criar agente")
+      }
 
       router.refresh()
       onOpenChange(false)
-      setName("")
+      setNome("")
+      setPrompt("")
       setPhoneNumber("")
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create agent")
+      console.error("Erro ao criar agente:", err)
+      setError(err instanceof Error ? err.message : "Erro ao criar agente")
     } finally {
       setIsLoading(false)
     }
@@ -60,47 +65,70 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Agent</DialogTitle>
+          <DialogTitle>Criar Novo Agente</DialogTitle>
           <DialogDescription>
-            Set up a new WhatsApp virtual agent for automated customer interactions.
+            Configure um novo agente virtual para WhatsApp. O agente será criado através do n8n.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Agent Name</Label>
+            <Label htmlFor="nome">Nome do Agente</Label>
             <Input
-              id="name"
-              placeholder="Customer Support Bot"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              id="nome"
+              placeholder="Ex: Atendimento Cliente"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              placeholder="+1 (555) 000-0000"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+            <Label htmlFor="prompt">Prompt do Agente</Label>
+            <Textarea
+              id="prompt"
+              placeholder="Ex: Olá! Sou o atendente virtual OiChat. Como posso ajudá-lo hoje?"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
               required
+              rows={4}
             />
+            <p className="text-xs text-muted-foreground">
+              Instruções iniciais que o agente seguirá ao conversar com os clientes
+            </p>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          <div className="space-y-2">
+            <Label htmlFor="phone">Número de Telefone (Opcional)</Label>
+            <Input
+              id="phone"
+              placeholder="+55 11 99999-9999"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Número associado ao WhatsApp do agente (opcional)
+            </p>
+          </div>
+
+          {error && (
+            <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-md">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
 
           <div className="flex gap-2 justify-end">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+              Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Agent"}
+              {isLoading ? "Criando..." : "Criar Agente"}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   )
+}
+
 }

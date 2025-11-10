@@ -1,6 +1,6 @@
-# 🔧 Configuração do n8n para WhatsApp
+# 🔧 Configuração do n8n
 
-Este documento explica como configurar a integração com n8n para conexão do WhatsApp.
+Este documento explica como configurar a integração com n8n para criação de agentes e conexão do WhatsApp.
 
 ## 📋 Variáveis de Ambiente
 
@@ -27,10 +27,36 @@ N8N_URL=https://n8n.myoichat.online
 3. Se nenhuma existir, usa o valor padrão: `https://n8n.myoichat.online`
 4. Se a URL não contém `/webhook/`, o código adiciona automaticamente `/webhook/connect-whatsapp`
 
-## 📡 Formato da Requisição
+## 📡 Webhooks Disponíveis
 
-O código faz uma requisição POST para o webhook n8n com o seguinte formato:
+### 1. Criar Agente (`/webhook/create-agent`)
 
+**Requisição:**
+```json
+{
+  "user_id": "uuid-do-usuario-supabase",
+  "nome": "Daniel",
+  "prompt": "Olá! Sou o atendente virtual OiChat."
+}
+```
+
+**Resposta Esperada:**
+```json
+{
+  "success": true,
+  "message": "Agente criado com sucesso!",
+  "agent": {
+    "agent_id": "agente_1234",
+    "nome": "Daniel",
+    "prompt": "Olá! Sou o atendente virtual OiChat.",
+    "status": "disconnected"
+  }
+}
+```
+
+### 2. Conectar WhatsApp (`/webhook/connect-whatsapp`)
+
+**Requisição:**
 ```json
 {
   "agent_id": "uuid-do-agente"
@@ -38,6 +64,8 @@ O código faz uma requisição POST para o webhook n8n com o seguinte formato:
 ```
 
 ## 📥 Formato da Resposta Esperada
+
+### Resposta do Webhook de Conexão WhatsApp
 
 O webhook n8n deve retornar uma resposta JSON no seguinte formato:
 
@@ -50,12 +78,22 @@ O webhook n8n deve retornar uma resposta JSON no seguinte formato:
 }
 ```
 
-### Campos da Resposta
+### Campos da Resposta (Conexão WhatsApp)
 
 - `success` (boolean): Indica se a operação foi bem-sucedida
 - `qr` (string): QR code em formato base64 ou URL da imagem
 - `status` (string): Status da conexão (`pending`, `connected`, `disconnected`)
 - `message` (string): Mensagem para o usuário
+
+### Campos da Resposta (Criar Agente)
+
+- `success` (boolean): Indica se a operação foi bem-sucedida
+- `message` (string): Mensagem de sucesso ou erro
+- `agent` (object): Objeto com os dados do agente criado
+  - `agent_id` (string): ID do agente no n8n (ex: "agente_1234")
+  - `nome` (string): Nome do agente
+  - `prompt` (string): Prompt do agente
+  - `status` (string): Status inicial do agente (geralmente "disconnected")
 
 ## 🐛 Solução de Problemas
 
