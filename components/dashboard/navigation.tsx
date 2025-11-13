@@ -23,7 +23,10 @@ export function Navigation({ variant = "sidebar", onNavigate }: NavigationProps)
 
   if (variant === "mobile") {
     return (
-      <nav className="flex items-stretch justify-around gap-1 px-2 py-3 bg-card">
+      <nav
+        className="flex items-stretch justify-around gap-1 px-2 py-3"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
+      >
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname.startsWith(item.href)
@@ -32,8 +35,10 @@ export function Navigation({ variant = "sidebar", onNavigate }: NavigationProps)
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 px-3 py-2 text-xs rounded-md transition-colors",
-                isActive ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground",
+                "flex flex-1 flex-col items-center justify-center gap-1 rounded-md px-3 py-2 text-xs transition-colors",
+                isActive
+                  ? "text-primary font-medium"
+                  : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground",
               )}
               onClick={onNavigate}
             >
