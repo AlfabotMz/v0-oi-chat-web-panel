@@ -201,7 +201,7 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground text-center">{message}</p>
                 <div className="flex justify-center">
-                  <div className="border-2 border-border rounded-lg p-4 bg-white">
+                  <div className="border-2 border-border rounded-lg p-4 bg-black">
                     <Image src={qrCode} alt="QR Code WhatsApp" width={256} height={256} className="rounded" />
                   </div>
                 </div>
