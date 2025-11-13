@@ -107,50 +107,63 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Salvar o agente no Supabase com os dados retornados pelo n8n
-      // Os dados podem estar em agent ou diretamente no responseData
-      // No formato do n8n, nome, prompt e status estão no mesmo nível que agent
+      // O n8n é responsável por criar o agente no Supabase
+      // Não devemos criar manualmente aqui para evitar duplicação
+      
+      // Extrair o agent_id retornado pelo n8n
       const agentData = responseData.agent || {}
+      const agentId = agentData.agent_id || responseData.agent_id
       
-      // O n8n retorna agent_id como string (ex: "agente_1234" ou UUID)
-      // Mas a tabela agents usa UUID como id. Vamos gerar um UUID novo para o Supabase
-      // O agent_id do n8n será usado apenas internamente pelo n8n
+      // Se o n8n retornou um UUID válido, buscar o agente no Supabase
+      // Caso contrário, retornar apenas os dados do n8n
+      let agent = null
       
-      // Garantir que temos os dados necessários
-      // Prioridade: agentData > responseData > dados da requisição original
-      const agentName = agentData.nome || responseData.nome || nome
-      const agentPrompt = agentData.prompt || responseData.prompt || prompt
-      const agentStatus = agentData.status || responseData.status || "disconnected"
+      if (agentId) {
+        // Verificar se é um UUID válido (formato: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        if (uuidRegex.test(agentId)) {
+          // Buscar o agente criado pelo n8n no Supabase
+          const { data: foundAgent, error: findError } = await supabase
+            .from("agents")
+            .select("*")
+            .eq("id", agentId)
+            .eq("user_id", user.id)
+            .single()
+          
+          if (!findError && foundAgent) {
+            agent = foundAgent
+            console.log("Agente encontrado no Supabase:", foundAgent.id)
+          } else {
+            console.warn("Agente não encontrado no Supabase com ID:", agentId, findError)
+            // Se não encontrou, pode ser que o n8n ainda não tenha criado
+            // ou o agent_id não seja o UUID do Supabase
+          }
+        } else {
+          console.log("agent_id não é um UUID válido, pode ser um ID interno do n8n:", agentId)
+        }
+      }
       
-      const { data: insertedAgent, error: insertError } = await supabase
-        .from("agents")
-        .insert({
-          // Não especificar id, deixar o Supabase gerar um UUID automaticamente
+      // Se não encontrou o agente no Supabase, retornar os dados do n8n
+      if (!agent) {
+        const agentName = agentData.nome || responseData.nome || nome
+        const agentPrompt = agentData.prompt || responseData.prompt || prompt
+        const agentStatus = agentData.status || responseData.status || "disconnected"
+        
+        agent = {
+          id: agentId || null,
           user_id: user.id,
           name: agentName,
           prompt: agentPrompt,
           phone_number: phone_number || null,
           status: agentStatus,
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error("Erro ao salvar agente no Supabase:", insertError)
-        return NextResponse.json(
-          {
-            success: false,
-            error: insertError.message || "Erro ao salvar agente no banco de dados",
-          },
-          { status: 500 }
-        )
+        }
       }
 
-      // Retornar resposta com o agente criado
+      // Retornar resposta com o agente criado pelo n8n
       return NextResponse.json({
         success: true,
-        message: "Agente criado com sucesso!",
-        agent: insertedAgent,
+        message: responseData.message || "Agente criado com sucesso!",
+        agent: agent,
       })
     } catch (n8nError: any) {
       console.error("Erro no webhook n8n:", n8nError)

@@ -31,6 +31,8 @@ N8N_URL=https://n8n.myoichat.online
 
 ### 1. Criar Agente (`/webhook/create-agent`)
 
+**⚠️ IMPORTANTE**: O n8n é responsável por criar o agente no Supabase. O código do frontend apenas chama o webhook e retorna a resposta. Não deve haver criação manual no Supabase para evitar duplicação.
+
 **Requisição:**
 ```json
 {
@@ -46,7 +48,7 @@ N8N_URL=https://n8n.myoichat.online
   "success": true,
   "message": "Agente criado com sucesso!",
   "agent": {
-    "agent_id": "agente_1234",
+    "agent_id": "647065c0-1f13-4fbc-93f8-0d44e79a6834",
     "nome": "Daniel",
     "prompt": "Olá! Sou o atendente virtual OiChat.",
     "status": "disconnected"
@@ -70,7 +72,11 @@ N8N_URL=https://n8n.myoichat.online
 }
 ```
 
-**Nota**: O código aceita ambos os formatos. No formato 2, os campos `nome`, `prompt` e `status` podem estar no mesmo nível que `agent`, não necessariamente dentro de `agent`.
+**Nota**: 
+- O código aceita ambos os formatos. No formato 2, os campos `nome`, `prompt` e `status` podem estar no mesmo nível que `agent`, não necessariamente dentro de `agent`.
+- O `agent_id` retornado deve ser o UUID do agente criado no Supabase pelo n8n.
+- Se o `agent_id` for um UUID válido, o código busca o agente no Supabase para retornar os dados completos.
+- Se o `agent_id` não for um UUID (ex: "agente_1234"), o código retorna apenas os dados do n8n.
 
 ### 2. Conectar WhatsApp (`/webhook/connect-whatsapp`)
 
