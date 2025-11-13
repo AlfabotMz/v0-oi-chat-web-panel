@@ -68,20 +68,20 @@ export function AgentsList({ agents }: AgentsListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-bold text-foreground">Your Agents</h2>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+        <Button onClick={() => setIsCreateOpen(true)} className="gap-2 sm:w-auto w-full sm:self-auto">
           <Plus className="w-4 h-4" />
           New Agent
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {agents.length === 0 ? (
           <Card className="col-span-full border-border/50">
-            <CardContent className="p-8 text-center">
+            <CardContent className="p-6 text-center sm:p-8">
               <p className="text-muted-foreground mb-4">No agents yet</p>
-              <Button onClick={() => setIsCreateOpen(true)} variant="outline">
+              <Button onClick={() => setIsCreateOpen(true)} variant="outline" className="w-full sm:w-auto">
                 Create Your First Agent
               </Button>
             </CardContent>
@@ -99,15 +99,15 @@ export function AgentsList({ agents }: AgentsListProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <Link href={`/dashboard/agents/${agent.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full gap-2 bg-transparent">
+                    <Button variant="outline" size="sm" className="w-full gap-2 bg-transparent justify-center">
                       <Settings className="w-4 h-4" />
                       Configure
                     </Button>
                   </Link>
                   <Link href={`/dashboard/conversations/${agent.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full gap-2 bg-transparent">
+                    <Button variant="outline" size="sm" className="w-full gap-2 bg-transparent justify-center">
                       <MessageSquare className="w-4 h-4" />
                       Messages
                     </Button>
@@ -115,7 +115,7 @@ export function AgentsList({ agents }: AgentsListProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2 bg-transparent text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                    className="w-full sm:w-auto gap-2 bg-transparent text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
                     onClick={() => handleDeleteClick(agent.id)}
                     disabled={deletingAgentId === agent.id}
                   >

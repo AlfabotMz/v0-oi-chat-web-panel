@@ -19,13 +19,13 @@ export function Header({ user }: HeaderProps) {
   }
 
   return (
-    <header className="border-b border-border/50 bg-card px-8 py-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">OiChat Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <UserIcon className="w-4 h-4" />
-            <span>{user.email}</span>
+    <header className="border-b border-border/50 bg-card px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold text-foreground sm:text-2xl">OiChat Dashboard</h1>
+        <div className="flex w-full items-center justify-between gap-3 text-sm text-muted-foreground sm:w-auto sm:justify-end">
+          <div className="flex items-center gap-2 truncate">
+            <UserIcon className="w-4 h-4 shrink-0" />
+            <span className="truncate max-w-[12rem] sm:max-w-xs">{user.email}</span>
           </div>
           <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-2 bg-transparent">
             <LogOut className="w-4 h-4" />

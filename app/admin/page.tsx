@@ -141,14 +141,14 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
       {/* Header */}
-      <header className="border-b border-purple-200/20 bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 border-b border-purple-200/20 bg-card/60 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-purple-700">
               <Crown className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Painel de Administrador</h1>
+              <h1 className="text-xl font-semibold text-foreground sm:text-2xl">Painel de Administrador</h1>
               <p className="text-sm text-muted-foreground">OiChat</p>
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function AdminPage() {
             variant="outline"
             size="sm"
             onClick={handleLogout}
-            className="border-purple-200/20 hover:bg-purple-50/5 bg-transparent"
+            className="w-full bg-transparent border-purple-200/20 hover:bg-purple-50/10 sm:w-auto"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sair
@@ -164,9 +164,9 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
           <Card className="border-purple-200/20 bg-gradient-to-br from-purple-50/50 to-purple-50/20 dark:from-purple-950/20 dark:to-purple-950/10">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">Total de Usuários</CardTitle>
