@@ -130,5 +130,3 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
     </Dialog>
   )
 }
-
-}
