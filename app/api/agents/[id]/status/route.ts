@@ -16,7 +16,7 @@ function getN8nBaseUrl(): string {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -31,7 +31,8 @@ export async function GET(
       return NextResponse.json({ success: false, error: "Não autenticado" }, { status: 401 })
     }
 
-    const agentId = params.id
+    // Aguardar params para garantir que está disponível em produção
+    const { id: agentId } = await params
 
     if (!agentId) {
       return NextResponse.json({ success: false, error: "agent_id é obrigatório" }, { status: 400 })

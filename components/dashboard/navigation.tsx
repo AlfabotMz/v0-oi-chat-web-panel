@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 interface NavigationProps {
+  variant?: "sidebar" | "mobile"
   onNavigate?: () => void
 }
 
@@ -16,11 +17,9 @@ const navItems = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 
-export function Navigation({ onNavigate }: NavigationProps) {
+export function Navigation({ variant = "sidebar", onNavigate }: NavigationProps) {
   const pathname = usePathname()
 
-<<<<<<< HEAD
-=======
   if (variant === "mobile") {
     return (
       <nav
@@ -51,7 +50,6 @@ export function Navigation({ onNavigate }: NavigationProps) {
     )
   }
 
->>>>>>> 3a199d4 (Refactor dashboard layout and navigation components for improved styling and responsiveness. Adjusted layout structure, spacing, and mobile navigation padding for better user experience. Enhanced navigation item styles for improved accessibility.)
   return (
     <nav className="flex h-full flex-col bg-card p-6">
       <div className="mb-8 flex items-center justify-between">
