@@ -51,7 +51,7 @@ export function Navigation({ variant = "sidebar", onNavigate }: NavigationProps)
   }
 
   return (
-    <nav className="flex h-full flex-col bg-card p-6">
+    <nav className="flex h-full flex-col bg-card border-r border-border/50 p-6">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-foreground">OiChat</h2>

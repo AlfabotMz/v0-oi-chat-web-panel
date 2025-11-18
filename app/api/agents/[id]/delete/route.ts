@@ -16,7 +16,7 @@ function getN8nBaseUrl(): string {
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const supabase = await createClient()
@@ -31,12 +31,31 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: "Não autenticado" }, { status: 401 })
     }
 
-    // Aguardar params para garantir que está disponível em produção
-    const { id: agentId } = await params
+    // Extrair agentId - suporta tanto Promise quanto objeto direto
+    let agentId: string
+    if (params instanceof Promise) {
+      const resolvedParams = await params
+      agentId = resolvedParams.id
+    } else {
+      agentId = params.id
+    }
+
+    // Se ainda não tiver agentId, tentar extrair da URL
+    if (!agentId) {
+      const url = new URL(request.url)
+      const pathParts = url.pathname.split('/')
+      const idIndex = pathParts.indexOf('agents') + 1
+      if (idIndex > 0 && pathParts[idIndex]) {
+        agentId = pathParts[idIndex]
+      }
+    }
 
     if (!agentId) {
+      console.error("Erro: agent_id não encontrado. URL:", request.url, "Params:", params)
       return NextResponse.json({ success: false, error: "agent_id é obrigatório" }, { status: 400 })
     }
+
+    console.log("Agent ID extraído:", agentId)
 
     // Verificar se o agente pertence ao usuário
     const { data: agent, error: agentError } = await supabase

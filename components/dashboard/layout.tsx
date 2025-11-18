@@ -15,11 +15,14 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen flex-col bg-background md:flex-row">
-      <div className="hidden md:flex md:w-64 md:flex-shrink-0">
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar para desktop - fixa à esquerda */}
+      <aside className="hidden md:block md:w-64 md:flex-shrink-0 md:sticky md:top-0 md:h-screen">
         <Navigation onNavigate={() => {}} />
-      </div>
-      <main className="flex flex-1 flex-col overflow-hidden">
+      </aside>
+      
+      {/* Conteúdo principal */}
+      <main className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Header user={user} onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} />
         
         {/* Menu lateral minimizável para mobile */}
