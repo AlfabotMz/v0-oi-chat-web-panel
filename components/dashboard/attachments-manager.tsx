@@ -17,9 +17,11 @@ interface Attachment {
 interface AttachmentsManagerProps {
   attachments: Record<string, string[]>
   onAttachmentsChange: (attachments: Record<string, string[]>) => void
+  onSave?: () => void
+  isSaving?: boolean
 }
 
-export function AttachmentsManager({ attachments, onAttachmentsChange }: AttachmentsManagerProps) {
+export function AttachmentsManager({ attachments, onAttachmentsChange, onSave, isSaving }: AttachmentsManagerProps) {
   const [newAttachmentName, setNewAttachmentName] = useState("")
   const [uploading, setUploading] = useState<string | null>(null)
   const [attachmentsList, setAttachmentsList] = useState<Attachment[]>(
@@ -230,6 +232,15 @@ export function AttachmentsManager({ attachments, onAttachmentsChange }: Attachm
             <Plus className="w-4 h-4" />
           </Button>
         </div>
+
+        {/* Botão de salvar */}
+        {onSave && (
+          <div className="pt-4 border-t border-border/50">
+            <Button onClick={onSave} disabled={isSaving} className="w-full">
+              {isSaving ? "Salvando..." : "Salvar Anexos"}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

@@ -36,6 +36,50 @@ export default function HomePage() {
       <section className="relative flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-20 sm:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-pink-500/5" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
+        {/* Ondas de fundo animadas */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave opacity-30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path fill="url(#wave-gradient)" fillOpacity="0.2" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <defs>
+              <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style={{stopColor: 'rgb(147, 51, 234)', stopOpacity: 1}} />
+                <stop offset="100%" style={{stopColor: 'rgb(59, 130, 246)', stopOpacity: 1}} />
+              </linearGradient>
+            </defs>
+          </svg>
+          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave opacity-20" style={{animationDelay: '10s', animationDuration: '25s'}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path fill="url(#wave-gradient-2)" fillOpacity="0.25" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,197.3C672,192,768,160,864,154.7C960,149,1056,171,1152,181.3C1248,192,1344,192,1392,192L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <defs>
+              <linearGradient id="wave-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style={{stopColor: 'rgb(59, 130, 246)', stopOpacity: 1}} />
+                <stop offset="100%" style={{stopColor: 'rgb(147, 51, 234)', stopOpacity: 1}} />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        {/* Ondas de fundo */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <svg className="absolute bottom-0 left-0 w-full h-full animate-wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path fill="url(#wave-gradient)" fillOpacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <defs>
+              <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="rgb(147, 51, 234)" stopOpacity="0.3" />
+                <stop offset="50%" stopColor="rgb(59, 130, 246)" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="rgb(236, 72, 153)" stopOpacity="0.3" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <svg className="absolute bottom-0 left-0 w-full h-full animate-wave" style={{ animationDelay: '10s' }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path fill="url(#wave-gradient-2)" fillOpacity="0.05" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,208C672,213,768,203,864,186.7C960,171,1056,149,1152,154.7C1248,160,1344,192,1392,208L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <defs>
+              <linearGradient id="wave-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.3" />
+                <stop offset="50%" stopColor="rgb(236, 72, 153)" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="rgb(147, 51, 234)" stopOpacity="0.3" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
         
         <div className="relative max-w-5xl mx-auto text-center space-y-8">
           <div className="space-y-6">
@@ -59,13 +103,8 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link href="/login">
               <Button size="lg" className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-xl shadow-purple-500/25 text-base px-8 py-6 h-auto">
-                Começar Agora
+                Teste Grátis de 7 Dias
                 <ArrowRight className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline" className="gap-2 text-base px-8 py-6 h-auto">
-                Ver Demonstração
               </Button>
             </Link>
           </div>

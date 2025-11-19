@@ -2,13 +2,21 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MessageCircle, BarChart3, Settings, X } from "lucide-react"
+import { MessageCircle, BarChart3, Settings, X, HelpCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface NavigationProps {
   variant?: "sidebar" | "mobile"
   onNavigate?: () => void
+  communityLink?: string
+  supportWhatsAppLink?: string
 }
 
 const navItems = [
@@ -17,7 +25,7 @@ const navItems = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 
-export function Navigation({ variant = "sidebar", onNavigate }: NavigationProps) {
+export function Navigation({ variant = "sidebar", onNavigate, communityLink, supportWhatsAppLink }: NavigationProps) {
   const pathname = usePathname()
 
   if (variant === "mobile") {
@@ -46,6 +54,18 @@ export function Navigation({ variant = "sidebar", onNavigate }: NavigationProps)
             </Link>
           )
         })}
+        {(communityLink || supportWhatsAppLink) && (
+          <button
+            onClick={() => {
+              if (communityLink) window.open(communityLink, "_blank")
+              else if (supportWhatsAppLink) window.open(supportWhatsAppLink, "_blank")
+            }}
+            className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md px-3 py-2 text-xs transition-colors text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
+          >
+            <HelpCircle className="h-5 w-5" />
+            <span>Suporte</span>
+          </button>
+        )}
       </nav>
     )
   }
@@ -87,6 +107,43 @@ export function Navigation({ variant = "sidebar", onNavigate }: NavigationProps)
           )
         })}
       </div>
+
+      {/* Botão de Suporte */}
+      {(communityLink || supportWhatsAppLink) && (
+        <div className="mt-auto pt-4 border-t border-border/50">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 text-foreground hover:bg-secondary"
+              >
+                <HelpCircle className="w-5 h-5" />
+                <span className="font-medium">Suporte</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              {communityLink && (
+                <DropdownMenuItem
+                  onClick={() => window.open(communityLink, "_blank")}
+                  className="gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Comunidade
+                </DropdownMenuItem>
+              )}
+              {supportWhatsAppLink && (
+                <DropdownMenuItem
+                  onClick={() => window.open(supportWhatsAppLink, "_blank")}
+                  className="gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </nav>
   )
 }

@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { ReactNode } from "react"
 import type { User } from "@supabase/supabase-js"
 import { Navigation } from "./navigation"
 import { Header } from "./header"
+import { CommunityInviteDialog } from "./community-invite-dialog"
+import { createClient } from "@/lib/supabase/client"
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -13,12 +15,37 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [communityLink, setCommunityLink] = useState<string | undefined>()
+  const [supportWhatsAppLink, setSupportWhatsAppLink] = useState<string | undefined>()
+
+  useEffect(() => {
+    // Buscar links de suporte do perfil admin
+    const fetchSupportLinks = async () => {
+      const supabase = createClient()
+      const { data: adminProfile } = await supabase
+        .from("profiles")
+        .select("community_link, support_whatsapp_link")
+        .eq("role", "admin")
+        .single()
+
+      if (adminProfile) {
+        setCommunityLink(adminProfile.community_link || undefined)
+        setSupportWhatsAppLink(adminProfile.support_whatsapp_link || undefined)
+      }
+    }
+
+    fetchSupportLinks()
+  }, [])
 
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar para desktop - fixa à esquerda */}
       <aside className="hidden md:block md:w-64 md:flex-shrink-0 md:sticky md:top-0 md:h-screen">
-        <Navigation onNavigate={() => {}} />
+        <Navigation 
+          onNavigate={() => {}} 
+          communityLink={communityLink}
+          supportWhatsAppLink={supportWhatsAppLink}
+        />
       </aside>
       
       {/* Conteúdo principal */}
@@ -31,7 +58,11 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
             isMenuOpen ? "translate-x-0" : "-translate-x-full"
           } md:hidden`}
         >
-          <Navigation onNavigate={() => setIsMenuOpen(false)} />
+          <Navigation 
+            onNavigate={() => setIsMenuOpen(false)}
+            communityLink={communityLink}
+            supportWhatsAppLink={supportWhatsAppLink}
+          />
         </div>
 
         {/* Overlay para mobile quando menu está aberto */}
@@ -48,9 +79,20 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         
         {/* Menu mobile na parte inferior */}
         <div className="sticky bottom-0 z-40 border-t border-border/60 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/75 md:hidden">
-          <Navigation variant="mobile" onNavigate={() => {}} />
+          <Navigation 
+            variant="mobile" 
+            onNavigate={() => {}}
+            communityLink={communityLink}
+            supportWhatsAppLink={supportWhatsAppLink}
+          />
         </div>
       </main>
+      
+      {/* Popup de convite para comunidade */}
+      <CommunityInviteDialog 
+        communityLink={communityLink}
+        whatsappLink={supportWhatsAppLink}
+      />
     </div>
   )
 }

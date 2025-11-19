@@ -28,7 +28,12 @@ export default function LoginPage() {
       if (isSignUp) {
         const { error } = await signUp(email, password, isAdmin)
         if (error) throw error
-        router.push("/auth/check-email")
+        // Se não for admin, redirecionar para onboarding após verificar email
+        if (!isAdmin) {
+          router.push("/auth/check-email?redirect=onboarding")
+        } else {
+          router.push("/auth/check-email")
+        }
       } else {
         const { error } = await signIn(email, password)
         if (error) throw error

@@ -38,6 +38,12 @@ Corrige políticas de storage para permitir que usuários autenticados façam up
 ### 10. `scripts/013_add_notification_fields.sql`
 Adiciona campos de notificação WhatsApp à tabela agents (notification_contact_1, notification_contact_2, notification_message).
 
+### 11. `scripts/014_add_support_fields.sql`
+Adiciona campos de suporte à tabela profiles (community_link, support_whatsapp_link) para configuração pelo admin.
+
+### 10. `scripts/013_add_notification_fields.sql`
+Adiciona campos de notificação WhatsApp à tabela agents (notification_contact_1, notification_contact_2, notification_message).
+
 ## 📝 Como Executar
 
 1. Acesse o [Supabase Dashboard](https://app.supabase.com)

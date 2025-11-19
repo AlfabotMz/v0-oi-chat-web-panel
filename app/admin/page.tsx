@@ -7,7 +7,9 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, LogOut, Crown } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Users, LogOut, Crown, HelpCircle, MessageCircle } from "lucide-react"
 
 interface UserProfile {
   id: string
@@ -26,6 +28,9 @@ export default function AdminPage() {
   const [checking, setChecking] = useState(true)
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [newPlan, setNewPlan] = useState<"free" | "pro" | "premium" | "">("")
+  const [communityLink, setCommunityLink] = useState("")
+  const [supportWhatsAppLink, setSupportWhatsAppLink] = useState("")
+  const [savingSupport, setSavingSupport] = useState(false)
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -51,6 +56,8 @@ export default function AdminPage() {
         
         // Se chegou aqui, o usuário é admin
         setAdminProfile(profile)
+        setCommunityLink(profile.community_link || "")
+        setSupportWhatsAppLink(profile.support_whatsapp_link || "")
         await loadUsers()
         setChecking(false)
       } catch (error) {
@@ -198,6 +205,72 @@ export default function AdminPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Support Links Configuration */}
+        <Card className="border-purple-200/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <HelpCircle className="w-5 h-5 text-purple-600" />
+              Configurações de Suporte
+            </CardTitle>
+            <CardDescription>Configure os links de suporte e comunidade</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="communityLink">Link da Comunidade</Label>
+              <Input
+                id="communityLink"
+                placeholder="https://chat.whatsapp.com/..."
+                value={communityLink}
+                onChange={(e) => setCommunityLink(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Link do grupo da comunidade OiChat no WhatsApp
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="supportWhatsAppLink">Link do WhatsApp de Suporte</Label>
+              <Input
+                id="supportWhatsAppLink"
+                placeholder="https://wa.me/5511999999999"
+                value={supportWhatsAppLink}
+                onChange={(e) => setSupportWhatsAppLink(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Link do WhatsApp para suporte direto
+              </p>
+            </div>
+            <Button
+              onClick={async () => {
+                setSavingSupport(true)
+                try {
+                  const supabase = createClient()
+                  const profile = await getUserProfile()
+                  if (!profile) return
+
+                  const { error } = await supabase
+                    .from("profiles")
+                    .update({
+                      community_link: communityLink || null,
+                      support_whatsapp_link: supportWhatsAppLink || null,
+                    })
+                    .eq("id", profile.id)
+
+                  if (error) throw error
+                  alert("Links de suporte salvos com sucesso!")
+                } catch (err: any) {
+                  alert("Erro ao salvar: " + err.message)
+                } finally {
+                  setSavingSupport(false)
+                }
+              }}
+              disabled={savingSupport}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {savingSupport ? "Salvando..." : "Salvar Links"}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Users Management */}
         <Card className="border-purple-200/20">

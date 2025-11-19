@@ -137,18 +137,6 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="webhook">URL do Webhook n8n (WhatsApp)</Label>
-            <Input
-              id="webhook"
-              placeholder="https://n8n.example.com/webhook/..."
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              URL do webhook n8n para conectar com WhatsApp e processar mensagens
-            </p>
-          </div>
 
           {message && (
             <div
@@ -211,9 +199,10 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               onChange={(e) => setNotificationMessage(e.target.value)}
               rows={8}
               placeholder="Mensagem que será enviada quando houver uma conversão"
+              disabled
             />
             <p className="text-xs text-muted-foreground">
-              Use variáveis: {"{{produto}}"}, {"{{numero}}"}, {"{{localizacao}}"}
+              Use variáveis: {"{{produto}}"}, {"{{numero}}"}, {"{{localizacao}}"} (Mensagem padrão, não editável por enquanto)
             </p>
             <div className="mt-2 p-3 bg-muted rounded-md">
               <p className="text-xs font-medium mb-1">Preview:</p>
@@ -229,7 +218,12 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
       </Card>
 
       {/* Anexos */}
-      <AttachmentsManager attachments={attachments} onAttachmentsChange={setAttachments} />
+      <AttachmentsManager 
+        attachments={attachments} 
+        onAttachmentsChange={setAttachments}
+        onSave={handleSave}
+        isSaving={isLoading}
+      />
 
       {/* Conexão WhatsApp */}
       <WhatsAppConnect agentId={agent.id} />
