@@ -8,7 +8,7 @@ Este documento explica onde e como atualizar a tabela `analytics` no backend.
 
 Quando uma mensagem é recebida do WhatsApp, atualize os analytics:
 
-```typescript
+\`\`\`typescript
 // Exemplo de atualização quando uma mensagem é recebida
 const updateAnalytics = async (agentId: string) => {
   const today = new Date().toISOString().split('T')[0]
@@ -42,13 +42,13 @@ const updateAnalytics = async (agentId: string) => {
       })
   }
 }
-```
+\`\`\`
 
 ### 2. **Webhook de Nova Conversa** (`/webhook/conversation`)
 
 Quando uma nova conversa é iniciada:
 
-```typescript
+\`\`\`typescript
 const updateConversationAnalytics = async (agentId: string) => {
   const today = new Date().toISOString().split('T')[0]
   
@@ -77,13 +77,13 @@ const updateConversationAnalytics = async (agentId: string) => {
       })
   }
 }
-```
+\`\`\`
 
 ### 3. **Webhook de Resposta do Agente** (`/webhook/agent-response`)
 
 Ao calcular o tempo de resposta:
 
-```typescript
+\`\`\`typescript
 const updateResponseTime = async (agentId: string, responseTimeMs: number) => {
   const today = new Date().toISOString().split('T')[0]
   
@@ -110,11 +110,11 @@ const updateResponseTime = async (agentId: string, responseTimeMs: number) => {
       .eq('id', existing.id)
   }
 }
-```
+\`\`\`
 
 ## 🎯 Estrutura da Tabela Analytics
 
-```sql
+\`\`\`sql
 CREATE TABLE analytics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   agent_id UUID NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
@@ -124,7 +124,7 @@ CREATE TABLE analytics (
   date DATE DEFAULT CURRENT_DATE,
   created_at TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 ## 📝 Campos da Tabela
 
@@ -148,7 +148,7 @@ CREATE TABLE analytics (
 
 ## 🚀 Exemplo Completo de Webhook
 
-```typescript
+\`\`\`typescript
 // app/webhook/message/route.ts
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -167,5 +167,4 @@ export async function POST(request: NextRequest) {
   
   return NextResponse.json({ success: true })
 }
-```
-
+\`\`\`

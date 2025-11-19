@@ -23,44 +23,44 @@
 ### Solução
 
 1. **Execute o script SQL no Supabase:**
-   ```sql
+   \`\`\`sql
    -- Execute scripts/011_fix_admin_view_profiles.sql
-   ```
+   \`\`\`
    
    Acesse o [Supabase Dashboard](https://app.supabase.com) > SQL Editor e execute o script completo.
 
 2. **Verifique se a função foi criada:**
-   ```sql
+   \`\`\`sql
    SELECT proname FROM pg_proc WHERE proname = 'is_admin';
-   ```
+   \`\`\`
    
    Deve retornar `is_admin`.
 
 3. **Verifique se o usuário é admin:**
-   ```sql
+   \`\`\`sql
    SELECT id, email, role, status, plan 
    FROM profiles 
    WHERE role = 'admin';
-   ```
+   \`\`\`
    
    Deve retornar pelo menos um usuário com `role = 'admin'`.
 
 4. **Verifique as políticas RLS:**
-   ```sql
+   \`\`\`sql
    SELECT policyname, cmd, qual 
    FROM pg_policies 
    WHERE tablename = 'profiles';
-   ```
+   \`\`\`
    
    Deve retornar pelo menos:
    - `profiles_select_own`
    - `profiles_select_admin`
 
 5. **Teste a função is_admin():**
-   ```sql
+   \`\`\`sql
    -- Como admin (substitua 'seu-user-id' pelo ID do seu usuário admin)
    SELECT is_admin();
-   ```
+   \`\`\`
    
    Deve retornar `true` se você estiver logado como admin.
 
@@ -118,7 +118,7 @@ Este erro foi corrigido removendo `inline` de `@theme inline`. Verifique se o ar
 
 Execute este script SQL no Supabase para verificar tudo:
 
-```sql
+\`\`\`sql
 -- 1. Verificar se a função is_admin existe
 SELECT proname, prosrc 
 FROM pg_proc 
@@ -145,7 +145,7 @@ SELECT tablename, rowsecurity
 FROM pg_tables 
 WHERE schemaname = 'public' 
 AND tablename = 'profiles';
-```
+\`\`\`
 
 ## Contato
 
@@ -153,4 +153,3 @@ Se os problemas persistirem, verifique:
 1. Os logs do console do navegador
 2. Os logs do servidor Next.js
 3. Os logs do Supabase Dashboard
-

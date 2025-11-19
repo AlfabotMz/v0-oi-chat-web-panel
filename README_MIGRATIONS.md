@@ -79,4 +79,3 @@ Após executar todas as migrações, verifique:
 
 ### Erro: "bucket does not exist"
 - Crie o bucket manualmente no Dashboard antes de executar as políticas.
-

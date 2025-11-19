@@ -35,12 +35,12 @@ Mas isso não estava funcionando corretamente.
 - Atualiza `role`, `status` e `plan` no ON CONFLICT
 
 **Como funciona:**
-```sql
+\`\`\`sql
 -- O trigger lê do metadata:
 user_role := COALESCE(new.raw_user_meta_data->>'role', 'user');
 user_status := COALESCE(new.raw_user_meta_data->>'status', 'inactive');
 user_plan := COALESCE(new.raw_user_meta_data->>'plan', 'free');
-```
+\`\`\`
 
 ### 3. Políticas RLS (`scripts/010_fix_profile_update_policy.sql`)
 
@@ -53,14 +53,14 @@ user_plan := COALESCE(new.raw_user_meta_data->>'plan', 'free');
 1. **Usuário marca "Registrar como Administrador"** no formulário
 2. **Código verifica** se já existe admin
 3. **Código faz signUp** com metadata:
-   ```javascript
+   \`\`\`javascript
    {
      role: "admin",
      status: "active",
      plan: "premium",
      full_name: "nome_do_usuario"
    }
-   ```
+   \`\`\`
 4. **Trigger executa** e cria profile com valores do metadata
 5. **Código verifica** se profile está correto
 6. **Se não estiver**, atualiza até 3 vezes
@@ -91,18 +91,18 @@ user_plan := COALESCE(new.raw_user_meta_data->>'plan', 'free');
 ### Profile não está sendo criado com role="admin"
 
 1. Verifique se o trigger está executando:
-   ```sql
+   \`\`\`sql
    SELECT * FROM profiles WHERE role = 'admin';
-   ```
+   \`\`\`
 
 2. Verifique se o metadata está sendo passado:
    - Abra o console do navegador
    - Verifique os logs durante o signup
 
 3. Verifique as políticas RLS:
-   ```sql
+   \`\`\`sql
    SELECT * FROM pg_policies WHERE tablename = 'profiles';
-   ```
+   \`\`\`
 
 4. Execute o script 010 para garantir políticas corretas
 
@@ -127,4 +127,3 @@ Após implementar, verifique:
 - [ ] Políticas RLS permitem UPDATE no próprio profile
 - [ ] Ao criar admin, o profile tem `role = "admin"` e `plan = "premium"`
 - [ ] Ao criar usuário normal, o profile tem `role = "user"` e `plan = "free"`
-

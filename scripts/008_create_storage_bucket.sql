@@ -45,4 +45,3 @@ USING (
 -- 4. Público: Não (privado)
 -- 5. File size limit: 50 MB (ou conforme necessário)
 -- 6. Allowed MIME types: image/*, video/*, application/pdf (ou conforme necessário)
-

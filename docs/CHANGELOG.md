@@ -135,7 +135,7 @@
 ## ⚙️ Configurações Necessárias
 
 ### Variáveis de Ambiente
-```env
+\`\`\`env
 # Opção 1: URL completa do webhook (recomendado)
 N8N_WEBHOOK_URL=https://n8n.myoichat.online/webhook/connect-whatsapp
 
@@ -143,7 +143,7 @@ N8N_WEBHOOK_URL=https://n8n.myoichat.online/webhook/connect-whatsapp
 N8N_WEBHOOK_URL=https://n8n.myoichat.online
 # ou
 N8N_URL=https://n8n.myoichat.online
-```
+\`\`\`
 **Nota**: 
 - Se não configurar, o padrão é `https://n8n.myoichat.online/webhook/connect-whatsapp`
 - O código aceita tanto a URL completa quanto apenas a URL base
@@ -194,4 +194,3 @@ Principais pontos:
 - A interface foi melhorada para ser mais intuitiva
 - O código foi organizado em componentes reutilizáveis
 - Documentação completa foi criada para facilitar manutenção
-

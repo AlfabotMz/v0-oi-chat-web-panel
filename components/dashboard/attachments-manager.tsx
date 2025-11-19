@@ -221,4 +221,3 @@ export function AttachmentsManager({ attachments, onAttachmentsChange }: Attachm
     </Card>
   )
 }
-

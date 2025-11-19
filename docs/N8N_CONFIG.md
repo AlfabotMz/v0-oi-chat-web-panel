@@ -7,18 +7,18 @@ Este documento explica como configurar a integração com n8n para criação de 
 Adicione uma das seguintes variáveis no arquivo `.env.local`:
 
 ### Opção 1: URL completa do webhook (recomendado)
-```env
+\`\`\`env
 N8N_WEBHOOK_URL=https://n8n.myoichat.online/webhook/connect-whatsapp
-```
+\`\`\`
 
 ### Opção 2: URL base do n8n (o código adiciona o caminho automaticamente)
-```env
+\`\`\`env
 N8N_WEBHOOK_URL=https://n8n.myoichat.online
-```
+\`\`\`
 ou
-```env
+\`\`\`env
 N8N_URL=https://n8n.myoichat.online
-```
+\`\`\`
 
 ## 🔍 Como Funciona
 
@@ -34,16 +34,16 @@ N8N_URL=https://n8n.myoichat.online
 **⚠️ IMPORTANTE**: O n8n é responsável por criar o agente no Supabase. O código do frontend apenas chama o webhook e retorna a resposta. Não deve haver criação manual no Supabase para evitar duplicação.
 
 **Requisição:**
-```json
+\`\`\`json
 {
   "user_id": "uuid-do-usuario-supabase",
   "nome": "Daniel",
   "prompt": "Olá! Sou o atendente virtual OiChat."
 }
-```
+\`\`\`
 
 **Resposta Esperada (Formato 1 - Direto):**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Agente criado com sucesso!",
@@ -54,10 +54,10 @@ N8N_URL=https://n8n.myoichat.online
     "status": "disconnected"
   }
 }
-```
+\`\`\`
 
 **Resposta Esperada (Formato 2 - Com wrapper data):**
-```json
+\`\`\`json
 {
   "data": {
     "success": false,
@@ -70,7 +70,7 @@ N8N_URL=https://n8n.myoichat.online
     "status": "disconnected"
   }
 }
-```
+\`\`\`
 
 **Nota**: 
 - O código aceita ambos os formatos. No formato 2, os campos `nome`, `prompt` e `status` podem estar no mesmo nível que `agent`, não necessariamente dentro de `agent`.
@@ -81,39 +81,39 @@ N8N_URL=https://n8n.myoichat.online
 ### 2. Conectar WhatsApp (`/webhook/connect-whatsapp`)
 
 **Requisição:**
-```json
+\`\`\`json
 {
   "agent_id": "uuid-do-agente"
 }
-```
+\`\`\`
 
 **Resposta Esperada:**
-```json
+\`\`\`json
 {
   "success": true,
   "qr": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...",
   "status": "pending",
   "message": "Escaneie o QR code para conectar seu número de WhatsApp."
 }
-```
+\`\`\`
 
 ### 3. Verificar Status da Conexão (`/webhook/check-status`)
 
 **Requisição:**
-```json
+\`\`\`json
 {
   "agent_id": "uuid-do-agente"
 }
-```
+\`\`\`
 
 **Resposta Esperada:**
-```json
+\`\`\`json
 {
   "success": true,
   "status": "connected",
   "message": "WhatsApp conectado"
 }
-```
+\`\`\`
 
 **Valores possíveis para `status`:**
 - `"connected"` ou `"open"` ou `"ready"` - WhatsApp está conectado
@@ -123,19 +123,19 @@ N8N_URL=https://n8n.myoichat.online
 ### 4. Deletar Agente (`/webhook/delete-agent`)
 
 **Requisição:**
-```json
+\`\`\`json
 {
   "agent_id": "uuid-do-agente"
 }
-```
+\`\`\`
 
 **Resposta Esperada:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Agente deletado com sucesso!"
 }
-```
+\`\`\`
 
 **Nota**: O código também aceita o formato com wrapper `data`, similar ao create-agent.
 
@@ -145,14 +145,14 @@ N8N_URL=https://n8n.myoichat.online
 
 O webhook n8n deve retornar uma resposta JSON no seguinte formato:
 
-```json
+\`\`\`json
 {
   "success": true,
   "qr": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...",
   "status": "pending",
   "message": "Escaneie o QR code para conectar seu número de WhatsApp."
 }
-```
+\`\`\`
 
 ### Campos da Resposta (Conexão WhatsApp)
 
@@ -205,11 +205,11 @@ O webhook n8n deve retornar uma resposta JSON no seguinte formato:
 1. Verifique se a variável `N8N_WEBHOOK_URL` está configurada no `.env.local`
 2. Verifique se a URL está correta (sem barra no final, se for URL base)
 3. Teste a URL no navegador ou com curl:
-   ```bash
+   \`\`\`bash
    curl -X POST https://n8n.myoichat.online/webhook/connect-whatsapp \
      -H "Content-Type: application/json" \
      -d '{"agent_id":"test"}'
-   ```
+   \`\`\`
 
 ### Erro: "Resposta inválida do webhook n8n"
 
@@ -245,4 +245,3 @@ O webhook n8n deve retornar uma resposta JSON no seguinte formato:
 
 - [Documentação do n8n](https://docs.n8n.io/)
 - [Webhooks no n8n](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/)
-

@@ -20,4 +20,3 @@ CREATE POLICY "profiles_insert_own" ON public.profiles
 -- Nota: O trigger handle_new_user usa SECURITY DEFINER, então pode inserir/atualizar
 -- independente das políticas RLS. Mas após a criação, o código cliente precisa
 -- poder atualizar para garantir que os valores corretos sejam salvos.
-

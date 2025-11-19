@@ -23,19 +23,19 @@ Execute o script `scripts/008_create_storage_bucket.sql` no SQL Editor do Supaba
 
 Certifique-se de que as variáveis de ambiente estão configuradas:
 
-```env
+\`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-```
+\`\`\`
 
 ## 📝 Estrutura de Pastas
 
 Os arquivos serão armazenados na seguinte estrutura:
-```
+\`\`\`
 agent-attachments/
   └── attachments/
       └── {attachment_name}_{timestamp}.{ext}
-```
+\`\`\`
 
 ## 🔒 Políticas de Acesso
 
@@ -47,4 +47,3 @@ agent-attachments/
 ## 🧪 Testar Upload
 
 Após configurar, teste o upload de arquivos através do componente `AttachmentsManager` na página de configuração do agente.
-

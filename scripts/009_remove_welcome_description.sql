@@ -5,4 +5,3 @@ DROP COLUMN IF EXISTS description;
 
 -- Comentário para documentação
 COMMENT ON TABLE agents IS 'Tabela de agentes - campos welcome_message e description removidos';
-
