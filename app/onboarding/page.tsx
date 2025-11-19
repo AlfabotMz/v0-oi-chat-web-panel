@@ -8,9 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowRight, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { OnboardingSurvey } from "@/components/onboarding/onboarding-survey"
 
 const steps = [
+  {
+    id: 0,
+    title: "Pesquisa Rápida",
+    description: "Conte-nos um pouco sobre seu negócio",
+  },
   {
     id: 1,
     title: "Bem-vindo ao OiChat!",
@@ -35,12 +40,35 @@ const steps = [
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [agentName, setAgentName] = useState("")
   const [agentPrompt, setAgentPrompt] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
   const [error, setError] = useState<string | null>(null)
+
+  const handleSurveyComplete = async (data: any) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch("/api/profile/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        throw new Error("Falha ao salvar dados")
+      }
+
+      setCurrentStep(1)
+    } catch (err) {
+      console.error("Erro ao salvar pesquisa:", err)
+      // Opcional: mostrar erro ou apenas prosseguir
+      setCurrentStep(1)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleNext = () => {
     if (currentStep === 2 && !agentName.trim()) {
@@ -52,7 +80,7 @@ export default function OnboardingPage() {
       return
     }
     setError(null)
-    if (currentStep < steps.length) {
+    if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
       handleCreateAgent()
@@ -60,7 +88,7 @@ export default function OnboardingPage() {
   }
 
   const handleBack = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1)
       setError(null)
     }
@@ -99,7 +127,24 @@ export default function OnboardingPage() {
     }
   }
 
-  const currentStepData = steps[currentStep - 1]
+  // Se estiver no passo da pesquisa, renderizar componente tela cheia
+  if (currentStep === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 px-4 py-12">
+        {isLoading ? (
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+            <p className="text-zinc-400">Salvando suas preferências...</p>
+          </div>
+        ) : (
+          <OnboardingSurvey onComplete={handleSurveyComplete} />
+        )}
+      </div>
+    )
+  }
+
+  const currentStepData = steps.find(s => s.id === currentStep) || steps[0]
+  const totalSteps = steps.length - 1 // Excluindo passo 0 da contagem visual se desejar, ou ajustar conforme UX
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 py-12">
@@ -108,16 +153,16 @@ export default function OnboardingPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-muted-foreground">
-              Passo {currentStep} de {steps.length}
+              Passo {currentStep} de {totalSteps}
             </span>
             <span className="text-sm font-medium text-muted-foreground">
-              {Math.round((currentStep / steps.length) * 100)}%
+              {Math.round((currentStep / totalSteps) * 100)}%
             </span>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
             <div
               className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / steps.length) * 100}%` }}
+              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
             />
           </div>
         </div>
@@ -230,7 +275,7 @@ export default function OnboardingPage() {
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Criando...
                   </>
-                ) : currentStep === steps.length ? (
+                ) : currentStep === steps.length - 1 ? (
                   <>
                     Criar Agente
                     <CheckCircle2 className="w-4 h-4" />

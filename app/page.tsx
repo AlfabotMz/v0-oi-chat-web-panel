@@ -42,17 +42,17 @@ export default function HomePage() {
             <path fill="url(#wave-gradient)" fillOpacity="0.2" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
             <defs>
               <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style={{stopColor: 'rgb(147, 51, 234)', stopOpacity: 1}} />
-                <stop offset="100%" style={{stopColor: 'rgb(59, 130, 246)', stopOpacity: 1}} />
+                <stop offset="0%" style={{ stopColor: 'rgb(147, 51, 234)', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: 'rgb(59, 130, 246)', stopOpacity: 1 }} />
               </linearGradient>
             </defs>
           </svg>
-          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave opacity-20" style={{animationDelay: '10s', animationDuration: '25s'}} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave opacity-20" style={{ animationDelay: '10s', animationDuration: '25s' }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
             <path fill="url(#wave-gradient-2)" fillOpacity="0.25" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,197.3C672,192,768,160,864,154.7C960,149,1056,171,1152,181.3C1248,192,1344,192,1392,192L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
             <defs>
               <linearGradient id="wave-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style={{stopColor: 'rgb(59, 130, 246)', stopOpacity: 1}} />
-                <stop offset="100%" style={{stopColor: 'rgb(147, 51, 234)', stopOpacity: 1}} />
+                <stop offset="0%" style={{ stopColor: 'rgb(59, 130, 246)', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: 'rgb(147, 51, 234)', stopOpacity: 1 }} />
               </linearGradient>
             </defs>
           </svg>
@@ -80,7 +80,7 @@ export default function HomePage() {
             </defs>
           </svg>
         </div>
-        
+
         <div className="relative max-w-5xl mx-auto text-center space-y-8">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-950/50 dark:to-blue-950/50 text-purple-700 dark:text-purple-300 text-sm font-medium border border-purple-200/50 dark:border-purple-800/50">
@@ -95,8 +95,8 @@ export default function HomePage() {
               <span className="text-foreground">com Agentes IA Poderosos</span>
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground text-balance max-w-3xl mx-auto leading-relaxed">
-              Crie, gerencie e monitore agentes virtuais de WhatsApp inteligentes. Otimize suporte ao cliente, 
-              responda enquetes em escala e integre com n8n para fluxos avançados de automação.
+              Crie, gerencie e monitore agentes virtuais de WhatsApp inteligentes. Otimize suporte ao cliente,
+              responda enquetes em escala e crie fluxos avançados de automação.
             </p>
           </div>
 
@@ -149,15 +149,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="group relative p-6 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-blue-200/50 dark:hover:border-blue-800/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-950/50 dark:to-blue-900/50 group-hover:scale-110 transition-transform duration-300 mb-4">
-                <Zap className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h4 className="font-bold text-lg text-foreground mb-2">Integração n8n</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Conecte com n8n para automação avançada e orquestração de fluxos complexos
-              </p>
-            </div>
+
 
             <div className="group relative p-6 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-green-200/50 dark:hover:border-green-800/50 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-green-100 to-green-200 dark:from-green-950/50 dark:to-green-900/50 group-hover:scale-110 transition-transform duration-300 mb-4">
@@ -191,7 +183,7 @@ export default function HomePage() {
               Pronto para <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">automatizar</span>?
             </h3>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Comece a construir agentes de WhatsApp inteligentes em minutos. 
+              Comece a construir agentes de WhatsApp inteligentes em minutos.
               Sem cartão de crédito obrigatório. Configure em menos de 5 minutos.
             </p>
           </div>

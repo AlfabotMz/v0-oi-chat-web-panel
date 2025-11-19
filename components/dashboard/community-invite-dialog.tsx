@@ -51,7 +51,7 @@ export function CommunityInviteDialog({ communityLink, whatsappLink }: Community
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
