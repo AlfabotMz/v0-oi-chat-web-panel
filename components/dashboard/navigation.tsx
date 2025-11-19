@@ -20,9 +20,10 @@ interface NavigationProps {
 }
 
 const navItems = [
-  { href: "/dashboard", label: "Agents", icon: MessageCircle },
+  { href: "/dashboard", label: "Agentes", icon: MessageCircle },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/settings", label: "Configurações", icon: Settings },
+  { href: "/dashboard/support", label: "Suporte", icon: HelpCircle },
 ]
 
 export function Navigation({ variant = "sidebar", onNavigate, communityLink, supportWhatsAppLink }: NavigationProps) {

@@ -76,7 +76,7 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
             <Label htmlFor="nome">Nome do Agente</Label>
             <Input
               id="nome"
-              placeholder="Ex: Atendimento Cliente"
+              placeholder="Ex: Suporte Moz"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               required
@@ -102,7 +102,7 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
             <Label htmlFor="phone">Número de Telefone (Opcional)</Label>
             <Input
               id="phone"
-              placeholder="+55 11 99999-9999"
+              placeholder="+258 84 123 4567"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
             />

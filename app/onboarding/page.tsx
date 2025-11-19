@@ -190,7 +190,7 @@ export default function OnboardingPage() {
                   <Label htmlFor="agentName">Nome do Agente</Label>
                   <Input
                     id="agentName"
-                    placeholder="Ex: Atendimento Cliente"
+                    placeholder="Ex: Suporte Moz"
                     value={agentName}
                     onChange={(e) => setAgentName(e.target.value)}
                     onKeyPress={(e) => {
@@ -232,7 +232,7 @@ export default function OnboardingPage() {
                   <Label htmlFor="phoneNumber">Número de Telefone (Opcional)</Label>
                   <Input
                     id="phoneNumber"
-                    placeholder="+55 11 99999-9999"
+                    placeholder="+258 84 123 4567"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     onKeyPress={(e) => {
@@ -243,7 +243,7 @@ export default function OnboardingPage() {
                     autoFocus
                   />
                   <p className="text-xs text-muted-foreground">
-                    Número associado ao WhatsApp do agente (pode ser adicionado depois)
+                    Ex: +258 (Moçambique)
                   </p>
                 </div>
               </div>
