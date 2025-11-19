@@ -35,6 +35,9 @@ Corrige políticas RLS para permitir que admin veja todos os perfis de usuários
 ### 9. `scripts/012_fix_storage_policies.sql`
 Corrige políticas de storage para permitir que usuários autenticados façam upload de anexos sem restrições de path.
 
+### 10. `scripts/013_add_notification_fields.sql`
+Adiciona campos de notificação WhatsApp à tabela agents (notification_contact_1, notification_contact_2, notification_message).
+
 ## 📝 Como Executar
 
 1. Acesse o [Supabase Dashboard](https://app.supabase.com)

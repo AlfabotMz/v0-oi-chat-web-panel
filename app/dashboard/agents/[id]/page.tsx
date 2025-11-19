@@ -32,8 +32,7 @@ export default async function AgentConfigPage({ params }: AgentConfigPageProps) 
 
   return (
     <DashboardLayout user={user}>
-      <div className="max-w-2xl">
-        <h1 className="text-3xl font-bold mb-6">Configure Agent</h1>
+      <div className="max-w-4xl">
         <AgentConfigForm agent={agent} />
       </div>
     </DashboardLayout>
