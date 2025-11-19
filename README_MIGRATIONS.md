@@ -21,6 +21,8 @@ Adiciona campos `prompt` e `anexos` à tabela agents.
 ### 5. `scripts/008_create_storage_bucket.sql`
 Cria políticas de acesso para o bucket de storage (execute após criar o bucket manualmente).
 
+**⚠️ IMPORTANTE**: Este script tem políticas restritivas. Execute também o `scripts/012_fix_storage_policies.sql` para corrigir as políticas de upload.
+
 ### 6. `scripts/009_remove_welcome_description.sql`
 Remove campos `welcome_message` e `description` da tabela agents.
 
@@ -29,6 +31,9 @@ Garante que usuários possam atualizar seu próprio profile durante o signup.
 
 ### 8. `scripts/011_fix_admin_view_profiles.sql`
 Corrige políticas RLS para permitir que admin veja todos os perfis de usuários usando função helper `is_admin()`.
+
+### 9. `scripts/012_fix_storage_policies.sql`
+Corrige políticas de storage para permitir que usuários autenticados façam upload de anexos sem restrições de path.
 
 ## 📝 Como Executar
 
@@ -67,6 +72,7 @@ Após executar todas as migrações, verifique:
 - [ ] Função `is_admin()` foi criada e funciona corretamente
 - [ ] Admin pode ver todos os perfis de usuários na página de admin
 - [ ] Bucket `agent-attachments` existe e tem políticas configuradas
+- [ ] Políticas de storage permitem upload de anexos para usuários autenticados
 - [ ] Ao criar usuário admin, o profile tem `role = 'admin'` e `plan = 'premium'`
 
 ## 🐛 Problemas Comuns
@@ -79,3 +85,8 @@ Após executar todas as migrações, verifique:
 
 ### Erro: "bucket does not exist"
 - Crie o bucket manualmente no Dashboard antes de executar as políticas.
+
+### Erro: "new row violates row-level security policy" ao fazer upload
+- Execute o script `scripts/012_fix_storage_policies.sql` para corrigir as políticas de storage.
+- Verifique se o bucket `agent-attachments` foi criado no Dashboard.
+- Certifique-se de que você está autenticado antes de fazer upload.

@@ -52,6 +52,13 @@ export function AttachmentsManager({ attachments, onAttachmentsChange }: Attachm
 
     try {
       const supabase = createClient()
+      
+      // Verificar se o usuário está autenticado
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        throw new Error("Você precisa estar autenticado para fazer upload de arquivos. Por favor, faça login novamente.")
+      }
+
       const fileExt = file.name.split(".").pop()
       const fileName = `${attachment.name}_${Date.now()}.${fileExt}`
       const filePath = `attachments/${fileName}`
@@ -69,6 +76,12 @@ export function AttachmentsManager({ attachments, onAttachmentsChange }: Attachm
         if (uploadError.message.includes("Bucket") || uploadError.message.includes("bucket")) {
           throw new Error(
             "Bucket 'agent-attachments' não encontrado. Por favor, crie o bucket no Supabase Dashboard (Storage > Buckets). Veja docs/STORAGE_SETUP.md para mais informações."
+          )
+        }
+        // Se for erro de RLS, dar mensagem mais clara
+        if (uploadError.message.includes("row-level security") || uploadError.message.includes("RLS")) {
+          throw new Error(
+            "Erro de permissão. Por favor, execute o script scripts/012_fix_storage_policies.sql no Supabase SQL Editor para corrigir as políticas de acesso."
           )
         }
         throw uploadError
