@@ -72,12 +72,13 @@ export default function LandingPage() {
 
               {/* 3D-like Dashboard Preview */}
               <div className="mt-16 relative w-full max-w-5xl mx-auto perspective-1000 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
-                <div className="relative rounded-xl bg-zinc-900/50 border border-white/10 p-2 shadow-2xl transform rotate-x-12 hover:rotate-x-0 transition-transform duration-700 ease-out">
-                  <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 to-blue-500/10 rounded-xl pointer-events-none" />
+                <div className="relative rounded-xl bg-zinc-900/50 border border-white/10 shadow-2xl transform rotate-x-12 hover:rotate-x-0 transition-transform duration-700 ease-out overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 to-blue-500/10 pointer-events-none" />
+
                   <img
                     alt="Dashboard Preview"
-                    className="rounded-lg w-full h-auto border border-white/5 shadow-2xl"
-                    src="/placeholder.svg?height=720&width=1280" // Replace with actual screenshot later
+                    className="w-full h-auto"
+                    src="/dashboard-v3.png"
                     width={1280}
                     height={720}
                   />
