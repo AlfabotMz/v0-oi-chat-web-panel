@@ -25,15 +25,16 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
   const [status, setStatus] = useState(agent.status)
   const [webhookUrl, setWebhookUrl] = useState(agent.n8n_webhook_url || "")
   const [attachments, setAttachments] = useState<Record<string, string[]>>(agent.anexos || {})
-  const [notificationContact1, setNotificationContact1] = useState(agent.notification_contact_1 || "")
-  const [notificationContact2, setNotificationContact2] = useState(agent.notification_contact_2 || "")
-  const [notificationMessage, setNotificationMessage] = useState(
-    agent.notification_message || 
-    "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{produto}}\n\n💸 Número: {{numero}}\n\n💸 Local: {{localizacao}}"
+  const [product, setProduct] = useState(agent.product || "")
+  const [contactOwner, setContactOwner] = useState(agent.contact_owner || "")
+  const [contactDelivery, setContactDelivery] = useState(agent.contact_delivery || "")
+  const [customMessage, setCustomMessage] = useState(
+    agent.custom_message ||
+    "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{product}}\n\n💸 Número: {{number}}\n\n💸 Local: {{location}}"
   )
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-  
+
   const isActive = status === "active"
 
   useEffect(() => {
@@ -62,11 +63,12 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           name,
           prompt,
           status,
+          product,
           n8n_webhook_url: webhookUrl,
           anexos: attachments,
-          notification_contact_1: notificationContact1 || null,
-          notification_contact_2: notificationContact2 || null,
-          notification_message: notificationMessage,
+          contact_owner: contactOwner || null,
+          contact_delivery: contactDelivery || null,
+          custom_message: customMessage,
         })
         .eq("id", agent.id)
 
@@ -101,7 +103,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               <CardDescription>Ative ou desative o agente</CardDescription>
             </div>
             <div className="flex items-center gap-3">
-              <Badge 
+              <Badge
                 variant={isActive ? "default" : "secondary"}
                 className={isActive ? "bg-green-500 hover:bg-green-600" : ""}
               >
@@ -124,6 +126,19 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="product">Produto</Label>
+            <Input
+              id="product"
+              value={product}
+              onChange={(e) => setProduct(e.target.value)}
+              placeholder="Ex: Consultoria de Marketing"
+            />
+            <p className="text-xs text-muted-foreground">
+              O produto ou serviço que este agente está vendendo
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="prompt">Prompt do Agente</Label>
             <Textarea
               id="prompt"
@@ -140,11 +155,10 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
 
           {message && (
             <div
-              className={`p-3 rounded-lg text-sm ${
-                message.type === "success"
+              className={`p-3 rounded-lg text-sm ${message.type === "success"
                   ? "bg-green-500/10 text-green-700"
                   : "bg-red-500/10 text-red-700"
-              }`}
+                }`}
             >
               {message.text}
             </div>
@@ -166,51 +180,50 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="contact1">Contato 1 (WhatsApp)</Label>
+            <Label htmlFor="contactOwner">Contact Owner (WhatsApp)</Label>
             <Input
-              id="contact1"
+              id="contactOwner"
               placeholder="+55 11 99999-9999"
-              value={notificationContact1}
-              onChange={(e) => setNotificationContact1(e.target.value)}
+              value={contactOwner}
+              onChange={(e) => setContactOwner(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Número do WhatsApp que receberá notificações de conversões
+              Número do dono/responsável que receberá notificações
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contact2">Contato 2 (WhatsApp - Opcional)</Label>
+            <Label htmlFor="contactDelivery">Contact Delivery (WhatsApp - Opcional)</Label>
             <Input
-              id="contact2"
+              id="contactDelivery"
               placeholder="+55 11 99999-9999"
-              value={notificationContact2}
-              onChange={(e) => setNotificationContact2(e.target.value)}
+              value={contactDelivery}
+              onChange={(e) => setContactDelivery(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Segundo número para receber notificações (opcional)
+              Número do entregador/logística para receber notificações
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notificationMessage">Mensagem de Notificação</Label>
+            <Label htmlFor="customMessage">Mensagem de Notificação</Label>
             <Textarea
-              id="notificationMessage"
-              value={notificationMessage}
-              onChange={(e) => setNotificationMessage(e.target.value)}
+              id="customMessage"
+              value={customMessage}
+              onChange={(e) => setCustomMessage(e.target.value)}
               rows={8}
               placeholder="Mensagem que será enviada quando houver uma conversão"
-              disabled
             />
             <p className="text-xs text-muted-foreground">
-              Use variáveis: {"{{produto}}"}, {"{{numero}}"}, {"{{localizacao}}"} (Mensagem padrão, não editável por enquanto)
+              Use variáveis: {"{{product}}"}, {"{{number}}"}, {"{{location}}"}
             </p>
             <div className="mt-2 p-3 bg-muted rounded-md">
               <p className="text-xs font-medium mb-1">Preview:</p>
               <pre className="text-xs whitespace-pre-wrap text-muted-foreground">
-                {notificationMessage
-                  .replace("{{produto}}", "Produto Exemplo")
-                  .replace("{{numero}}", "+55 11 99999-9999")
-                  .replace("{{localizacao}}", "São Paulo, SP")}
+                {customMessage
+                  .replace("{{product}}", product || "Produto Exemplo")
+                  .replace("{{number}}", "+55 11 99999-9999")
+                  .replace("{{location}}", "São Paulo, SP")}
               </pre>
             </div>
           </div>
@@ -218,8 +231,8 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
       </Card>
 
       {/* Anexos */}
-      <AttachmentsManager 
-        attachments={attachments} 
+      <AttachmentsManager
+        attachments={attachments}
         onAttachmentsChange={setAttachments}
         onSave={handleSave}
         isSaving={isLoading}
