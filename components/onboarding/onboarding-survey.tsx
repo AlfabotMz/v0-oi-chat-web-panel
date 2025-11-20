@@ -2,12 +2,10 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowRight, Building2, MessageCircle, Target, Users } from "lucide-react"
+import { ArrowRight, Check, Target, Users, Globe } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface OnboardingSurveyProps {
     onComplete: (data: any) => void
@@ -17,14 +15,12 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
     const [step, setStep] = useState(1)
     const [formData, setFormData] = useState({
         source: "",
-        businessName: "",
-        whatsapp: "",
         companySize: "",
         goal: "",
     })
 
     const handleNext = () => {
-        if (step < 4) {
+        if (step < 3) {
             setStep(step + 1)
         } else {
             onComplete(formData)
@@ -35,140 +31,172 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
         setFormData((prev) => ({ ...prev, [field]: value }))
     }
 
+    const sources = [
+        { id: "google", label: "Google", icon: Globe },
+        { id: "social", label: "Redes Sociais", icon: Users },
+        { id: "recommendation", label: "Indicação", icon: Check },
+        { id: "other", label: "Outro", icon: Target },
+    ]
+
+    const sizes = [
+        "Apenas eu",
+        "2-5 funcionários",
+        "6-20 funcionários",
+        "21-50 funcionários",
+        "+50 funcionários",
+    ]
+
+    const goals = [
+        { id: "support", label: "Automatizar Suporte", desc: "Responder dúvidas frequentes 24/7" },
+        { id: "sales", label: "Aumentar Vendas", desc: "Qualificar leads e agendar reuniões" },
+        { id: "scheduling", label: "Agendamentos", desc: "Gerenciar agenda e reservas" },
+        { id: "other", label: "Outro", desc: "Necessidades específicas" },
+    ]
+
     return (
-        <div className="w-full max-w-md mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight text-white">
+        <div className="w-full max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center space-y-4">
+                <h1 className="text-4xl font-bold tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
                     Bem-vindo ao OiChat
                 </h1>
-                <p className="text-zinc-400">
-                    Vamos personalizar sua experiência.
+                <p className="text-zinc-400 text-lg">
+                    Vamos personalizar sua experiência em poucos cliques.
                 </p>
             </div>
 
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
+            <div className="bg-zinc-900/40 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+                {/* Background Gradients */}
+                <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+                    <div className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent opacity-50" />
+                </div>
+
                 {/* Step Indicator */}
-                <div className="flex gap-2 mb-8">
-                    {[1, 2, 3, 4].map((i) => (
+                <div className="flex gap-2 mb-12">
+                    {[1, 2, 3].map((i) => (
                         <div
                             key={i}
-                            className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= step ? "bg-purple-600" : "bg-zinc-800"
-                                }`}
+                            className={cn(
+                                "h-1.5 flex-1 rounded-full transition-all duration-500",
+                                i <= step ? "bg-gradient-to-r from-purple-500 to-blue-500" : "bg-white/10"
+                            )}
                         />
                     ))}
                 </div>
 
-                <div className="space-y-6">
+                <div className="min-h-[300px]">
                     {step === 1 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <div className="space-y-2">
-                                <Label className="text-zinc-200">Como você conheceu a OiChat?</Label>
-                                <Select onValueChange={(value) => handleChange("source", value)} value={formData.source}>
-                                    <SelectTrigger className="bg-zinc-950 border-zinc-800 text-zinc-200 focus:ring-purple-600/20">
-                                        <SelectValue placeholder="Selecione uma opção" />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-200">
-                                        <SelectItem value="google">Google</SelectItem>
-                                        <SelectItem value="social">Redes Sociais (Instagram, LinkedIn)</SelectItem>
-                                        <SelectItem value="recommendation">Indicação de Amigo</SelectItem>
-                                        <SelectItem value="youtube">YouTube</SelectItem>
-                                        <SelectItem value="other">Outro</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                            <h2 className="text-2xl font-semibold text-white text-center mb-8">
+                                Como você nos conheceu?
+                            </h2>
+                            <div className="grid grid-cols-2 gap-4">
+                                {sources.map((source) => {
+                                    const Icon = source.icon
+                                    const isSelected = formData.source === source.id
+                                    return (
+                                        <button
+                                            key={source.id}
+                                            onClick={() => handleChange("source", source.id)}
+                                            className={cn(
+                                                "flex flex-col items-center justify-center p-6 rounded-2xl border transition-all duration-300 group",
+                                                isSelected
+                                                    ? "bg-purple-500/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+                                                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                                            )}
+                                        >
+                                            <Icon className={cn(
+                                                "w-8 h-8 mb-3 transition-colors duration-300",
+                                                isSelected ? "text-purple-400" : "text-zinc-400 group-hover:text-white"
+                                            )} />
+                                            <span className={cn(
+                                                "font-medium transition-colors duration-300",
+                                                isSelected ? "text-white" : "text-zinc-400 group-hover:text-white"
+                                            )}>{source.label}</span>
+                                        </button>
+                                    )
+                                })}
                             </div>
                         </div>
                     )}
 
                     {step === 2 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <div className="space-y-2">
-                                <Label className="text-zinc-200">Nome do seu Negócio</Label>
-                                <div className="relative">
-                                    <Building2 className="absolute left-3 top-3 h-4 w-4 text-zinc-500" />
-                                    <Input
-                                        placeholder="Ex: TechMoz Solutions"
-                                        className="pl-9 bg-zinc-950 border-zinc-800 text-zinc-200 focus:ring-purple-600/20 placeholder:text-zinc-600"
-                                        value={formData.businessName}
-                                        onChange={(e) => handleChange("businessName", e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-zinc-200">WhatsApp Comercial</Label>
-                                <div className="relative">
-                                    <MessageCircle className="absolute left-3 top-3 h-4 w-4 text-zinc-500" />
-                                    <Input
-                                        placeholder="+258 84 123 4567"
-                                        className="pl-9 bg-zinc-950 border-zinc-800 text-zinc-200 focus:ring-purple-600/20 placeholder:text-zinc-600"
-                                        value={formData.whatsapp}
-                                        onChange={(e) => handleChange("whatsapp", e.target.value)}
-                                    />
-                                </div>
-                                <p className="text-xs text-zinc-500">
-                                    Ex: +258 (Moçambique)
-                                </p>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                            <h2 className="text-2xl font-semibold text-white text-center mb-8">
+                                Qual o tamanho da sua empresa?
+                            </h2>
+                            <div className="space-y-3">
+                                {sizes.map((size) => (
+                                    <button
+                                        key={size}
+                                        onClick={() => handleChange("companySize", size)}
+                                        className={cn(
+                                            "w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group text-left",
+                                            formData.companySize === size
+                                                ? "bg-purple-500/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+                                                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                                        )}
+                                    >
+                                        <span className={cn(
+                                            "font-medium transition-colors duration-300",
+                                            formData.companySize === size ? "text-white" : "text-zinc-400 group-hover:text-white"
+                                        )}>{size}</span>
+                                        {formData.companySize === size && (
+                                            <Check className="w-5 h-5 text-purple-400" />
+                                        )}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     )}
 
                     {step === 3 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <div className="space-y-2">
-                                <Label className="text-zinc-200">Tamanho da Empresa</Label>
-                                <RadioGroup
-                                    value={formData.companySize}
-                                    onValueChange={(value) => handleChange("companySize", value)}
-                                    className="grid gap-2"
-                                >
-                                    {[
-                                        "Apenas eu",
-                                        "2-5 funcionários",
-                                        "6-20 funcionários",
-                                        "21-50 funcionários",
-                                        "Mais de 50 funcionários",
-                                    ].map((size) => (
-                                        <Label
-                                            key={size}
-                                            className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all duration-200 ${formData.companySize === size
-                                                    ? "bg-purple-600/10 border-purple-600/50 text-purple-400"
-                                                    : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:bg-zinc-900 hover:border-zinc-700"
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <Users className="w-4 h-4" />
-                                                <span>{size}</span>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                            <h2 className="text-2xl font-semibold text-white text-center mb-8">
+                                Qual seu principal objetivo?
+                            </h2>
+                            <div className="grid gap-4">
+                                {goals.map((goal) => (
+                                    <button
+                                        key={goal.id}
+                                        onClick={() => handleChange("goal", goal.id)}
+                                        className={cn(
+                                            "w-full flex items-center p-4 rounded-xl border transition-all duration-300 group text-left",
+                                            formData.goal === goal.id
+                                                ? "bg-purple-500/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+                                                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                                        )}
+                                    >
+                                        <div className="flex-1">
+                                            <div className={cn(
+                                                "font-medium mb-1 transition-colors duration-300",
+                                                formData.goal === goal.id ? "text-white" : "text-zinc-200 group-hover:text-white"
+                                            )}>{goal.label}</div>
+                                            <div className="text-sm text-zinc-500 group-hover:text-zinc-400">
+                                                {goal.desc}
                                             </div>
-                                            <RadioGroupItem value={size} className="sr-only" />
-                                        </Label>
-                                    ))}
-                                </RadioGroup>
+                                        </div>
+                                        {formData.goal === goal.id && (
+                                            <Check className="w-5 h-5 text-purple-400 ml-4" />
+                                        )}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     )}
+                </div>
 
-                    {step === 4 && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <div className="space-y-2">
-                                <Label className="text-zinc-200">Qual seu principal objetivo?</Label>
-                                <div className="relative">
-                                    <Target className="absolute left-3 top-3 h-4 w-4 text-zinc-500" />
-                                    <Textarea
-                                        placeholder="Ex: Automatizar atendimento ao cliente e aumentar vendas..."
-                                        className="min-h-[100px] pl-9 bg-zinc-950 border-zinc-800 text-zinc-200 focus:ring-purple-600/20 placeholder:text-zinc-600 resize-none"
-                                        value={formData.goal}
-                                        onChange={(e) => handleChange("goal", e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
+                <div className="mt-8 pt-8 border-t border-white/10 flex justify-end">
                     <Button
                         onClick={handleNext}
-                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg shadow-purple-500/25"
+                        disabled={
+                            (step === 1 && !formData.source) ||
+                            (step === 2 && !formData.companySize) ||
+                            (step === 3 && !formData.goal)
+                        }
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/25 rounded-xl px-8 py-6 text-lg font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
                     >
-                        {step === 4 ? "Começar a Criar Agente" : "Próximo"}
-                        <ArrowRight className="w-4 h-4 ml-2" />
+                        {step === 3 ? "Continuar" : "Próximo"}
+                        <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                 </div>
             </div>
