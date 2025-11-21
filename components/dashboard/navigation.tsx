@@ -23,7 +23,6 @@ const navItems = [
   { href: "/dashboard", label: "Agentes", icon: MessageCircle },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
-  { href: "/dashboard/support", label: "Suporte", icon: HelpCircle },
 ]
 
 export function Navigation({ variant = "sidebar", onNavigate, communityLink, supportWhatsAppLink }: NavigationProps) {
@@ -89,7 +88,7 @@ export function Navigation({ variant = "sidebar", onNavigate, communityLink, sup
         </Button>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-6">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname.startsWith(item.href)

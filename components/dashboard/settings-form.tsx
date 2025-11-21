@@ -47,9 +47,38 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteStep, setDeleteStep] = useState(1)
 
+  const [phone, setPhone] = useState(profile?.phone || "")
+  const [isSaving, setIsSaving] = useState(false)
+
   const plan = profile?.plan || "free"
   const planLabel = planLabels[plan] || plan
   const planColor = planColors[plan] || "bg-gray-500"
+
+  const handleUpdateProfile = async () => {
+    setIsSaving(true)
+    setMessage(null)
+
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from("profiles")
+        .update({ phone })
+        .eq("id", user.id)
+
+      if (error) throw error
+
+      setMessage({ type: "success", text: "Perfil atualizado com sucesso!" })
+      router.refresh()
+    } catch (err: any) {
+      console.error("Erro ao atualizar perfil:", err)
+      setMessage({
+        type: "error",
+        text: err.message || "Erro ao atualizar perfil. Tente novamente.",
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   const handleDeleteAccount = async () => {
     if (deleteStep === 1) {
@@ -64,7 +93,7 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
     setIsDeleting(true)
     try {
       const supabase = createClient()
-      
+
       // Deletar todos os agentes do usuário primeiro
       const { data: agents } = await supabase
         .from("agents")
@@ -127,6 +156,18 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
           </div>
 
           <div className="space-y-2">
+            <Label>Telefone</Label>
+            <Input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+258 84 123 4567"
+            />
+            <p className="text-xs text-muted-foreground">
+              Adicione seu número para receber notificações.
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label>Plano Atual</Label>
             <div className="flex items-center gap-2">
               <Badge className={`${planColor} text-white`}>
@@ -134,6 +175,19 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
                 {planLabel}
               </Badge>
             </div>
+          </div>
+
+          <div className="pt-2">
+            <Button onClick={handleUpdateProfile} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Salvar Alterações"
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -166,9 +220,8 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
 
       {message && (
         <div
-          className={`p-4 rounded-lg text-sm ${
-            message.type === "success" ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-red-500/10 text-red-700 dark:text-red-400"
-          }`}
+          className={`p-4 rounded-lg text-sm ${message.type === "success" ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-red-500/10 text-red-700 dark:text-red-400"
+            }`}
         >
           {message.text}
         </div>
