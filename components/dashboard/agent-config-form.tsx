@@ -138,18 +138,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="product">Produto</Label>
-            <Input
-              id="product"
-              value={product}
-              onChange={(e) => setProduct(e.target.value)}
-              placeholder="Ex: Consultoria de Marketing"
-            />
-            <p className="text-xs text-muted-foreground">
-              O produto ou serviço que este agente está vendendo
-            </p>
-          </div>
+
 
           <div className="space-y-2">
             <Label htmlFor="prompt">Prompt do Agente</Label>
@@ -196,7 +185,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
             <Label htmlFor="contactOwner">Contact Owner (WhatsApp)</Label>
             <Input
               id="contactOwner"
-              placeholder="+55 11 99999-9999"
+              placeholder="+258 84 123 4567"
               value={contactOwner}
               onChange={(e) => setContactOwner(e.target.value)}
             />
@@ -209,7 +198,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
             <Label htmlFor="contactDelivery">Contact Delivery (WhatsApp - Opcional)</Label>
             <Input
               id="contactDelivery"
-              placeholder="+55 11 99999-9999"
+              placeholder="+258 84 123 4567"
               value={contactDelivery}
               onChange={(e) => setContactDelivery(e.target.value)}
             />
