@@ -1,17 +1,19 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-// Função helper para obter a URL base do n8n
-function getN8nBaseUrl(): string {
+// Função helper para obter a URL do webhook n8n
+function getN8nWebhookUrl(): string {
   const envUrl = process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
 
   // Se a URL contém /webhook/, extrair apenas a base
+  let baseUrl = envUrl
   if (envUrl.includes("/webhook/")) {
-    return envUrl.split("/webhook/")[0]
+    baseUrl = envUrl.split("/webhook/")[0]
   }
+  // Remove barras no final
+  baseUrl = baseUrl.replace(/\/$/, "")
 
-  // Remove barras no final se existirem
-  return envUrl.replace(/\/$/, "")
+  return `${baseUrl}/webhook/create-agent`
 }
 
 export async function POST(request: NextRequest) {
@@ -24,6 +26,37 @@ export async function POST(request: NextRequest) {
       error: userError,
     } = await supabase.auth.getUser()
 
+    if (userError || !user) {
+      return NextResponse.json({ success: false, error: "Não autenticado" }, { status: 401 })
+    }
+
+    // Ler dados do corpo da requisição
+    const body = await request.json()
+    const { nome, prompt, phone_number } = body
+
+    if (!nome || !prompt) {
+      return NextResponse.json({ success: false, error: "Nome e Prompt são obrigatórios" }, { status: 400 })
+    }
+
+    const webhookUrl = getN8nWebhookUrl()
+    console.log("Chamando webhook n8n:", webhookUrl)
+
+    // Fazer requisição para o webhook n8n
+    const n8nResponse = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: user.id,
+        nome,
+        prompt,
+        phone_number,
+        action: "create_agent"
+      }),
+    })
+
+    const contentType = n8nResponse.headers.get("content-type")
     let n8nData
 
     if (contentType && contentType.includes("application/json")) {
@@ -73,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     // Extrair o agent_id retornado pelo n8n
     const agentData = responseData.agent || {}
-    const agentId = agentData.agent_id || responseData.agent_id
+    const agentId = agentData.agent_id || responseData.agent_id || responseData.id
 
     // Se o n8n retornou um UUID válido, buscar o agente no Supabase
     // Caso contrário, retornar apenas os dados do n8n
@@ -126,24 +159,15 @@ export async function POST(request: NextRequest) {
       message: responseData.message || "Agente criado com sucesso!",
       agent: agent,
     })
-  } catch (n8nError: any) {
-    console.error("Erro no webhook n8n:", n8nError)
+
+  } catch (error: any) {
+    console.error("Erro no create-agent:", error)
     return NextResponse.json(
       {
         success: false,
-        error: n8nError.message || "Erro ao conectar com webhook n8n",
+        error: error.message || "Erro interno do servidor",
       },
       { status: 500 }
     )
   }
-} catch (error: any) {
-  console.error("Erro no create-agent:", error)
-  return NextResponse.json(
-    {
-      success: false,
-      error: error.message || "Erro interno do servidor",
-    },
-    { status: 500 }
-  )
-}
 }
