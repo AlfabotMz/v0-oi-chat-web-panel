@@ -139,6 +139,19 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="product">Produto</Label>
+            <Input
+              id="product"
+              value={product}
+              onChange={(e) => setProduct(e.target.value)}
+              placeholder="Ex: Consultoria de Marketing"
+            />
+            <p className="text-xs text-muted-foreground">
+              O produto ou serviço que este agente está vendendo
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="prompt">Prompt do Agente</Label>
             <Textarea
               id="prompt"
@@ -156,8 +169,8 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           {message && (
             <div
               className={`p-3 rounded-lg text-sm ${message.type === "success"
-                  ? "bg-green-500/10 text-green-700"
-                  : "bg-red-500/10 text-red-700"
+                ? "bg-green-500/10 text-green-700"
+                : "bg-red-500/10 text-red-700"
                 }`}
             >
               {message.text}
