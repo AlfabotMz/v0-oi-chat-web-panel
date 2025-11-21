@@ -29,7 +29,7 @@ export async function signUp(email: string, password: string, isAdmin = false) {
     options: {
       emailRedirectTo:
         process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-        `${typeof window !== "undefined" ? window.location.origin : ""}/onboarding`,
+        `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/onboarding`,
       data: {
         role: userRole,
         status: userStatus,
