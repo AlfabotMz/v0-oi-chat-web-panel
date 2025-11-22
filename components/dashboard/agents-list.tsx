@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Plus, Settings, MessageSquare, Trash2, Loader2 } from "lucide-react"
+import { Plus, Settings, Trash2, Loader2 } from "lucide-react"
 import { CreateAgentDialog } from "./create-agent-dialog"
 
 interface AgentsListProps {
@@ -104,12 +104,6 @@ export function AgentsList({ agents }: AgentsListProps) {
                     <Button variant="outline" size="sm" className="w-full gap-2 bg-transparent justify-center">
                       <Settings className="w-4 h-4" />
                       Configure
-                    </Button>
-                  </Link>
-                  <Link href={`/dashboard/conversations/${agent.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full gap-2 bg-transparent justify-center">
-                      <MessageSquare className="w-4 h-4" />
-                      Messages
                     </Button>
                   </Link>
                   <Button
