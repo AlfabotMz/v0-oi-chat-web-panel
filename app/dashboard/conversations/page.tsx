@@ -1,9 +1,9 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { MessageSquare, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { signOut } from "@/lib/supabase/auth-actions"
-
-"use client"
 
 export default function ConversationsPage() {
     return (
