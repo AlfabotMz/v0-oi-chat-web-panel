@@ -233,15 +233,20 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="customMessage">Mensagem de Notificação</Label>
-            <Textarea
-              id="customMessage"
+            <PromptEditor
               value={customMessage}
-              onChange={(e) => setCustomMessage(e.target.value)}
-              rows={8}
-              placeholder="Mensagem que será enviada quando houver uma conversão"
+              onChange={setCustomMessage}
+              placeholder="Mensagem que será enviada quando houver uma conversão... Use / para ver variáveis."
+              className="min-h-[150px] bg-background/50"
+              mode="variables-only"
+              variables={[
+                { label: "product", value: "{{product}}", description: "Nome do produto" },
+                { label: "number", value: "{{number}}", description: "Número do cliente" },
+                { label: "location", value: "{{location}}", description: "Localização do cliente" },
+              ]}
             />
             <p className="text-xs text-muted-foreground">
-              Use variáveis: {"{{product}}"}, {"{{number}}"}, {"{{location}}"}
+              Use variáveis para personalizar a mensagem.
             </p>
             <div className="mt-2 p-3 bg-muted rounded-md">
               <p className="text-xs font-medium mb-1">Preview:</p>
