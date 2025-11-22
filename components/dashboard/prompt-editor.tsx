@@ -122,7 +122,7 @@ export function PromptEditor({ value, onChange, placeholder, className }: Prompt
                 {/* Backdrop for highlighting */}
                 <div
                     ref={backdropRef}
-                    className="absolute inset-0 p-3 whitespace-pre-wrap break-words pointer-events-none text-transparent bg-transparent overflow-auto"
+                    className="absolute inset-0 p-3 whitespace-pre-wrap break-words pointer-events-none text-zinc-100 bg-transparent overflow-auto"
                     aria-hidden="true"
                 >
                     {/* We render the text transparently here just to match size, 
