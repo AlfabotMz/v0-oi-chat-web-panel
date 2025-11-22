@@ -89,21 +89,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              {isSignUp && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/30">
-                  <input
-                    type="checkbox"
-                    id="admin"
-                    checked={isAdmin}
-                    onChange={(e) => setIsAdmin(e.target.checked)}
-                    className="w-4 h-4 cursor-pointer"
-                  />
-                  <label htmlFor="admin" className="text-sm cursor-pointer flex items-center gap-1">
-                    <Crown className="w-4 h-4 text-purple-600" />
-                    <span>Registrar como Administrador</span>
-                  </label>
-                </div>
-              )}
+              {/* Admin option removed */}
 
               {error && (
                 <p className="text-sm text-red-500 bg-red-50/50 dark:bg-red-950/20 p-2 rounded border border-red-200/30">
@@ -125,7 +111,8 @@ export default function LoginPage() {
               <button
                 onClick={() => {
                   setIsSignUp(!isSignUp)
-                  setIsAdmin(false)
+                  setIsSignUp(!isSignUp)
+                  // setIsAdmin(false) // Admin option removed
                   setError(null)
                 }}
                 className="text-purple-600 hover:underline font-medium"
@@ -137,15 +124,7 @@ export default function LoginPage() {
         </Card>
 
         {/* Info Box */}
-        <div className="mt-6 p-4 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/30">
-          <p className="text-sm text-foreground font-semibold mb-2">Como funciona:</p>
-          <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• Apenas uma conta de administrador pode ser criada</li>
-            <li>• Usuários novos começam com plano Grátis e inativo</li>
-            <li>• Admin ativa contas quando elas adquirem Pro/Premium</li>
-            <li>• Plano Grátis tem funcionalidades limitadas</li>
-          </ul>
-        </div>
+        {/* Info Box Removed */}
       </div>
     </div>
   )

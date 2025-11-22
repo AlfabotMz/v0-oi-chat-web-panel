@@ -8,8 +8,12 @@ export default function LandingPage() {
       {/* Navbar */}
       <header className="px-4 lg:px-6 h-20 flex items-center fixed w-full bg-[#0A0A0A]/80 backdrop-blur-xl z-50 border-b border-white/5">
         <Link className="flex items-center justify-center gap-2 group" href="#">
-          <div className="p-2 bg-gradient-to-tr from-purple-600 to-blue-600 rounded-lg group-hover:scale-110 transition-transform">
-            <Bot className="h-6 w-6 text-white" />
+          <div className="relative w-10 h-10 overflow-hidden rounded-lg group-hover:scale-110 transition-transform">
+            <img
+              src="/oichat-icon.jpg"
+              alt="OiChat Icon"
+              className="object-cover w-full h-full"
+            />
           </div>
           <span className="font-bold text-xl tracking-tight">OiChat</span>
         </Link>
@@ -57,7 +61,7 @@ export default function LandingPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 min-w-[200px] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400">
-                <Link href="/onboarding">
+                <Link href="/login">
                   <Button className="w-full sm:w-auto h-12 px-8 rounded-full bg-white text-black hover:bg-zinc-200 text-lg transition-all hover:scale-105">
                     Criar meu Agente
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -75,9 +79,19 @@ export default function LandingPage() {
                 <div className="relative rounded-xl bg-zinc-900/50 border border-white/10 shadow-2xl transform rotate-x-12 hover:rotate-x-0 transition-transform duration-700 ease-out overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 to-blue-500/10 pointer-events-none" />
 
+                  {/* Mobile Image */}
                   <img
-                    alt="Dashboard Preview"
-                    className="w-full h-auto"
+                    alt="Dashboard Preview Mobile"
+                    className="w-full h-auto md:hidden"
+                    src="/oichat-icon.jpg"
+                    width={1280}
+                    height={720}
+                  />
+
+                  {/* Desktop Image */}
+                  <img
+                    alt="Dashboard Preview Desktop"
+                    className="w-full h-auto hidden md:block"
                     src="/dashboard-v3.png"
                     width={1280}
                     height={720}
@@ -209,13 +223,13 @@ export default function LandingPage() {
                 <p className="text-xl text-zinc-300">
                   Junte-se a centenas de empresas que já automatizaram seu WhatsApp com o OiChat.
                 </p>
-                <Link href="/onboarding">
+                <Link href="/login">
                   <Button className="h-14 px-10 rounded-full bg-white text-black hover:bg-zinc-200 text-lg font-semibold shadow-2xl shadow-white/20 transition-all hover:scale-105">
                     Começar Gratuitamente
                   </Button>
                 </Link>
                 <p className="text-sm text-zinc-500">
-                  Não requer cartão de crédito • Setup em 2 minutos
+                  Teste 7 dias gratis depois 15$/mes ou pagar agora 15$ e ganhar mais um mes gratis de bonus
                 </p>
               </div>
             </div>

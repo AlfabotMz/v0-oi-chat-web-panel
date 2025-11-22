@@ -13,6 +13,7 @@ import { AttachmentsManager } from "./attachments-manager"
 import { WhatsAppConnect } from "./whatsapp-connect"
 import { Badge } from "@/components/ui/badge"
 import { BackButton } from "@/components/ui/back-button"
+import { PromptEditor } from "./prompt-editor"
 
 interface AgentConfigFormProps {
   agent: any
@@ -142,12 +143,11 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="prompt">Prompt do Agente</Label>
-            <Textarea
-              id="prompt"
+            <PromptEditor
               value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Digite as instruções para o agente de IA..."
-              rows={6}
+              onChange={setPrompt}
+              placeholder="Digite as instruções para o agente de IA... Use / para ver funções disponíveis."
+              className="min-h-[200px]"
             />
             <p className="text-xs text-muted-foreground">
               Instruções que definem como o agente deve se comportar e responder
