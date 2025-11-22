@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, Check, MessageSquare, Zap, BarChart3, Shield, Smartphone, Globe, Users, Menu, X } from "lucide-react"
+import { ArrowRight, Check, MessageSquare, Zap, BarChart3, Shield, Smartphone, Globe, Users, Menu, X, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { BusinessPlanDialog } from "@/components/landing/business-plan-dialog"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import {
@@ -39,7 +40,7 @@ export default function LandingPage() {
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="relative w-8 h-8 rounded-lg overflow-hidden shadow-lg shadow-primary/20">
+            <div className="relative w-8 h-8 rounded-xl overflow-hidden shadow-lg shadow-primary/20">
               <Image src="/oichat-icon.jpg" alt="OiChat Logo" fill className="object-cover" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
@@ -52,11 +53,8 @@ export default function LandingPage() {
             <Link href="#features" className="text-sm font-medium hover:text-primary transition-colors">
               Recursos
             </Link>
-            <Link href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">
-              Preços
-            </Link>
-            <Link href="#testimonials" className="text-sm font-medium hover:text-primary transition-colors">
-              Depoimentos
+            <Link href="#plans" className="text-sm font-medium hover:text-primary transition-colors">
+              Planos
             </Link>
             <Link href="/login">
               <Button variant="ghost" className="text-sm font-medium">
@@ -82,11 +80,8 @@ export default function LandingPage() {
             <Link href="#features" className="text-sm font-medium p-2 hover:bg-muted rounded-md" onClick={toggleMobileMenu}>
               Recursos
             </Link>
-            <Link href="#pricing" className="text-sm font-medium p-2 hover:bg-muted rounded-md" onClick={toggleMobileMenu}>
-              Preços
-            </Link>
-            <Link href="#testimonials" className="text-sm font-medium p-2 hover:bg-muted rounded-md" onClick={toggleMobileMenu}>
-              Depoimentos
+            <Link href="#plans" className="text-sm font-medium p-2 hover:bg-muted rounded-md" onClick={toggleMobileMenu}>
+              Planos
             </Link>
             <div className="flex flex-col gap-2 mt-2">
               <Link href="/login" onClick={toggleMobileMenu}>
@@ -109,6 +104,8 @@ export default function LandingPage() {
         <section className="relative py-20 md:py-32 overflow-hidden">
           {/* Background Elements */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-primary/10 rounded-full blur-[100px] -z-10 opacity-50 animate-pulse" />
+          <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-gradient-to-t from-background to-transparent z-10" />
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
           <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6 border border-primary/20 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -134,17 +131,12 @@ export default function LandingPage() {
                   Criar meu Agente <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="#demo">
-                <Button variant="outline" size="lg" className="h-12 px-8 text-base border-primary/20 hover:bg-primary/5">
-                  Ver Demonstração
-                </Button>
-              </Link>
             </div>
 
             {/* Dashboard Preview */}
             <div className="mt-16 relative mx-auto max-w-5xl animate-in fade-in zoom-in-95 duration-1000 delay-500">
               <div className="relative rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm shadow-2xl overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-10 bg-muted/50 border-b border-border/50 flex items-center px-4 gap-2">
+                <div className="absolute top-0 left-0 right-0 h-10 bg-muted/50 border-b border-border/50 flex items-center px-4 gap-2 z-20">
                   <div className="w-3 h-3 rounded-full bg-red-500/50" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                   <div className="w-3 h-3 rounded-full bg-green-500/50" />
@@ -158,14 +150,14 @@ export default function LandingPage() {
                     className="object-contain p-8"
                   />
                 </div>
-                {/* Desktop Preview Image - Placeholder for now, using a gradient div if image not perfect */}
+                {/* Desktop Preview Image */}
                 <div className="hidden md:block aspect-[16/9] relative bg-zinc-950/50">
-                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <BarChart3 className="w-16 h-16 mx-auto mb-4 text-primary/50" />
-                      <p>Dashboard Preview</p>
-                    </div>
-                  </div>
+                  <Image
+                    src="/oichat-icon.jpg"
+                    alt="OiChat Dashboard Preview"
+                    fill
+                    className="object-contain p-12 opacity-80 hover:opacity-100 transition-opacity"
+                  />
                 </div>
               </div>
 
@@ -290,8 +282,8 @@ export default function LandingPage() {
               </div>
 
               <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Sem cartão de crédito</span>
                 <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Cancelamento fácil</span>
+                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Suporte dedicado</span>
               </div>
             </div>
           </div>
@@ -316,7 +308,7 @@ export default function LandingPage() {
                 <h4 className="font-bold mb-4">Produto</h4>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li><Link href="#" className="hover:text-primary">Recursos</Link></li>
-                  <li><Link href="#" className="hover:text-primary">Preços</Link></li>
+                  <li><Link href="#" className="hover:text-primary">Planos</Link></li>
                   <li><Link href="#" className="hover:text-primary">Integrações</Link></li>
                   <li><Link href="#" className="hover:text-primary">Changelog</Link></li>
                 </ul>

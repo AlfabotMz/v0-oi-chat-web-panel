@@ -30,7 +30,7 @@ export default function SupportPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Link href="https://chat.whatsapp.com/..." target="_blank">
+                        <Link href="https://chat.whatsapp.com/your-invite-code" target="_blank" rel="noopener noreferrer">
                             <Button className="w-full gap-2">
                                 Acessar Comunidade
                                 <ExternalLink className="h-4 w-4" />
@@ -51,7 +51,7 @@ export default function SupportPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Link href="https://wa.me/..." target="_blank">
+                        <Link href="https://wa.me/258841234567" target="_blank" rel="noopener noreferrer">
                             <Button variant="outline" className="w-full gap-2">
                                 Falar no WhatsApp
                                 <ExternalLink className="h-4 w-4" />

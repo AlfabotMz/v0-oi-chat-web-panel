@@ -1,0 +1,2 @@
+ALTER TABLE public.agents
+ADD COLUMN IF NOT EXISTS message_delay INTEGER DEFAULT 0;

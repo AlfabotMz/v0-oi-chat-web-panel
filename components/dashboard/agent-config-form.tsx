@@ -33,6 +33,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
     agent.custom_message ||
     "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{product}}\n\n💸 Número: {{number}}\n\n💸 Local: {{location}}"
   )
+  const [messageDelay, setMessageDelay] = useState(agent.message_delay || 0)
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
@@ -70,6 +71,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           contact_owner: contactOwner || null,
           contact_delivery: contactDelivery || null,
           custom_message: customMessage,
+          message_delay: messageDelay,
         })
         .eq("id", agent.id)
 
@@ -147,10 +149,32 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               value={prompt}
               onChange={setPrompt}
               placeholder="Digite as instruções para o agente de IA... Use / para ver funções disponíveis."
-              className="min-h-[200px]"
+              className="min-h-[200px] bg-background/50"
             />
             <p className="text-xs text-muted-foreground">
               Instruções que definem como o agente deve se comportar e responder
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="messageDelay">Delay da Mensagem (segundos)</Label>
+              <span className="text-sm font-medium">{messageDelay}s</span>
+            </div>
+            <div className="pt-2">
+              <input
+                type="range"
+                id="messageDelay"
+                min="0"
+                max="30"
+                step="1"
+                value={messageDelay}
+                onChange={(e) => setMessageDelay(parseInt(e.target.value))}
+                className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Tempo de espera antes do agente responder (0-30 segundos)
             </p>
           </div>
 

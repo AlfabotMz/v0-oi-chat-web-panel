@@ -16,7 +16,7 @@ interface NavigationProps {
 const navItems = [
   { href: "/dashboard", label: "Agentes", icon: MessageCircle },
   { href: "/dashboard/conversations", label: "Conversas", icon: MessageSquare },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/performance", label: "Performance", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
 ]
 
