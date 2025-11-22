@@ -2,15 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MessageCircle, BarChart3, Settings, X, HelpCircle } from "lucide-react"
+import { MessageCircle, BarChart3, Settings, X, HelpCircle, MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 interface NavigationProps {
   variant?: "sidebar" | "mobile"
@@ -21,11 +15,12 @@ interface NavigationProps {
 
 const navItems = [
   { href: "/dashboard", label: "Agentes", icon: MessageCircle },
+  { href: "/dashboard/conversations", label: "Conversas", icon: MessageSquare },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
 ]
 
-export function Navigation({ variant = "sidebar", onNavigate, communityLink, supportWhatsAppLink }: NavigationProps) {
+export function Navigation({ variant = "sidebar", onNavigate }: NavigationProps) {
   const pathname = usePathname()
 
   if (variant === "mobile") {
@@ -54,18 +49,14 @@ export function Navigation({ variant = "sidebar", onNavigate, communityLink, sup
             </Link>
           )
         })}
-        {(communityLink || supportWhatsAppLink) && (
-          <button
-            onClick={() => {
-              if (communityLink) window.open(communityLink, "_blank")
-              else if (supportWhatsAppLink) window.open(supportWhatsAppLink, "_blank")
-            }}
-            className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md px-3 py-2 text-xs transition-colors text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
-          >
-            <HelpCircle className="h-5 w-5" />
-            <span>Suporte</span>
-          </button>
-        )}
+        <Link
+          href="/dashboard/support"
+          className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md px-3 py-2 text-xs transition-colors text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
+          onClick={onNavigate}
+        >
+          <HelpCircle className="h-5 w-5" />
+          <span>Suporte</span>
+        </Link>
       </nav>
     )
   }
@@ -109,41 +100,21 @@ export function Navigation({ variant = "sidebar", onNavigate, communityLink, sup
       </div>
 
       {/* Botão de Suporte */}
-      {(communityLink || supportWhatsAppLink) && (
-        <div className="mt-auto pt-4 border-t border-border/50">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 text-foreground hover:bg-secondary"
-              >
-                <HelpCircle className="w-5 h-5" />
-                <span className="font-medium">Suporte</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              {communityLink && (
-                <DropdownMenuItem
-                  onClick={() => window.open(communityLink, "_blank")}
-                  className="gap-2"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  Comunidade
-                </DropdownMenuItem>
-              )}
-              {supportWhatsAppLink && (
-                <DropdownMenuItem
-                  onClick={() => window.open(supportWhatsAppLink, "_blank")}
-                  className="gap-2"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  WhatsApp
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
+      <div className="mt-auto pt-4 border-t border-border/50">
+        <Link href="/dashboard/support" onClick={onNavigate}>
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-3 text-foreground hover:bg-secondary",
+              pathname === "/dashboard/support" && "bg-secondary"
+            )}
+          >
+            <HelpCircle className="w-5 h-5" />
+            <span className="font-medium">Suporte</span>
+          </Button>
+        </Link>
+      </div>
     </nav>
   )
 }
+

@@ -1,125 +1,195 @@
+"use client"
+
 import Link from "next/link"
+import Image from "next/image"
+import { ArrowRight, Check, MessageSquare, Zap, BarChart3, Shield, Smartphone, Globe, Users, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, CheckCircle2, MessageSquare, Zap, BarChart3, Shield, Globe, Bot } from "lucide-react"
+import { useState, useEffect } from "react"
+import { cn } from "@/lib/utils"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 export default function LandingPage() {
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen)
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#0A0A0A] text-white overflow-hidden selection:bg-purple-500/30">
+    <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary/20 selection:text-primary">
       {/* Navbar */}
-      <header className="px-4 lg:px-6 h-20 flex items-center fixed w-full bg-[#0A0A0A]/80 backdrop-blur-xl z-50 border-b border-white/5">
-        <Link className="flex items-center justify-center gap-2 group" href="#">
-          <div className="relative w-10 h-10 overflow-hidden rounded-lg group-hover:scale-110 transition-transform">
-            <img
-              src="/oichat-icon.jpg"
-              alt="OiChat Icon"
-              className="object-cover w-full h-full"
-            />
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
+          isScrolled ? "bg-background/80 backdrop-blur-md border-border/50 py-3 shadow-sm" : "bg-transparent py-5"
+        )}
+      >
+        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="relative w-8 h-8 rounded-lg overflow-hidden shadow-lg shadow-primary/20">
+              <Image src="/oichat-icon.jpg" alt="OiChat Logo" fill className="object-cover" />
+            </div>
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
+              OiChat
+            </span>
           </div>
-          <span className="font-bold text-xl tracking-tight">OiChat</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-8">
-          <Link className="text-sm font-medium text-zinc-400 hover:text-white transition-colors" href="#features">
-            Recursos
-          </Link>
-          <Link className="text-sm font-medium text-zinc-400 hover:text-white transition-colors" href="#pricing">
-            Preços
-          </Link>
-          <Link className="text-sm font-medium text-zinc-400 hover:text-white transition-colors" href="/login">
-            Login
-          </Link>
-          <Link
-            className="text-sm font-medium bg-white text-black px-4 py-2 rounded-full hover:bg-zinc-200 transition-colors"
-            href="/onboarding"
-          >
-            Começar Agora
-          </Link>
-        </nav>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8">
+            <Link href="#features" className="text-sm font-medium hover:text-primary transition-colors">
+              Recursos
+            </Link>
+            <Link href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">
+              Preços
+            </Link>
+            <Link href="#testimonials" className="text-sm font-medium hover:text-primary transition-colors">
+              Depoimentos
+            </Link>
+            <Link href="/login">
+              <Button variant="ghost" className="text-sm font-medium">
+                Entrar
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 transition-all hover:scale-105">
+                Começar Agora
+              </Button>
+            </Link>
+          </nav>
+
+          {/* Mobile Menu Toggle */}
+          <button className="md:hidden p-2 text-foreground" onClick={toggleMobileMenu}>
+            {mobileMenuOpen ? <X /> : <Menu />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-background border-b border-border p-4 flex flex-col gap-4 animate-in slide-in-from-top-5">
+            <Link href="#features" className="text-sm font-medium p-2 hover:bg-muted rounded-md" onClick={toggleMobileMenu}>
+              Recursos
+            </Link>
+            <Link href="#pricing" className="text-sm font-medium p-2 hover:bg-muted rounded-md" onClick={toggleMobileMenu}>
+              Preços
+            </Link>
+            <Link href="#testimonials" className="text-sm font-medium p-2 hover:bg-muted rounded-md" onClick={toggleMobileMenu}>
+              Depoimentos
+            </Link>
+            <div className="flex flex-col gap-2 mt-2">
+              <Link href="/login" onClick={toggleMobileMenu}>
+                <Button variant="outline" className="w-full justify-center">
+                  Entrar
+                </Button>
+              </Link>
+              <Link href="/login" onClick={toggleMobileMenu}>
+                <Button className="w-full justify-center bg-primary text-white">
+                  Começar Agora
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 pt-20">
         {/* Hero Section */}
-        <section className="w-full py-24 md:py-32 lg:py-40 relative">
-          {/* Background Gradients */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden -z-10 pointer-events-none">
-            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse delay-1000" />
-          </div>
+        <section className="relative py-20 md:py-32 overflow-hidden">
+          {/* Background Elements */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-primary/10 rounded-full blur-[100px] -z-10 opacity-50 animate-pulse" />
 
-          <div className="container px-4 md:px-6 mx-auto">
-            <div className="flex flex-col items-center space-y-8 text-center">
-              <div className="inline-flex items-center rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-sm font-medium text-purple-300 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                <span className="flex h-2 w-2 rounded-full bg-purple-500 mr-2 animate-pulse"></span>
-                Nova Geração de IA para WhatsApp
-              </div>
+          <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6 border border-primary/20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              Nova Geração de IA para WhatsApp
+            </div>
 
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-zinc-500 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 max-w-4xl">
-                Automatize seu atendimento com <span className="text-purple-500">Inteligência</span>
-              </h1>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+              Automatize seu atendimento <br className="hidden md:block" />
+              com <span className="text-primary">Inteligência Artificial</span>
+            </h1>
 
-              <p className="mx-auto max-w-[700px] text-zinc-400 md:text-xl lg:text-2xl animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-                Crie agentes de IA que atendem, vendem e suportam seus clientes 24/7 no WhatsApp. Configure em minutos, sem código.
-              </p>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+              Crie agentes inteligentes que respondem 24/7, qualificam leads e agendam reuniões automaticamente no WhatsApp.
+            </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 min-w-[200px] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400">
-                <Link href="/login">
-                  <Button className="w-full sm:w-auto h-12 px-8 rounded-full bg-white text-black hover:bg-zinc-200 text-lg transition-all hover:scale-105">
-                    Criar meu Agente
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link href="#demo">
-                  <Button variant="outline" className="w-full sm:w-auto h-12 px-8 rounded-full border-zinc-800 text-zinc-300 hover:bg-zinc-900 hover:text-white text-lg backdrop-blur-sm">
-                    Ver Demonstração
-                  </Button>
-                </Link>
-              </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
+              <Link href="/login">
+                <Button size="lg" className="h-12 px-8 text-base bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:-translate-y-1">
+                  Criar meu Agente <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="#demo">
+                <Button variant="outline" size="lg" className="h-12 px-8 text-base border-primary/20 hover:bg-primary/5">
+                  Ver Demonstração
+                </Button>
+              </Link>
+            </div>
 
-              {/* 3D-like Dashboard Preview */}
-              <div className="mt-16 relative w-full max-w-5xl mx-auto perspective-1000 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
-                <div className="relative rounded-xl bg-zinc-900/50 border border-white/10 shadow-2xl transform rotate-x-12 hover:rotate-x-0 transition-transform duration-700 ease-out overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 to-blue-500/10 pointer-events-none" />
-
-                  {/* Mobile Image */}
-                  <img
-                    alt="Dashboard Preview Mobile"
-                    className="w-full h-auto md:hidden"
+            {/* Dashboard Preview */}
+            <div className="mt-16 relative mx-auto max-w-5xl animate-in fade-in zoom-in-95 duration-1000 delay-500">
+              <div className="relative rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm shadow-2xl overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-10 bg-muted/50 border-b border-border/50 flex items-center px-4 gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500/50" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/50" />
+                </div>
+                {/* Mobile Preview Image */}
+                <div className="md:hidden aspect-[9/16] relative bg-zinc-900">
+                  <Image
                     src="/oichat-icon.jpg"
-                    width={1280}
-                    height={720}
+                    alt="OiChat Mobile Preview"
+                    fill
+                    className="object-contain p-8"
                   />
-
-                  {/* Desktop Image */}
-                  <img
-                    alt="Dashboard Preview Desktop"
-                    className="w-full h-auto hidden md:block"
-                    src="/dashboard-v3.png"
-                    width={1280}
-                    height={720}
-                  />
-
-                  {/* Floating Elements */}
-                  <div className="absolute -right-12 top-1/4 p-4 bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl animate-bounce delay-700 hidden md:block">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-500/20 rounded-lg">
-                        <Zap className="w-6 h-6 text-green-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-zinc-400">Vendas Hoje</p>
-                        <p className="text-xl font-bold text-white">+127%</p>
-                      </div>
+                </div>
+                {/* Desktop Preview Image - Placeholder for now, using a gradient div if image not perfect */}
+                <div className="hidden md:block aspect-[16/9] relative bg-zinc-950/50">
+                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <BarChart3 className="w-16 h-16 mx-auto mb-4 text-primary/50" />
+                      <p>Dashboard Preview</p>
                     </div>
                   </div>
+                </div>
+              </div>
 
-                  <div className="absolute -left-12 bottom-1/4 p-4 bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl animate-bounce delay-1000 hidden md:block">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-500/20 rounded-lg">
-                        <MessageSquare className="w-6 h-6 text-blue-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-zinc-400">Mensagens</p>
-                        <p className="text-xl font-bold text-white">2.4k</p>
-                      </div>
-                    </div>
+              {/* Floating Elements */}
+              <div className="absolute -right-10 top-20 p-4 bg-card rounded-xl border border-border shadow-xl animate-bounce duration-[3000ms] hidden lg:block">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <MessageSquare className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Novo Lead</p>
+                    <p className="text-xs text-muted-foreground">Qualificado via WhatsApp</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute -left-10 bottom-20 p-4 bg-card rounded-xl border border-border shadow-xl animate-bounce duration-[4000ms] hidden lg:block">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">+150 Conversas</p>
+                    <p className="text-xs text-muted-foreground">Hoje</p>
                   </div>
                 </div>
               </div>
@@ -127,140 +197,150 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Features Grid */}
-        <section id="features" className="w-full py-24 bg-zinc-950 relative overflow-hidden">
-          <div className="container px-4 md:px-6 mx-auto relative z-10">
+        {/* Features Carousel Section */}
+        <section id="features" className="py-20 bg-muted/30">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-white mb-4">
-                Poderoso. Simples. <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">Inteligente.</span>
-              </h2>
-              <p className="text-zinc-400 max-w-[600px] mx-auto text-lg">
-                Tudo que você precisa para escalar seu atendimento no WhatsApp sem aumentar a equipe.
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Tudo que você precisa</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Ferramentas poderosas para automatizar e escalar seu atendimento no WhatsApp.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  icon: Bot,
-                  title: "IA Personalizável",
-                  desc: "Treine seu agente com seus próprios dados e defina a personalidade ideal para sua marca.",
-                  color: "text-purple-400",
-                  bg: "bg-purple-500/10",
-                  border: "border-purple-500/20"
-                },
-                {
-                  icon: Zap,
-                  title: "Respostas Instantâneas",
-                  desc: "Nunca mais deixe um cliente esperando. Atendimento imediato 24 horas por dia.",
-                  color: "text-yellow-400",
-                  bg: "bg-yellow-500/10",
-                  border: "border-yellow-500/20"
-                },
-                {
-                  icon: BarChart3,
-                  title: "Analytics Avançado",
-                  desc: "Acompanhe métricas de conversão, tempo de resposta e satisfação em tempo real.",
-                  color: "text-blue-400",
-                  bg: "bg-blue-500/10",
-                  border: "border-blue-500/20"
-                },
-                {
-                  icon: Shield,
-                  title: "Segurança Total",
-                  desc: "Seus dados e de seus clientes protegidos com criptografia de ponta a ponta.",
-                  color: "text-green-400",
-                  bg: "bg-green-500/10",
-                  border: "border-green-500/20"
-                },
-                {
-                  icon: Globe,
-                  title: "Multi-idioma",
-                  desc: "Atenda clientes de todo o mundo. Nossa IA fala fluentemente mais de 50 idiomas.",
-                  color: "text-pink-400",
-                  bg: "bg-pink-500/10",
-                  border: "border-pink-500/20"
-                },
-                {
-                  icon: MessageSquare,
-                  title: "Transbordo Humano",
-                  desc: "A IA transfere para um humano automaticamente quando necessário ou solicitado.",
-                  color: "text-orange-400",
-                  bg: "bg-orange-500/10",
-                  border: "border-orange-500/20"
-                }
-              ].map((feature, i) => {
-                const Icon = feature.icon
-                return (
-                  <div
-                    key={i}
-                    className={`group p-8 rounded-3xl border bg-zinc-900/50 hover:bg-zinc-900 transition-all duration-300 hover:-translate-y-2 ${feature.border}`}
-                  >
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${feature.bg}`}>
-                      <Icon className={`w-7 h-7 ${feature.color}`} />
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full max-w-5xl mx-auto"
+            >
+              <CarouselContent className="-ml-4">
+                {[
+                  {
+                    icon: <MessageSquare className="w-8 h-8 text-primary" />,
+                    title: "Respostas Instantâneas",
+                    desc: "Atenda seus clientes em segundos, 24 horas por dia, 7 dias por semana."
+                  },
+                  {
+                    icon: <Zap className="w-8 h-8 text-yellow-500" />,
+                    title: "IA Avançada",
+                    desc: "Utilize modelos de linguagem de ponta para conversas naturais e eficientes."
+                  },
+                  {
+                    icon: <BarChart3 className="w-8 h-8 text-blue-500" />,
+                    title: "Analytics em Tempo Real",
+                    desc: "Acompanhe métricas de desempenho e insights sobre suas conversas."
+                  },
+                  {
+                    icon: <Shield className="w-8 h-8 text-green-500" />,
+                    title: "Segurança Total",
+                    desc: "Seus dados e conversas protegidos com criptografia de ponta a ponta."
+                  },
+                  {
+                    icon: <Smartphone className="w-8 h-8 text-purple-500" />,
+                    title: "Mobile First",
+                    desc: "Gerencie tudo pelo celular com nossa interface otimizada."
+                  },
+                  {
+                    icon: <Globe className="w-8 h-8 text-cyan-500" />,
+                    title: "Multi-idiomas",
+                    desc: "Atenda clientes em qualquer lugar do mundo em seu idioma nativo."
+                  }
+                ].map((feature, index) => (
+                  <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                    <div className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all hover:shadow-lg h-full flex flex-col">
+                      <div className="mb-4 p-3 bg-background rounded-xl w-fit shadow-sm">
+                        {feature.icon}
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-                    <p className="text-zinc-400 leading-relaxed">
-                      {feature.desc}
-                    </p>
-                  </div>
-                )
-              })}
-            </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="w-full py-24 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-zinc-900 to-[#0A0A0A]" />
-          <div className="container px-4 md:px-6 mx-auto relative z-10">
-            <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-[3rem] p-12 md:p-24 text-center border border-white/10 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-full bg-[url('/grid.svg')] opacity-20" />
-              <div className="relative z-10 max-w-3xl mx-auto space-y-8">
-                <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-                  Pronto para revolucionar seu atendimento?
-                </h2>
-                <p className="text-xl text-zinc-300">
-                  Junte-se a centenas de empresas que já automatizaram seu WhatsApp com o OiChat.
-                </p>
-                <Link href="/login">
-                  <Button className="h-14 px-10 rounded-full bg-white text-black hover:bg-zinc-200 text-lg font-semibold shadow-2xl shadow-white/20 transition-all hover:scale-105">
-                    Começar Gratuitamente
+        <section className="py-20 relative overflow-hidden">
+          <div className="absolute inset-0 bg-primary/5 -z-10" />
+          <div className="container mx-auto px-4 md:px-6 text-center">
+            <div className="max-w-3xl mx-auto bg-card p-8 md:p-12 rounded-3xl border border-primary/20 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">Pronto para transformar seu atendimento?</h2>
+              <p className="text-lg text-muted-foreground mb-8">
+                Teste 7 dias grátis depois 15$/mês ou pague agora 15$ e ganhe mais um mês grátis de bônus.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link href="/login" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20">
+                    Começar Teste Grátis
                   </Button>
                 </Link>
-                <p className="text-sm text-zinc-500">
-                  Teste 7 dias gratis depois 15$/mes ou pagar agora 15$ e ganhar mais um mes gratis de bonus
-                </p>
+                <Link href="#contact" className="w-full sm:w-auto">
+                  <Button variant="outline" size="lg" className="w-full h-14 px-8 text-lg">
+                    Falar com Vendas
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Sem cartão de crédito</span>
+                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Cancelamento fácil</span>
               </div>
             </div>
           </div>
         </section>
-      </main>
 
-      <footer className="py-12 px-4 md:px-6 border-t border-white/5 bg-[#0A0A0A]">
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-white/5 rounded-lg">
-              <Bot className="h-5 w-5 text-white" />
+        {/* Footer */}
+        <footer className="py-12 border-t border-border bg-muted/20">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+              <div className="col-span-1 md:col-span-2">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="relative w-6 h-6 rounded overflow-hidden">
+                    <Image src="/oichat-icon.jpg" alt="OiChat Logo" fill className="object-cover" />
+                  </div>
+                  <span className="text-xl font-bold">OiChat</span>
+                </div>
+                <p className="text-muted-foreground max-w-xs">
+                  Plataforma líder em automação de atendimento via WhatsApp com Inteligência Artificial.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold mb-4">Produto</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li><Link href="#" className="hover:text-primary">Recursos</Link></li>
+                  <li><Link href="#" className="hover:text-primary">Preços</Link></li>
+                  <li><Link href="#" className="hover:text-primary">Integrações</Link></li>
+                  <li><Link href="#" className="hover:text-primary">Changelog</Link></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold mb-4">Empresa</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li><Link href="#" className="hover:text-primary">Sobre</Link></li>
+                  <li><Link href="#" className="hover:text-primary">Blog</Link></li>
+                  <li><Link href="#" className="hover:text-primary">Carreiras</Link></li>
+                  <li><Link href="#" className="hover:text-primary">Contato</Link></li>
+                </ul>
+              </div>
             </div>
-            <span className="text-lg font-bold text-white">OiChat</span>
+            <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+              <p>© 2024 OiChat. Todos os direitos reservados.</p>
+              <div className="flex gap-6">
+                <Link href="#" className="hover:text-primary">Termos</Link>
+                <Link href="#" className="hover:text-primary">Privacidade</Link>
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-zinc-500">
-            © 2024 OiChat Inc. Todos os direitos reservados.
-          </p>
-          <div className="flex gap-6">
-            <Link className="text-sm text-zinc-500 hover:text-white transition-colors" href="#">
-              Termos
-            </Link>
-            <Link className="text-sm text-zinc-500 hover:text-white transition-colors" href="#">
-              Privacidade
-            </Link>
-            <Link className="text-sm text-zinc-500 hover:text-white transition-colors" href="#">
-              Contato
-            </Link>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </main>
     </div>
   )
 }

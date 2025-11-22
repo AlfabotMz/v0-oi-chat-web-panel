@@ -3,9 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, ArrowLeft, Loader2, CheckCircle2, Bot, Sparkles, Zap, MessageSquare } from "lucide-react"
+import { ArrowRight, ArrowLeft, Loader2, CheckCircle2, Bot, Sparkles, Zap, MessageSquare, PlayCircle } from "lucide-react"
 import { OnboardingSurvey } from "@/components/onboarding/onboarding-survey"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 const personas = [
   {
@@ -76,15 +77,25 @@ export default function OnboardingPage() {
   const handleSurveyComplete = async (data: any) => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/profile/update", {
+      // 1. Update Profile
+      const profileResponse = await fetch("/api/profile/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
 
-      if (!response.ok) {
-        // Log error but continue flow if profile update fails (non-critical)
+      if (!profileResponse.ok) {
         console.warn("Failed to update profile survey data")
+      }
+
+      // 2. Send to n8n
+      const n8nResponse = await fetch("/api/onboarding/n8n", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!n8nResponse.ok) {
+        console.warn("Failed to send data to n8n")
       }
 
       setCurrentStep(1)
@@ -97,17 +108,17 @@ export default function OnboardingPage() {
   }
 
   const handleNext = () => {
-    if (currentStep === 1 && !selectedPersona) {
+    if (currentStep === 2 && !selectedPersona) {
       setError("Por favor, selecione um tipo de agente")
       return
     }
-    if (currentStep === 2 && !selectedTone) {
+    if (currentStep === 3 && !selectedTone) {
       setError("Por favor, selecione um tom de voz")
       return
     }
 
     setError(null)
-    if (currentStep < 2) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1)
     } else {
       handleCreateAgent()
@@ -199,14 +210,14 @@ export default function OnboardingPage() {
             Configurando seu Agente
           </h1>
           <p className="text-zinc-400 text-lg">
-            Passo {currentStep} de 2
+            Passo {currentStep} de 3
           </p>
         </div>
 
         {/* Progress Bar */}
         <div className="max-w-md mx-auto mb-12">
           <div className="flex gap-2">
-            {[1, 2].map((i) => (
+            {[1, 2, 3].map((i) => (
               <div
                 key={i}
                 className={cn(
@@ -219,7 +230,53 @@ export default function OnboardingPage() {
         </div>
 
         <div className="bg-zinc-900/40 border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl backdrop-blur-xl">
+
+          {/* Step 1: Tutorial */}
           {currentStep === 1 && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-semibold text-white">Como funciona a OiChat</h2>
+                <p className="text-zinc-400">Veja como é fácil criar seu agente inteligente.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 flex flex-col items-center text-center hover:bg-white/10 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center mb-4 text-purple-400">
+                    <Bot className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">1. Crie seu Agente</h3>
+                  <p className="text-sm text-zinc-400">Escolha a personalidade e o tom de voz ideal para o seu negócio.</p>
+                </div>
+                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 flex flex-col items-center text-center hover:bg-white/10 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 text-blue-400">
+                    <Zap className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">2. Conecte o WhatsApp</h3>
+                  <p className="text-sm text-zinc-400">Escaneie o QR Code para conectar seu número em segundos.</p>
+                </div>
+                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 flex flex-col items-center text-center hover:bg-white/10 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-4 text-green-400">
+                    <PlayCircle className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">3. Comece a Atender</h3>
+                  <p className="text-sm text-zinc-400">Seu agente responderá automaticamente 24/7.</p>
+                </div>
+              </div>
+
+              <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                {/* Placeholder for tutorial video/image */}
+                <div className="absolute inset-0 bg-zinc-800 flex items-center justify-center">
+                  <div className="text-center">
+                    <PlayCircle className="w-16 h-16 text-white/20 mx-auto mb-4" />
+                    <p className="text-zinc-500">Vídeo Tutorial (Em breve)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Persona */}
+          {currentStep === 2 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-semibold text-white">Escolha a Personalidade</h2>
@@ -268,7 +325,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {currentStep === 2 && (
+          {/* Step 3: Tone */}
+          {currentStep === 3 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-semibold text-white">Defina o Tom de Voz</h2>
@@ -343,7 +401,7 @@ export default function OnboardingPage() {
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Criando...
                 </>
-              ) : currentStep === 2 ? (
+              ) : currentStep === 3 ? (
                 <>
                   Criar Agente
                   <Sparkles className="w-5 h-5 ml-2" />
