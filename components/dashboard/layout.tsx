@@ -15,6 +15,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const [communityLink, setCommunityLink] = useState<string | undefined>()
   const [supportWhatsAppLink, setSupportWhatsAppLink] = useState<string | undefined>()
 
@@ -40,25 +41,29 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar para desktop - fixa à esquerda */}
-      <aside className="hidden md:block md:w-64 md:flex-shrink-0 md:sticky md:top-0 md:h-screen">
-        <Navigation 
-          onNavigate={() => {}} 
+      <aside
+        className={`hidden md:block flex-shrink-0 sticky top-0 h-screen transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"
+          }`}
+      >
+        <Navigation
+          onNavigate={() => { }}
           communityLink={communityLink}
           supportWhatsAppLink={supportWhatsAppLink}
+          isCollapsed={isCollapsed}
+          onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         />
       </aside>
-      
+
       {/* Conteúdo principal */}
       <main className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Header user={user} onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} />
-        
+
         {/* Menu lateral minimizável para mobile */}
         <div
-          className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-card border-r border-border/50 transition-transform duration-300 ease-in-out ${
-            isMenuOpen ? "translate-x-0" : "-translate-x-full"
-          } md:hidden`}
+          className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-card border-r border-border/50 transition-transform duration-300 ease-in-out ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+            } md:hidden`}
         >
-          <Navigation 
+          <Navigation
             onNavigate={() => setIsMenuOpen(false)}
             communityLink={communityLink}
             supportWhatsAppLink={supportWhatsAppLink}
@@ -76,20 +81,20 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         <div className="flex-1 overflow-auto">
           <div className="px-4 pb-28 pt-6 sm:px-6 sm:pb-10 lg:px-8 lg:pb-12">{children}</div>
         </div>
-        
+
         {/* Menu mobile na parte inferior */}
         <div className="sticky bottom-0 z-40 border-t border-border/60 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/75 md:hidden">
-          <Navigation 
-            variant="mobile" 
-            onNavigate={() => {}}
+          <Navigation
+            variant="mobile"
+            onNavigate={() => { }}
             communityLink={communityLink}
             supportWhatsAppLink={supportWhatsAppLink}
           />
         </div>
       </main>
-      
+
       {/* Popup de convite para comunidade */}
-      <CommunityInviteDialog 
+      <CommunityInviteDialog
         communityLink={communityLink}
         whatsappLink={supportWhatsAppLink}
       />
