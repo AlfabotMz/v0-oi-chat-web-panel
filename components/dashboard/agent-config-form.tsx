@@ -253,8 +253,8 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               <pre className="text-xs whitespace-pre-wrap text-muted-foreground">
                 {customMessage
                   .replace("{{product}}", product || "Produto Exemplo")
-                  .replace("{{number}}", "+55 11 99999-9999")
-                  .replace("{{location}}", "São Paulo, SP")}
+                  .replace("{{number}}", "+258 84 123 4567")
+                  .replace("{{location}}", "Maputo, Moçambique")}
               </pre>
             </div>
           </div>

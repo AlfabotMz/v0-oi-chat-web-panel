@@ -40,7 +40,7 @@ export default function LandingPage() {
       >
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="relative w-8 h-8 rounded-xl overflow-hidden shadow-lg shadow-primary/20">
+            <div className="relative w-8 h-8 overflow-hidden">
               <Image src="/oichat-icon.jpg" alt="OiChat Logo" fill className="object-cover" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
@@ -153,10 +153,10 @@ export default function LandingPage() {
                 {/* Desktop Preview Image */}
                 <div className="hidden md:block aspect-[16/9] relative bg-zinc-950/50">
                   <Image
-                    src="/oichat-icon.jpg"
+                    src="/dashboard-v3.png"
                     alt="OiChat Dashboard Preview"
                     fill
-                    className="object-contain p-12 opacity-80 hover:opacity-100 transition-opacity"
+                    className="object-contain p-4 opacity-100 transition-opacity"
                   />
                 </div>
               </div>

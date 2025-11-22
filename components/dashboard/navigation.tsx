@@ -127,11 +127,6 @@ export function Navigation({ variant = "sidebar", onNavigate }: NavigationProps)
               <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Pro</span>
             </div>
             <h4 className="font-bold text-sm mb-1">Plano Business</h4>
-            <p className="text-xs text-zinc-400 mb-3">2,450 / 5,000 msgs</p>
-
-            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-primary w-[49%] rounded-full" />
-            </div>
           </div>
         </div>
 

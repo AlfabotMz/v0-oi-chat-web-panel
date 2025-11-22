@@ -1,9 +1,29 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { MessageCircle, Mail, FileText, ExternalLink, ArrowLeft } from "lucide-react"
+import { MessageCircle, Mail, ExternalLink, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
 
-export default function SupportPage() {
+export default async function SupportPage() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    let communityLink = "https://chat.whatsapp.com/your-invite-code"
+    let supportWhatsAppLink = "https://wa.me/258841234567"
+
+    if (user) {
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("community_link, support_whatsapp_link")
+            .eq("id", user.id)
+            .single()
+
+        if (profile) {
+            if (profile.community_link) communityLink = profile.community_link
+            if (profile.support_whatsapp_link) supportWhatsAppLink = profile.support_whatsapp_link
+        }
+    }
+
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
@@ -30,7 +50,7 @@ export default function SupportPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Link href="https://chat.whatsapp.com/your-invite-code" target="_blank" rel="noopener noreferrer">
+                        <Link href={communityLink} target="_blank" rel="noopener noreferrer">
                             <Button className="w-full gap-2">
                                 Acessar Comunidade
                                 <ExternalLink className="h-4 w-4" />
@@ -51,30 +71,9 @@ export default function SupportPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Link href="https://wa.me/258841234567" target="_blank" rel="noopener noreferrer">
+                        <Link href={supportWhatsAppLink} target="_blank" rel="noopener noreferrer">
                             <Button variant="outline" className="w-full gap-2">
                                 Falar no WhatsApp
-                                <ExternalLink className="h-4 w-4" />
-                            </Button>
-                        </Link>
-                    </CardContent>
-                </Card>
-
-                {/* Documentação */}
-                <Card className="hover:border-primary/50 transition-colors">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-primary" />
-                            Documentação
-                        </CardTitle>
-                        <CardDescription>
-                            Acesse nossos tutoriais e guias completos para aproveitar ao máximo a plataforma.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Link href="#" target="_blank">
-                            <Button variant="secondary" className="w-full gap-2">
-                                Ver Tutoriais
                                 <ExternalLink className="h-4 w-4" />
                             </Button>
                         </Link>
