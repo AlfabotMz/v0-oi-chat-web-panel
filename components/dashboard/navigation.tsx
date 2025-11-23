@@ -51,7 +51,7 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
             </Link>
           )
         })}
-        })}
+
       </nav>
     )
   }
