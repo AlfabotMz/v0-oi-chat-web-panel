@@ -20,7 +20,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { createClient } from "@/lib/supabase/client"
 import { signOut } from "@/lib/supabase/auth-actions"
-import { Crown, Trash2, Loader2, CheckCircle2 } from "lucide-react"
+import { useTheme } from "next-themes"
+import { Switch } from "@/components/ui/switch"
+import { Crown, Trash2, Loader2, CheckCircle2, Moon, Sun } from "lucide-react"
 
 interface SettingsFormProps {
   user: User
@@ -41,6 +43,7 @@ const planColors: Record<string, string> = {
 
 export function SettingsForm({ user, profile }: SettingsFormProps) {
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState("")
@@ -132,6 +135,31 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
 
   return (
     <div className="space-y-6">
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle>Aparência</CardTitle>
+          <CardDescription>Personalize a aparência do painel</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-base">Modo Escuro</Label>
+              <p className="text-sm text-muted-foreground">
+                Ative para usar o tema escuro em todo o sistema
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Sun className="h-4 w-4 text-muted-foreground" />
+              <Switch
+                checked={theme === "dark"}
+                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              />
+              <Moon className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-border/50">
         <CardHeader>
           <CardTitle>Informações da Conta</CardTitle>

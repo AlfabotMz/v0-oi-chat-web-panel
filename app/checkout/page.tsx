@@ -128,173 +128,171 @@ export default function CheckoutPage() {
     }
 
     return (
-        <ThemeProvider forcedTheme="light" enableSystem={false} attribute="class">
-            <div className="min-h-screen bg-white text-gray-900">
-                <div className="max-w-6xl mx-auto px-4 py-8">
-                    {/* Header Simples */}
-                    <div className="flex items-center gap-4 mb-8">
-                        <Link href="/" className="text-gray-500 hover:text-gray-900 transition-colors">
-                            <ArrowLeft className="h-6 w-6" />
-                        </Link>
-                        <div className="flex items-center gap-2">
-                            <div className="relative w-8 h-8 overflow-hidden rounded-lg">
-                                <Image src="/oichat-icon.jpg" alt="OiChat" fill className="object-cover" />
-                            </div>
-                            <span className="text-xl font-bold">OiChat Checkout</span>
+        <div className="min-h-screen bg-background text-foreground">
+            <div className="max-w-6xl mx-auto px-4 py-8">
+                {/* Header Simples */}
+                <div className="flex items-center gap-4 mb-8">
+                    <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors">
+                        <ArrowLeft className="h-6 w-6" />
+                    </Link>
+                    <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8 overflow-hidden rounded-lg">
+                            <Image src="/oichat-icon.jpg" alt="OiChat" fill className="object-cover" />
                         </div>
+                        <span className="text-xl font-bold">OiChat Checkout</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Coluna da Esquerda - Detalhes do Pagamento */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card className="border border-border shadow-sm bg-card">
+                            <CardHeader>
+                                <CardTitle>Informações da Conta</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Email</Label>
+                                        <Input value={user?.email} disabled className="bg-muted" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>ID do Usuário</Label>
+                                        <Input value={user?.id} disabled className="bg-muted" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border border-border shadow-sm bg-card">
+                            <CardHeader>
+                                <CardTitle>Método de Pagamento</CardTitle>
+                                <CardDescription>Escolha como deseja pagar. Transação segura e instantânea.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <RadioGroupItem value="mpesa" id="mpesa" className="peer sr-only" />
+                                        <Label
+                                            htmlFor="mpesa"
+                                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-purple-600 [&:has([data-state=checked])]:border-purple-600 cursor-pointer transition-all"
+                                        >
+                                            <span className="text-lg font-semibold mb-2">M-Pesa</span>
+                                            <div className="w-full h-12 relative bg-red-600/10 rounded flex items-center justify-center">
+                                                <span className="text-red-600 font-bold">M-Pesa</span>
+                                            </div>
+                                        </Label>
+                                    </div>
+                                    <div>
+                                        <RadioGroupItem value="emola" id="emola" className="peer sr-only" />
+                                        <Label
+                                            htmlFor="emola"
+                                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-purple-600 [&:has([data-state=checked])]:border-purple-600 cursor-pointer transition-all"
+                                        >
+                                            <span className="text-lg font-semibold mb-2">e-Mola</span>
+                                            <div className="w-full h-12 relative bg-orange-600/10 rounded flex items-center justify-center">
+                                                <span className="text-orange-600 font-bold">e-Mola</span>
+                                            </div>
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="phone">Número de Celular (M-Pesa/e-Mola)</Label>
+                                    <Input
+                                        id="phone"
+                                        placeholder="84 123 4567"
+                                        value={phoneNumber}
+                                        onChange={(e) => setPhoneNumber(e.target.value)}
+                                        className="text-lg py-6"
+                                    />
+                                    <p className="text-sm text-muted-foreground">
+                                        Você receberá um prompt no seu celular para confirmar o pagamento.
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Coluna da Esquerda - Detalhes do Pagamento */}
-                        <div className="lg:col-span-2 space-y-6">
-                            <Card className="border border-gray-200 shadow-sm">
-                                <CardHeader>
-                                    <CardTitle>Informações da Conta</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label>Email</Label>
-                                            <Input value={user?.email} disabled className="bg-gray-50" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>ID do Usuário</Label>
-                                            <Input value={user?.id} disabled className="bg-gray-50" />
-                                        </div>
+                    {/* Coluna da Direita - Resumo do Pedido */}
+                    <div className="lg:col-span-1">
+                        <Card className="border border-border shadow-sm sticky top-8 bg-card">
+                            <CardHeader>
+                                <CardTitle>Resumo do Pedido</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-start gap-4 py-4 border-b border-border">
+                                    <div className="relative w-16 h-16 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center overflow-hidden">
+                                        <Image src="/oichat-icon.jpg" alt="Plano" width={64} height={64} className="object-cover" />
                                     </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="border border-gray-200 shadow-sm">
-                                <CardHeader>
-                                    <CardTitle>Método de Pagamento</CardTitle>
-                                    <CardDescription>Escolha como deseja pagar. Transação segura e instantânea.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-6">
-                                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <RadioGroupItem value="mpesa" id="mpesa" className="peer sr-only" />
-                                            <Label
-                                                htmlFor="mpesa"
-                                                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-purple-600 [&:has([data-state=checked])]:border-purple-600 cursor-pointer transition-all"
-                                            >
-                                                <span className="text-lg font-semibold mb-2">M-Pesa</span>
-                                                <div className="w-full h-12 relative bg-red-600/10 rounded flex items-center justify-center">
-                                                    <span className="text-red-600 font-bold">M-Pesa</span>
-                                                </div>
-                                            </Label>
-                                        </div>
-                                        <div>
-                                            <RadioGroupItem value="emola" id="emola" className="peer sr-only" />
-                                            <Label
-                                                htmlFor="emola"
-                                                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-purple-600 [&:has([data-state=checked])]:border-purple-600 cursor-pointer transition-all"
-                                            >
-                                                <span className="text-lg font-semibold mb-2">e-Mola</span>
-                                                <div className="w-full h-12 relative bg-orange-600/10 rounded flex items-center justify-center">
-                                                    <span className="text-orange-600 font-bold">e-Mola</span>
-                                                </div>
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="phone">Número de Celular (M-Pesa/e-Mola)</Label>
-                                        <Input
-                                            id="phone"
-                                            placeholder="84 123 4567"
-                                            value={phoneNumber}
-                                            onChange={(e) => setPhoneNumber(e.target.value)}
-                                            className="text-lg py-6"
-                                        />
-                                        <p className="text-sm text-muted-foreground">
-                                            Você receberá um prompt no seu celular para confirmar o pagamento.
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {/* Coluna da Direita - Resumo do Pedido */}
-                        <div className="lg:col-span-1">
-                            <Card className="border border-gray-200 shadow-sm sticky top-8">
-                                <CardHeader>
-                                    <CardTitle>Resumo do Pedido</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex items-start gap-4 py-4 border-b border-gray-100">
-                                        <div className="relative w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center overflow-hidden">
-                                            <Image src="/oichat-icon.jpg" alt="Plano" width={64} height={64} className="object-cover" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-gray-900">Plano Business</h3>
-                                            <p className="text-sm text-gray-500">Automação completa + IA</p>
-                                            {!trialUsed && (
-                                                <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                    Oferta Especial
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Subtotal</span>
-                                            <span className="font-medium">960 MT</span>
-                                        </div>
+                                    <div>
+                                        <h3 className="font-semibold text-foreground">Plano Business</h3>
+                                        <p className="text-sm text-muted-foreground">Automação completa + IA</p>
                                         {!trialUsed && (
-                                            <div className="flex justify-between text-green-600">
-                                                <span>Bônus (1 Mês Extra)</span>
-                                                <span>Grátis</span>
+                                            <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                Oferta Especial
                                             </div>
                                         )}
-                                        <div className="flex justify-between pt-2 border-t border-gray-100 text-base font-bold">
-                                            <span>Total</span>
-                                            <span>960 MT</span>
-                                        </div>
                                     </div>
+                                </div>
 
-                                    <div className="bg-purple-50 p-3 rounded-md text-xs text-purple-800">
-                                        <p className="font-semibold mb-1">Incluso:</p>
-                                        <ul className="list-disc list-inside space-y-1">
-                                            <li>
-                                                {trialUsed ? "1 Mês de Acesso (30 dias)" : "2 Meses de Acesso (60 dias)"}
-                                            </li>
-                                            <li>Suporte Prioritário</li>
-                                            <li>Configuração Assistida</li>
-                                        </ul>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Subtotal</span>
+                                        <span className="font-medium">960 MT</span>
                                     </div>
-                                </CardContent>
-                                <CardFooter className="flex flex-col gap-4">
-                                    {error && (
-                                        <div className="w-full p-3 bg-red-50 text-red-600 text-sm rounded-md border border-red-100">
-                                            {error}
+                                    {!trialUsed && (
+                                        <div className="flex justify-between text-green-600 dark:text-green-400">
+                                            <span>Bônus (1 Mês Extra)</span>
+                                            <span>Grátis</span>
                                         </div>
                                     )}
-                                    <Button
-                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-6 text-lg font-semibold shadow-md hover:shadow-lg transition-all"
-                                        onClick={handlePayment}
-                                        disabled={processing}
-                                    >
-                                        {processing ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                                Processando...
-                                            </>
-                                        ) : (
-                                            "Pagar Agora"
-                                        )}
-                                    </Button>
-                                    <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
-                                        <ShieldCheck className="h-4 w-4" />
-                                        <span>Pagamento 100% Seguro</span>
+                                    <div className="flex justify-between pt-2 border-t border-border text-base font-bold">
+                                        <span>Total</span>
+                                        <span>960 MT</span>
                                     </div>
-                                </CardFooter>
-                            </Card>
-                        </div>
+                                </div>
+
+                                <div className="bg-purple-50 dark:bg-purple-900/10 p-3 rounded-md text-xs text-purple-800 dark:text-purple-300">
+                                    <p className="font-semibold mb-1">Incluso:</p>
+                                    <ul className="list-disc list-inside space-y-1">
+                                        <li>
+                                            {trialUsed ? "1 Mês de Acesso (30 dias)" : "2 Meses de Acesso (60 dias)"}
+                                        </li>
+                                        <li>Suporte Prioritário</li>
+                                        <li>Configuração Assistida</li>
+                                    </ul>
+                                </div>
+                            </CardContent>
+                            <CardFooter className="flex flex-col gap-4">
+                                {error && (
+                                    <div className="w-full p-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 text-sm rounded-md border border-red-100 dark:border-red-900/20">
+                                        {error}
+                                    </div>
+                                )}
+                                <Button
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-6 text-lg font-semibold shadow-md hover:shadow-lg transition-all"
+                                    onClick={handlePayment}
+                                    disabled={processing}
+                                >
+                                    {processing ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                            Processando...
+                                        </>
+                                    ) : (
+                                        "Pagar Agora"
+                                    )}
+                                </Button>
+                                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                                    <ShieldCheck className="h-4 w-4" />
+                                    <span>Pagamento 100% Seguro</span>
+                                </div>
+                            </CardFooter>
+                        </Card>
                     </div>
                 </div>
             </div>
-        </ThemeProvider>
+        </div>
     )
 }
