@@ -1,4 +1,3 @@
-```typescript
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 import { Resend } from "resend"
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Valor fixo para o plano Business: 960 MT
-    const AMOUNT = "960.00" 
+    const AMOUNT = "960.00"
 
     // 1. Registrar tentativa de pagamento no banco (status pending)
     const { data: payment, error: paymentError } = await supabase
@@ -72,7 +71,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch(PAYMOZ_API_URL, {
       method: "POST",
       headers: {
-        "Authorization": `ApiKey ${ PAYMOZ_API_KEY } `,
+        "Authorization": `ApiKey ${PAYMOZ_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(paymozPayload)
@@ -86,9 +85,9 @@ export async function POST(request: NextRequest) {
       // 4. Atualizar pagamento para completed
       await supabase
         .from("payments")
-        .update({ 
+        .update({
           status: "completed",
-          transaction_id: data.transaction_id || data.id || `TX - ${ Date.now() } `
+          transaction_id: data.transaction_id || data.id || `TX-${Date.now()}`
         })
         .eq("id", payment.id)
 
@@ -99,7 +98,7 @@ export async function POST(request: NextRequest) {
         .select("*", { count: 'exact', head: true })
         .eq("user_id", user.id)
         .eq("status", "completed")
-      
+
       const isFirstPayment = count === 1
 
       // Verificar se já usou trial
@@ -120,7 +119,7 @@ export async function POST(request: NextRequest) {
       // Calcular nova data de fim
       const now = new Date()
       let currentEndDate = profile?.plan_end_date ? new Date(profile.plan_end_date) : now
-      
+
       if (currentEndDate < now) {
         currentEndDate = now
       }
@@ -150,7 +149,7 @@ export async function POST(request: NextRequest) {
               userName: profile.full_name || "Cliente",
               transactionId: data.transaction_id || payment.id,
               date: new Date().toLocaleDateString('pt-BR'),
-              amount: `${ AMOUNT } MT`,
+              amount: `${AMOUNT} MT`,
               planName: "Plano Business",
               duration: durationText
             })
@@ -164,8 +163,8 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: (isFirstPayment && !trialUsed) 
-          ? "Pagamento confirmado! Você ganhou 2 meses de acesso." 
+        message: (isFirstPayment && !trialUsed)
+          ? "Pagamento confirmado! Você ganhou 2 meses de acesso."
           : "Pagamento confirmado! Assinatura renovada por 1 mês.",
         plan_end_date: newEndDate.toISOString()
       })
@@ -177,9 +176,9 @@ export async function POST(request: NextRequest) {
         .update({ status: "failed" })
         .eq("id", payment.id)
 
-      return NextResponse.json({ 
-        success: false, 
-        error: data.message || "Falha no processamento do pagamento" 
+      return NextResponse.json({
+        success: false,
+        error: data.message || "Falha no processamento do pagamento"
       }, { status: 400 })
     }
 
@@ -188,4 +187,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: error.message || "Erro interno" }, { status: 500 })
   }
 }
-```
