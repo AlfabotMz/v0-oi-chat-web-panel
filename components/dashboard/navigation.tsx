@@ -51,21 +51,14 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
             </Link>
           )
         })}
-        <Link
-          href="/dashboard/support"
-          className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md px-3 py-2 text-xs transition-colors text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
-          onClick={onNavigate}
-        >
-          <HelpCircle className="h-5 w-5" />
-          <span>Suporte</span>
-        </Link>
+        })}
       </nav>
     )
   }
 
   return (
     <nav className={cn(
-      "flex h-full flex-col bg-[#0F0F12] text-white border-r border-white/5 transition-all duration-300",
+      "flex h-full flex-col bg-[#0F0F12] text-white border-r border-white/5 transition-all duration-300 overflow-y-auto",
       isCollapsed ? "px-2 py-4" : "p-4"
     )}>
       <div className={cn("mb-8 flex items-center", isCollapsed ? "justify-center" : "justify-between px-2")}>

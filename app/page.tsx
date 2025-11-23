@@ -144,10 +144,10 @@ export default function LandingPage() {
                 {/* Mobile Preview Image */}
                 <div className="md:hidden aspect-[9/16] relative bg-zinc-900">
                   <Image
-                    src="/oichat-icon.jpg"
+                    src="/mobile-dashboard-preview.png"
                     alt="OiChat Mobile Preview"
                     fill
-                    className="object-contain p-8"
+                    className="object-cover"
                   />
                 </div>
                 {/* Desktop Preview Image */}
