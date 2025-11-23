@@ -256,6 +256,94 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Plans Section */}
+        <section id="plans" className="py-20 relative">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Planos Simples e Transparentes</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Comece grátis e escale conforme seu negócio cresce. Sem contratos de longo prazo.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {/* Free Plan */}
+              <div className="relative rounded-2xl border border-border bg-card p-8 shadow-sm hover:shadow-md transition-shadow">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold">Teste Grátis</h3>
+                  <p className="text-muted-foreground mt-2">Para conhecer a plataforma</p>
+                </div>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">0 MT</span>
+                  <span className="text-muted-foreground"> / 7 dias</span>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-5 h-5 text-green-500" />
+                    <span>Acesso a todos os recursos</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-5 h-5 text-green-500" />
+                    <span>1 Agente de IA</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-5 h-5 text-green-500" />
+                    <span>Suporte básico</span>
+                  </li>
+                </ul>
+                <Link href="/login">
+                  <Button variant="outline" className="w-full h-12 text-lg">
+                    Começar Grátis
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Business Plan */}
+              <div className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-xl transform md:-translate-y-4">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-medium">
+                  Mais Popular
+                </div>
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold">Business</h3>
+                  <p className="text-muted-foreground mt-2">Para empresas em crescimento</p>
+                </div>
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold">960 MT</span>
+                    <span className="text-muted-foreground">/mês</span>
+                  </div>
+                  <p className="text-sm text-green-600 font-medium mt-2">
+                    Oferta: Pague 1 mês e ganhe +1 grátis!
+                  </p>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-5 h-5 text-primary" />
+                    <span>Agentes Ilimitados</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-5 h-5 text-primary" />
+                    <span>Respostas Ilimitadas</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-5 h-5 text-primary" />
+                    <span>Suporte Prioritário 24/7</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-5 h-5 text-primary" />
+                    <span>Configuração Assistida</span>
+                  </li>
+                </ul>
+                <Link href="/checkout">
+                  <Button className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25">
+                    Assinar Agora
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="py-20 relative overflow-hidden">
           <div className="absolute inset-0 bg-primary/5 -z-10" />
@@ -265,25 +353,26 @@ export default function LandingPage() {
 
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Pronto para transformar seu atendimento?</h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Teste 7 dias grátis depois 15$/mês ou pague agora 15$ e ganhe mais um mês grátis de bônus.
+                Aproveite nossa oferta de lançamento: <strong className="text-foreground">2 meses de acesso pelo preço de 1 (960 MT)</strong>.
+                Sem fidelidade, cancele quando quiser.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/login" className="w-full sm:w-auto">
+                <Link href="/checkout" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20">
-                    Começar Teste Grátis
+                    Garantir Oferta Agora
                   </Button>
                 </Link>
-                <Link href="#contact" className="w-full sm:w-auto">
+                <Link href="/login" className="w-full sm:w-auto">
                   <Button variant="outline" size="lg" className="w-full h-14 px-8 text-lg">
-                    Falar com Vendas
+                    Testar 7 Dias Grátis
                   </Button>
                 </Link>
               </div>
 
               <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Cancelamento fácil</span>
-                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Suporte dedicado</span>
+                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Pagamento Seguro (M-Pesa/e-Mola)</span>
+                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Ativação Imediata</span>
               </div>
             </div>
           </div>
