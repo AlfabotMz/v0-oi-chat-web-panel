@@ -98,10 +98,10 @@ export default function OnboardingPage() {
         console.warn("Failed to send data to n8n")
       }
 
-      setCurrentStep(1)
+      router.push("/dashboard?onboarding=complete")
     } catch (err) {
       console.error("Erro ao salvar pesquisa:", err)
-      setCurrentStep(1)
+      router.push("/dashboard?onboarding=complete")
     } finally {
       setIsLoading(false)
     }
