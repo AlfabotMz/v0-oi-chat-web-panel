@@ -108,6 +108,12 @@ export default function OnboardingPage() {
   }
 
   const handleNext = () => {
+    // Skip agent creation steps as requested
+    if (currentStep === 1) {
+      router.push("/dashboard?onboarding=complete")
+      return
+    }
+
     if (currentStep === 2 && !selectedPersona) {
       setError("Por favor, selecione um tipo de agente")
       return
@@ -400,6 +406,11 @@ export default function OnboardingPage() {
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Criando...
+                </>
+              ) : currentStep === 1 ? (
+                <>
+                  Ir para o Dashboard
+                  <ArrowRight className="w-5 h-5 ml-2" />
                 </>
               ) : currentStep === 3 ? (
                 <>
