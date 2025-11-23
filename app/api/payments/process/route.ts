@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createClient as createAdminClient } from "@supabase/supabase-js"
 import { NextRequest, NextResponse } from "next/server"
 import { Resend } from "resend"
 import { PaymentSuccessEmail } from "@/components/emails/PaymentSuccessEmail"
@@ -8,6 +9,8 @@ const PAYMOZ_API_URL = "https://paymoz.tech/api/v1/pagamentos/processar/"
 const PAYMOZ_API_KEY = process.env.PAYMOZ_API_KEY
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "OiChat <onboarding@resend.dev>"
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 const resend = new Resend(RESEND_API_KEY)
 
@@ -15,7 +18,7 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
 
-    // Verificar autenticação
+    // Verificar autenticação (usando cliente normal)
     const {
       data: { user },
       error: userError,
@@ -24,6 +27,14 @@ export async function POST(request: NextRequest) {
     if (userError || !user) {
       return NextResponse.json({ success: false, error: "Não autenticado" }, { status: 401 })
     }
+
+    // Criar cliente Admin para operações de banco (bypassing RLS)
+    const supabaseAdmin = createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
 
     const body = await request.json()
     const { metodo, numero_celular } = body
@@ -36,7 +47,7 @@ export async function POST(request: NextRequest) {
     const AMOUNT = "960.00"
 
     // 1. Registrar tentativa de pagamento no banco (status pending)
-    const { data: payment, error: paymentError } = await supabase
+    const { data: payment, error: paymentError } = await supabaseAdmin
       .from("payments")
       .insert({
         user_id: user.id,
@@ -83,7 +94,7 @@ export async function POST(request: NextRequest) {
     // 3. Verificar sucesso da PayMoz
     if (response.ok) {
       // 4. Atualizar pagamento para completed
-      await supabase
+      await supabaseAdmin
         .from("payments")
         .update({
           status: "completed",
@@ -93,7 +104,7 @@ export async function POST(request: NextRequest) {
 
       // 5. Calcular tempo de acesso
       // Verificar se é o primeiro pagamento
-      const { count } = await supabase
+      const { count } = await supabaseAdmin
         .from("payments")
         .select("*", { count: 'exact', head: true })
         .eq("user_id", user.id)
@@ -102,7 +113,7 @@ export async function POST(request: NextRequest) {
       const isFirstPayment = count === 1
 
       // Verificar se já usou trial
-      const { data: profile } = await supabase
+      const { data: profile } = await supabaseAdmin
         .from("profiles")
         .select("trial_used, full_name, email, plan_end_date")
         .eq("id", user.id)
@@ -128,7 +139,7 @@ export async function POST(request: NextRequest) {
       newEndDate.setDate(newEndDate.getDate() + daysToAdd)
 
       // 6. Atualizar perfil do usuário
-      await supabase
+      await supabaseAdmin
         .from("profiles")
         .update({
           subscription_status: "active",
@@ -171,7 +182,7 @@ export async function POST(request: NextRequest) {
 
     } else {
       // Pagamento falhou na PayMoz
-      await supabase
+      await supabaseAdmin
         .from("payments")
         .update({ status: "failed" })
         .eq("id", payment.id)
