@@ -11,19 +11,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, CheckCircle2, ShieldCheck, ArrowLeft } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-"use client"
-
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Loader2, CheckCircle2, ShieldCheck, ArrowLeft } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
 
 export default function CheckoutPage() {
     const router = useRouter()
