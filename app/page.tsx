@@ -126,9 +126,9 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
-              <Link href="/login">
+              <Link href="#plans">
                 <Button size="lg" className="h-12 px-8 text-base bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:-translate-y-1">
-                  Criar meu Agente <ArrowRight className="ml-2 h-4 w-4" />
+                  Começar Agora <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>
