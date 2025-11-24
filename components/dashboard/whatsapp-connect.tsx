@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -20,27 +20,38 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
   const [message, setMessage] = useState<string | null>(null)
   const [status, setStatus] = useState<ConnectionStatus>("disconnected")
   const [isCheckingStatus, setIsCheckingStatus] = useState(false)
-  const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null)
 
-  // Limpar intervalo ao desmontar ou quando status mudar para connected
+  // Refs para controle do polling
+  const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const pollingStartTimeRef = useRef<number | null>(null)
+  const isMountedRef = useRef(true)
+
+  // Constantes
+  const POLLING_INTERVAL = 30000 // 30 segundos
+  const MAX_POLLING_TIME = 5 * 60 * 1000 // 5 minutos
+  const INITIAL_DELAY = 45000 // 45 segundos
+
   useEffect(() => {
+    isMountedRef.current = true
     return () => {
-      if (statusCheckInterval) {
-        clearInterval(statusCheckInterval)
-        setStatusCheckInterval(null)
+      isMountedRef.current = false
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current)
       }
     }
-  }, [statusCheckInterval])
+  }, [])
 
-  // Limpar intervalo quando status mudar para connected
-  useEffect(() => {
-    if (status === "connected" && statusCheckInterval) {
-      clearInterval(statusCheckInterval)
-      setStatusCheckInterval(null)
+  const stopPolling = useCallback(() => {
+    if (pollingTimeoutRef.current) {
+      clearTimeout(pollingTimeoutRef.current)
+      pollingTimeoutRef.current = null
     }
-  }, [status, statusCheckInterval])
+    pollingStartTimeRef.current = null
+  }, [])
 
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async (autoPoll = false) => {
+    if (!isMountedRef.current) return
+
     setIsCheckingStatus(true)
     try {
       const response = await fetch(`/api/agents/${agentId}/status`, {
@@ -49,25 +60,57 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
 
       const data = await response.json()
 
+      if (!isMountedRef.current) return
+
       if (data.success && data.connected) {
         setStatus("connected")
-        setQrCode(null) // Remover QR code se conectado
+        setQrCode(null)
         setMessage("WhatsApp conectado com sucesso!")
-        // Limpar intervalo se conectado
-        if (statusCheckInterval) {
-          clearInterval(statusCheckInterval)
-          setStatusCheckInterval(null)
-        }
+        stopPolling()
       } else {
-        setStatus("disconnected")
+        // Se não conectado e for autoPoll, agendar próxima verificação
+        if (autoPoll) {
+          const elapsedTime = Date.now() - (pollingStartTimeRef.current || 0)
+
+          if (elapsedTime < MAX_POLLING_TIME) {
+            pollingTimeoutRef.current = setTimeout(() => {
+              checkStatus(true)
+            }, POLLING_INTERVAL)
+          } else {
+            stopPolling()
+            setMessage("Tempo limite de verificação excedido. Por favor, tente novamente.")
+            setStatus("disconnected")
+          }
+        } else {
+          setStatus("disconnected")
+        }
       }
     } catch (err: any) {
       console.error("Erro ao verificar status:", err)
-      setStatus("disconnected")
+      if (isMountedRef.current) {
+        // Em caso de erro, paramos o polling automático para evitar flood
+        if (autoPoll) {
+          stopPolling()
+          setError("Erro ao verificar status automaticamente. Tente manualmente.")
+        }
+        setStatus("disconnected")
+      }
     } finally {
-      setIsCheckingStatus(false)
+      if (isMountedRef.current) {
+        setIsCheckingStatus(false)
+      }
     }
-  }
+  }, [agentId, stopPolling])
+
+  const startPolling = useCallback(() => {
+    stopPolling()
+    pollingStartTimeRef.current = Date.now()
+
+    // Primeira verificação após delay inicial
+    pollingTimeoutRef.current = setTimeout(() => {
+      checkStatus(true)
+    }, INITIAL_DELAY)
+  }, [checkStatus, stopPolling])
 
   const connectWhatsApp = async () => {
     setIsLoading(true)
@@ -75,6 +118,7 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
     setMessage(null)
     setQrCode(null)
     setStatus("pending")
+    stopPolling()
 
     try {
       const response = await fetch("/api/agents/connect-whatsapp", {
@@ -95,18 +139,7 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
         setQrCode(data.qr)
         setMessage(data.message || "Escaneie o QR code para conectar seu número de WhatsApp.")
         setStatus("pending")
-        
-        // Após 45 segundos, verificar se está conectado
-        setTimeout(() => {
-          checkStatus()
-          
-          // Se ainda não conectado, verificar a cada 10 segundos
-          const interval = setInterval(() => {
-            checkStatus()
-          }, 10000)
-          
-          setStatusCheckInterval(interval)
-        }, 45000)
+        startPolling()
       } else {
         setError(data.error || "QR code não foi retornado pela API")
         setStatus("disconnected")
@@ -125,7 +158,7 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
   }
 
   const handleTestConnection = async () => {
-    await checkStatus()
+    await checkStatus(false)
   }
 
   return (
@@ -205,9 +238,24 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
                     <Image src={qrCode} alt="QR Code WhatsApp" width={256} height={256} className="rounded" />
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  O sistema verificará automaticamente se você conectou após 45 segundos.
-                </p>
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-muted-foreground text-center">
+                    O sistema verificará automaticamente a cada 30 segundos.
+                  </p>
+                  <Button onClick={handleTestConnection} variant="secondary" size="sm" className="w-full" disabled={isCheckingStatus}>
+                    {isCheckingStatus ? (
+                      <>
+                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                        Verificando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-3 h-3 mr-2" />
+                        Verificar Agora
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <Button onClick={connectWhatsApp} variant="outline" className="w-full" disabled={isLoading}>
                   {isLoading ? (
                     <>
