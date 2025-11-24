@@ -14,4 +14,3 @@ ADD COLUMN IF NOT EXISTS notification_message TEXT DEFAULT '🚀 Nova Encomenda 
 COMMENT ON COLUMN agents.notification_contact_1 IS 'Primeiro contato para receber notificações de conversões via WhatsApp';
 COMMENT ON COLUMN agents.notification_contact_2 IS 'Segundo contato para receber notificações de conversões via WhatsApp';
 COMMENT ON COLUMN agents.notification_message IS 'Mensagem padrão para notificações de conversões (suporta variáveis {{produto}}, {{numero}}, {{localizacao}})';
-
