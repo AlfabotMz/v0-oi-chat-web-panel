@@ -89,6 +89,19 @@ export default function LoginPage() {
                 />
               </div>
 
+              {isSignUp && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                  <Label htmlFor="phone">Número de Celular</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="84 123 4567"
+                    className="border-purple-200/30"
+                  />
+                  <p className="text-xs text-muted-foreground">Opcional, mas recomendado para notificações.</p>
+                </div>
+              )}
+
               {/* Admin option removed */}
 
               {error && (

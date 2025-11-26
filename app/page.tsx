@@ -14,6 +14,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { FadeIn } from "@/components/animations/fade-in"
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -108,33 +109,37 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
           <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6 border border-primary/20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <FadeIn delay={100} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6 border border-primary/20">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
               Nova Geração de IA para WhatsApp
-            </div>
+            </FadeIn>
 
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
-              Automatize seu atendimento <br className="hidden md:block" />
-              com <span className="text-primary">Inteligência Artificial</span>
-            </h1>
+            <FadeIn delay={200}>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
+                Automatize seu atendimento <br className="hidden md:block" />
+                com <span className="text-primary">Inteligência Artificial</span>
+              </h1>
+            </FadeIn>
 
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-              Crie agentes inteligentes que respondem 24/7, qualificam leads e agendam reuniões automaticamente no WhatsApp.
-            </p>
+            <FadeIn delay={300}>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                Crie agentes inteligentes que respondem 24/7, qualificam leads e agendam reuniões automaticamente no WhatsApp.
+              </p>
+            </FadeIn>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
+            <FadeIn delay={400} className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="#plans">
                 <Button size="lg" className="h-12 px-8 text-base bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:-translate-y-1">
                   Começar Agora <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-            </div>
+            </FadeIn>
 
             {/* Dashboard Preview */}
-            <div className="mt-16 relative mx-auto max-w-5xl animate-in fade-in zoom-in-95 duration-1000 delay-500">
+            <FadeIn delay={500} className="mt-16 relative mx-auto max-w-5xl">
               <div className="relative rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm shadow-2xl overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-10 bg-muted/50 border-b border-border/50 flex items-center px-4 gap-2 z-20">
                   <div className="w-3 h-3 rounded-full bg-red-500/50" />
@@ -185,7 +190,7 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </FadeIn>
           </div>
         </section>
 
@@ -193,66 +198,69 @@ export default function LandingPage() {
         <section id="features" className="py-20 bg-muted/30">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Tudo que você precisa</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Ferramentas poderosas para automatizar e escalar seu atendimento no WhatsApp.
-              </p>
+              <FadeIn>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">Tudo que você precisa</h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Ferramentas poderosas para automatizar e escalar seu atendimento no WhatsApp.
+                </p>
+              </FadeIn>
             </div>
 
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full max-w-5xl mx-auto"
-            >
-              <CarouselContent className="-ml-4">
-                {[
-                  {
-                    icon: <MessageSquare className="w-8 h-8 text-primary" />,
-                    title: "Respostas Instantâneas",
-                    desc: "Atenda seus clientes em segundos, 24 horas por dia, 7 dias por semana."
-                  },
-                  {
-                    icon: <Zap className="w-8 h-8 text-yellow-500" />,
-                    title: "IA Avançada",
-                    desc: "Utilize modelos de linguagem de ponta para conversas naturais e eficientes."
-                  },
-                  {
-                    icon: <BarChart3 className="w-8 h-8 text-blue-500" />,
-                    title: "Analytics em Tempo Real",
-                    desc: "Acompanhe métricas de desempenho e insights sobre suas conversas."
-                  },
-                  {
-                    icon: <Shield className="w-8 h-8 text-green-500" />,
-                    title: "Segurança Total",
-                    desc: "Seus dados e conversas protegidos com criptografia de ponta a ponta."
-                  },
-                  {
-                    icon: <Smartphone className="w-8 h-8 text-purple-500" />,
-                    title: "Mobile First",
-                    desc: "Gerencie tudo pelo celular com nossa interface otimizada."
-                  },
-                  {
-                    icon: <Globe className="w-8 h-8 text-cyan-500" />,
-                    title: "Multi-idiomas",
-                    desc: "Atenda clientes em qualquer lugar do mundo em seu idioma nativo."
-                  }
-                ].map((feature, index) => (
-                  <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                    <div className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all hover:shadow-lg h-full flex flex-col">
-                      <div className="mb-4 p-3 bg-background rounded-xl w-fit shadow-sm">
-                        {feature.icon}
+            <FadeIn delay={200}>
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full max-w-5xl mx-auto"
+              >
+                <CarouselContent className="-ml-4">
+                  {[
+                    {
+                      icon: <MessageSquare className="w-8 h-8 text-primary" />,
+                      title: "Respostas Instantâneas",
+                      desc: "Atenda seus clientes em segundos, 24 horas por dia, 7 dias por semana."
+                    },
+                    {
+                      icon: <Zap className="w-8 h-8 text-yellow-500" />,
+                      title: "IA Avançada",
+                      desc: "Utilize modelos de linguagem de ponta para conversas naturais e eficientes."
+                    },
+                    {
+                      icon: <BarChart3 className="w-8 h-8 text-blue-500" />,
+                      title: "Analytics em Tempo Real",
+                      desc: "Acompanhe métricas de desempenho e insights sobre suas conversas."
+                    },
+                    {
+                      icon: <Shield className="w-8 h-8 text-green-500" />,
+                      title: "Segurança Total",
+                      desc: "Seus dados e conversas protegidos com criptografia de ponta a ponta."
+                    },
+                    {
+                      icon: <Smartphone className="w-8 h-8 text-purple-500" />,
+                      title: "Mobile First",
+                      desc: "Gerencie tudo pelo celular com nossa interface otimizada."
+                    },
+                    {
+                      icon: <Globe className="w-8 h-8 text-cyan-500" />,
+                      title: "Multi-idiomas",
+                      desc: "Atenda clientes em qualquer lugar do mundo em seu idioma nativo."
+                    }
+                  ].map((feature, index) => (
+                    <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                      <div className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all hover:shadow-lg h-full flex flex-col">
+                        <div className="mb-4 p-3 bg-background rounded-xl w-fit shadow-sm">
+                          {feature.icon}
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                        <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
                       </div>
-                      <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
-            </Carousel>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden md:flex" />
+                <CarouselNext className="hidden md:flex" />
+              </Carousel>
           </div>
         </section>
 
@@ -260,15 +268,17 @@ export default function LandingPage() {
         <section id="plans" className="py-20 relative">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Planos Simples e Transparentes</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Comece grátis e escale conforme seu negócio cresce. Sem contratos de longo prazo.
-              </p>
+              <FadeIn>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">Planos Simples e Transparentes</h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Comece grátis e escale conforme seu negócio cresce. Sem contratos de longo prazo.
+                </p>
+              </FadeIn>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               {/* Free Plan */}
-              <div className="relative rounded-2xl border border-border bg-card p-8 shadow-sm hover:shadow-md transition-shadow">
+              <FadeIn delay={200} className="relative rounded-2xl border border-border bg-card p-8 shadow-sm hover:shadow-md transition-shadow">
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold">Teste Grátis</h3>
                   <p className="text-muted-foreground mt-2">Para conhecer a plataforma</p>
@@ -296,10 +306,10 @@ export default function LandingPage() {
                     Começar Grátis
                   </Button>
                 </Link>
-              </div>
+              </FadeIn>
 
               {/* Business Plan */}
-              <div className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-xl transform md:-translate-y-4">
+              <FadeIn delay={400} className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-xl transform md:-translate-y-4">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-medium">
                   Mais Popular
                 </div>
@@ -339,7 +349,7 @@ export default function LandingPage() {
                     Assinar Agora
                   </Button>
                 </Link>
-              </div>
+              </FadeIn>
             </div>
           </div>
         </section>
@@ -348,7 +358,7 @@ export default function LandingPage() {
         <section className="py-20 relative overflow-hidden">
           <div className="absolute inset-0 bg-primary/5 -z-10" />
           <div className="container mx-auto px-4 md:px-6 text-center">
-            <div className="max-w-3xl mx-auto bg-card p-8 md:p-12 rounded-3xl border border-primary/20 shadow-2xl relative overflow-hidden">
+            <FadeIn className="max-w-3xl mx-auto bg-card p-8 md:p-12 rounded-3xl border border-primary/20 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Pronto para transformar seu atendimento?</h2>
@@ -374,7 +384,7 @@ export default function LandingPage() {
                 <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Pagamento Seguro (M-Pesa/e-Mola)</span>
                 <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Ativação Imediata</span>
               </div>
-            </div>
+            </FadeIn>
           </div>
         </section>
 

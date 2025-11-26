@@ -288,30 +288,7 @@ export default function CheckoutPage() {
                                     <ShieldCheck className="h-4 w-4" />
                                     <span>Pagamento 100% Seguro</span>
                                 </div>
-                            </CardFooter>
-                        </Card>
+                            </div>
                     </div>
-
-                    {/* Mobile Summary (Simplified) */}
-                    <div className="lg:hidden">
-                        <Card className="border-zinc-800 bg-zinc-900/50 backdrop-blur-sm shadow-xl">
-                            <CardContent className="p-4 flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-zinc-400">Total a pagar</p>
-                                    <p className="text-xl font-bold text-white">960 MT</p>
-                                </div>
-                                <Button
-                                    className="bg-purple-600 hover:bg-purple-700 text-white"
-                                    onClick={handlePayment}
-                                    disabled={processing}
-                                >
-                                    {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Pagar"}
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
+                    )
 }
