@@ -261,6 +261,7 @@ export default function LandingPage() {
                 <CarouselPrevious className="hidden md:flex" />
                 <CarouselNext className="hidden md:flex" />
               </Carousel>
+            </FadeIn>
           </div>
         </section>
 

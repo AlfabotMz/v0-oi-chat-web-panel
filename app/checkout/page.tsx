@@ -288,7 +288,11 @@ export default function CheckoutPage() {
                                     <ShieldCheck className="h-4 w-4" />
                                     <span>Pagamento 100% Seguro</span>
                                 </div>
-                            </div>
+                            </CardFooter>
+                        </Card>
                     </div>
-                    )
+                </div>
+            </div>
+        </div>
+    )
 }
