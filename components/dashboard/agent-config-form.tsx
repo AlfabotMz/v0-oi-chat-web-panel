@@ -207,12 +207,19 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="contactOwner">Contact Owner (WhatsApp)</Label>
-            <Input
-              id="contactOwner"
-              placeholder="+258 84 123 4567"
-              value={contactOwner}
-              onChange={(e) => setContactOwner(e.target.value)}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">+258</span>
+              <Input
+                id="contactOwner"
+                placeholder="84 123 4567"
+                value={contactOwner}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "").slice(0, 9)
+                  setContactOwner(value)
+                }}
+                className="pl-14"
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
               Número do dono/responsável que receberá notificações
             </p>
@@ -220,12 +227,19 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="contactDelivery">Contact Delivery (WhatsApp - Opcional)</Label>
-            <Input
-              id="contactDelivery"
-              placeholder="+258 84 123 4567"
-              value={contactDelivery}
-              onChange={(e) => setContactDelivery(e.target.value)}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">+258</span>
+              <Input
+                id="contactDelivery"
+                placeholder="84 123 4567"
+                value={contactDelivery}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "").slice(0, 9)
+                  setContactDelivery(value)
+                }}
+                className="pl-14"
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
               Número do entregador/logística para receber notificações
             </p>
@@ -256,7 +270,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
                   .replace("{{product}}", product || "Produto Exemplo")
                   .replace("{{number}}", "+258 84 123 4567")
                   .replace("{{location}}", "Maputo, Moçambique")
-                  .replace("{{date}}", new Date().toLocaleDateString("pt-MZ"))}
+                  .replace("{{date}}", new Date().toLocaleDateString("pt-PT", { day: 'numeric', month: 'long', year: 'numeric' }))}
               </pre>
             </div>
           </div>
