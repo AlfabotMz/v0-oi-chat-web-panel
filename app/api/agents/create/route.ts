@@ -30,6 +30,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Não autenticado" }, { status: 401 })
     }
 
+    // Verificar plano do usuário
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan, subscription_status")
+      .eq("id", user.id)
+      .single()
+
+    const plan = profile?.plan || "free"
+    const status = profile?.subscription_status || "free"
+
+    // Permitir apenas se for Pro, Business ou estiver em Trial
+    const canCreateAgent = plan === "pro" || plan === "business" || status === "trial"
+
+    if (!canCreateAgent) {
+      return NextResponse.json({
+        success: false,
+        error: "Seu período de teste expirou ou você está no plano gratuito. Faça upgrade para criar agentes.",
+        requires_upgrade: true
+      }, { status: 403 })
+    }
+
     // Ler dados do corpo da requisição
     const body = await request.json()
     const { nome, prompt, phone_number } = body
