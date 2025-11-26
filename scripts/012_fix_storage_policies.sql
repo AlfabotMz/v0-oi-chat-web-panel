@@ -53,4 +53,3 @@ WITH CHECK (
     WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
   )
 );
-

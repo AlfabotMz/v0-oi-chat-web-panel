@@ -2,9 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MessageCircle, BarChart3, Settings, X, HelpCircle, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react"
+import { MessageCircle, BarChart3, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 interface NavigationProps {
   variant?: "sidebar" | "mobile"
@@ -24,6 +26,46 @@ const navItems = [
 
 export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = false, onToggleCollapse }: NavigationProps) {
   const pathname = usePathname()
+  const [plan, setPlan] = useState<string>("free")
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("plan, subscription_status")
+          .eq("id", user.id)
+          .single()
+
+        if (profile) {
+          setPlan(profile.plan || "free")
+        }
+      }
+      setLoading(false)
+    }
+
+    fetchPlan()
+  }, [])
+
+  const getPlanName = (planCode: string) => {
+    switch (planCode) {
+      case "pro": return "Plano Pro"
+      case "business": return "Plano Business"
+      default: return "Plano Gratuito"
+    }
+  }
+
+  const getPlanBadge = (planCode: string) => {
+    switch (planCode) {
+      case "pro": return "Pro"
+      case "business": return "Biz"
+      default: return "Free"
+    }
+  }
 
   if (variant === "mobile") {
     return (
@@ -148,14 +190,16 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
                 <div className="p-2 bg-primary/20 rounded-lg">
                   <BarChart3 className="w-4 h-4 text-primary" />
                 </div>
-                <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Pro</span>
+                <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                  {loading ? "..." : getPlanBadge(plan)}
+                </span>
               </div>
-              <h4 className="font-bold text-sm mb-1">Plano Business</h4>
+              <h4 className="font-bold text-sm mb-1">{loading ? "Carregando..." : getPlanName(plan)}</h4>
             </div>
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="p-2 bg-primary/20 rounded-lg" title="Plano Business">
+            <div className="p-2 bg-primary/20 rounded-lg" title={getPlanName(plan)}>
               <BarChart3 className="w-4 h-4 text-primary" />
             </div>
           </div>
@@ -178,4 +222,3 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
     </nav>
   )
 }
-

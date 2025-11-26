@@ -2,9 +2,8 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ArrowRight, Check, Target, Users, Globe } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Check, Target, Users, Globe, Phone, Briefcase, DollarSign, ShoppingBag, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface OnboardingSurveyProps {
@@ -15,12 +14,16 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
     const [step, setStep] = useState(1)
     const [formData, setFormData] = useState({
         source: "",
-        companySize: "",
-        goal: "",
+        whatsapp: "",
+        businessType: "",
+        monthlyRevenue: "",
+        market: "",
     })
 
+    const totalSteps = 5
+
     const handleNext = () => {
-        if (step < 3) {
+        if (step < totalSteps) {
             setStep(step + 1)
         } else {
             onComplete(formData)
@@ -38,19 +41,26 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
         { id: "other", label: "Outro", icon: Target },
     ]
 
-    const sizes = [
-        "Apenas eu",
-        "2-5 funcionários",
-        "6-20 funcionários",
-        "21-50 funcionários",
-        "+50 funcionários",
+    const businessTypes = [
+        { id: "dropshipping", label: "Dropshipping", icon: ShoppingBag },
+        { id: "plr", label: "PLR / Infoprodutos", icon: Globe },
+        { id: "service", label: "Prestação de Serviços", icon: Briefcase },
+        { id: "other", label: "Outro", icon: Target },
     ]
 
-    const goals = [
-        { id: "support", label: "Automatizar Suporte", desc: "Responder dúvidas frequentes 24/7" },
-        { id: "sales", label: "Aumentar Vendas", desc: "Qualificar leads e agendar reuniões" },
-        { id: "scheduling", label: "Agendamentos", desc: "Gerenciar agenda e reservas" },
-        { id: "other", label: "Outro", desc: "Necessidades específicas" },
+    const revenues = [
+        "Até 50.000 MT",
+        "50.000 MT - 200.000 MT",
+        "200.000 MT - 1.000.000 MT",
+        "+1.000.000 MT",
+    ]
+
+    const markets = [
+        "Moçambique",
+        "Angola",
+        "Portugal",
+        "Brasil",
+        "Global",
     ]
 
     return (
@@ -72,12 +82,12 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
 
                 {/* Step Indicator */}
                 <div className="flex gap-2 mb-12">
-                    {[1, 2, 3].map((i) => (
+                    {Array.from({ length: totalSteps }).map((_, i) => (
                         <div
                             key={i}
                             className={cn(
                                 "h-1.5 flex-1 rounded-full transition-all duration-500",
-                                i <= step ? "bg-gradient-to-r from-purple-500 to-blue-500" : "bg-white/10"
+                                i + 1 <= step ? "bg-gradient-to-r from-purple-500 to-blue-500" : "bg-white/10"
                             )}
                         />
                     ))}
@@ -122,25 +132,88 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
                     {step === 2 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
                             <h2 className="text-2xl font-semibold text-white text-center mb-8">
-                                Qual o tamanho da sua empresa?
+                                Qual seu número de WhatsApp?
+                            </h2>
+                            <div className="max-w-md mx-auto space-y-4">
+                                <div className="relative">
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                                    <Input
+                                        placeholder="84 123 4567"
+                                        value={formData.whatsapp}
+                                        onChange={(e) => handleChange("whatsapp", e.target.value)}
+                                        className="pl-12 py-6 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-purple-500 text-lg"
+                                    />
+                                </div>
+                                <p className="text-sm text-zinc-500 text-center">
+                                    Usaremos para enviar dicas e atualizações importantes.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                            <h2 className="text-2xl font-semibold text-white text-center mb-8">
+                                Qual seu modelo de negócio?
+                            </h2>
+                            <div className="grid grid-cols-2 gap-4">
+                                {businessTypes.map((type) => {
+                                    const Icon = type.icon
+                                    const isSelected = formData.businessType === type.id
+                                    return (
+                                        <button
+                                            key={type.id}
+                                            onClick={() => handleChange("businessType", type.id)}
+                                            className={cn(
+                                                "flex flex-col items-center justify-center p-6 rounded-2xl border transition-all duration-300 group",
+                                                isSelected
+                                                    ? "bg-purple-500/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+                                                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                                            )}
+                                        >
+                                            <Icon className={cn(
+                                                "w-8 h-8 mb-3 transition-colors duration-300",
+                                                isSelected ? "text-purple-400" : "text-zinc-400 group-hover:text-white"
+                                            )} />
+                                            <span className={cn(
+                                                "font-medium transition-colors duration-300",
+                                                isSelected ? "text-white" : "text-zinc-400 group-hover:text-white"
+                                            )}>{type.label}</span>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 4 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                            <h2 className="text-2xl font-semibold text-white text-center mb-8">
+                                Qual seu faturamento mensal estimado?
                             </h2>
                             <div className="space-y-3">
-                                {sizes.map((size) => (
+                                {revenues.map((rev) => (
                                     <button
-                                        key={size}
-                                        onClick={() => handleChange("companySize", size)}
+                                        key={rev}
+                                        onClick={() => handleChange("monthlyRevenue", rev)}
                                         className={cn(
                                             "w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group text-left",
-                                            formData.companySize === size
+                                            formData.monthlyRevenue === rev
                                                 ? "bg-purple-500/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
                                                 : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
                                         )}
                                     >
-                                        <span className={cn(
-                                            "font-medium transition-colors duration-300",
-                                            formData.companySize === size ? "text-white" : "text-zinc-400 group-hover:text-white"
-                                        )}>{size}</span>
-                                        {formData.companySize === size && (
+                                        <div className="flex items-center gap-3">
+                                            <DollarSign className={cn(
+                                                "w-5 h-5",
+                                                formData.monthlyRevenue === rev ? "text-purple-400" : "text-zinc-500"
+                                            )} />
+                                            <span className={cn(
+                                                "font-medium transition-colors duration-300",
+                                                formData.monthlyRevenue === rev ? "text-white" : "text-zinc-400 group-hover:text-white"
+                                            )}>{rev}</span>
+                                        </div>
+                                        {formData.monthlyRevenue === rev && (
                                             <Check className="w-5 h-5 text-purple-400" />
                                         )}
                                     </button>
@@ -149,34 +222,35 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
                         </div>
                     )}
 
-                    {step === 3 && (
+                    {step === 5 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
                             <h2 className="text-2xl font-semibold text-white text-center mb-8">
-                                Qual seu principal objetivo?
+                                Qual seu mercado principal?
                             </h2>
-                            <div className="grid gap-4">
-                                {goals.map((goal) => (
+                            <div className="space-y-3">
+                                {markets.map((mkt) => (
                                     <button
-                                        key={goal.id}
-                                        onClick={() => handleChange("goal", goal.id)}
+                                        key={mkt}
+                                        onClick={() => handleChange("market", mkt)}
                                         className={cn(
-                                            "w-full flex items-center p-4 rounded-xl border transition-all duration-300 group text-left",
-                                            formData.goal === goal.id
+                                            "w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group text-left",
+                                            formData.market === mkt
                                                 ? "bg-purple-500/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
                                                 : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
                                         )}
                                     >
-                                        <div className="flex-1">
-                                            <div className={cn(
-                                                "font-medium mb-1 transition-colors duration-300",
-                                                formData.goal === goal.id ? "text-white" : "text-zinc-200 group-hover:text-white"
-                                            )}>{goal.label}</div>
-                                            <div className="text-sm text-zinc-500 group-hover:text-zinc-400">
-                                                {goal.desc}
-                                            </div>
+                                        <div className="flex items-center gap-3">
+                                            <Globe className={cn(
+                                                "w-5 h-5",
+                                                formData.market === mkt ? "text-purple-400" : "text-zinc-500"
+                                            )} />
+                                            <span className={cn(
+                                                "font-medium transition-colors duration-300",
+                                                formData.market === mkt ? "text-white" : "text-zinc-400 group-hover:text-white"
+                                            )}>{mkt}</span>
                                         </div>
-                                        {formData.goal === goal.id && (
-                                            <Check className="w-5 h-5 text-purple-400 ml-4" />
+                                        {formData.market === mkt && (
+                                            <Check className="w-5 h-5 text-purple-400" />
                                         )}
                                     </button>
                                 ))}
@@ -190,12 +264,14 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
                         onClick={handleNext}
                         disabled={
                             (step === 1 && !formData.source) ||
-                            (step === 2 && !formData.companySize) ||
-                            (step === 3 && !formData.goal)
+                            (step === 2 && !formData.whatsapp) ||
+                            (step === 3 && !formData.businessType) ||
+                            (step === 4 && !formData.monthlyRevenue) ||
+                            (step === 5 && !formData.market)
                         }
                         className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/25 rounded-xl px-8 py-6 text-lg font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
                     >
-                        {step === 3 ? "Continuar" : "Próximo"}
+                        {step === totalSteps ? "Concluir" : "Próximo"}
                         <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                 </div>

@@ -34,10 +34,17 @@ export async function GET(request: NextRequest) {
         console.log(`Encontrados ${expiredUsers?.length || 0} usuários expirados`)
 
         for (const user of expiredUsers || []) {
-            // Atualizar status para expired
+            // Se estava em Trial, move para Free
+            // Se estava Ativo (pagante), move para Expired
+            const newStatus = user.subscription_status === "trial" ? "free" : "expired"
+            const newPlan = user.subscription_status === "trial" ? "free" : user.plan
+
             await supabase
                 .from("profiles")
-                .update({ subscription_status: "expired" })
+                .update({
+                    subscription_status: newStatus,
+                    plan: newPlan
+                })
                 .eq("id", user.id)
 
             // Enviar email

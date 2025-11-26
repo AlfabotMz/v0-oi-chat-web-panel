@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
         .from("profiles")
         .update({
           subscription_status: "active",
+          plan: "business", // Define explicitamente o plano Business
           plan_end_date: newEndDate.toISOString(),
           last_payment_id: payment.id,
           trial_used: true // Marca como true pois agora é assinante
