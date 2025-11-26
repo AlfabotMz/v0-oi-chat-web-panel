@@ -103,11 +103,15 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
                             <div className="max-w-md mx-auto space-y-4">
                                 <div className="relative">
                                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                                    <span className="absolute left-12 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">+258</span>
                                     <Input
                                         placeholder="84 123 4567"
                                         value={formData.whatsapp}
-                                        onChange={(e) => handleChange("whatsapp", e.target.value)}
-                                        className="pl-12 py-6 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-purple-500 text-lg"
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/\D/g, "").slice(0, 9)
+                                            handleChange("whatsapp", value)
+                                        }}
+                                        className="pl-24 py-6 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-purple-500 text-lg"
                                     />
                                 </div>
                                 <p className="text-sm text-zinc-500 text-center">
@@ -264,7 +268,7 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
                     <Button
                         onClick={handleNext}
                         disabled={
-                            (step === 1 && !formData.whatsapp) ||
+                            (step === 1 && (!formData.whatsapp || formData.whatsapp.length !== 9 || !formData.whatsapp.startsWith("8"))) ||
                             (step === 2 && !formData.monthlyRevenue) ||
                             (step === 3 && !formData.source) ||
                             (step === 4 && !formData.businessType) ||

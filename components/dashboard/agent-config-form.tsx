@@ -243,6 +243,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
                 { label: "product", value: "{{product}}", description: "Nome do produto" },
                 { label: "number", value: "{{number}}", description: "Número do cliente" },
                 { label: "location", value: "{{location}}", description: "Localização do cliente" },
+                { label: "date", value: "{{date}}", description: "Data da conversão" },
               ]}
             />
             <p className="text-xs text-muted-foreground">
@@ -254,7 +255,8 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
                 {customMessage
                   .replace("{{product}}", product || "Produto Exemplo")
                   .replace("{{number}}", "+258 84 123 4567")
-                  .replace("{{location}}", "Maputo, Moçambique")}
+                  .replace("{{location}}", "Maputo, Moçambique")
+                  .replace("{{date}}", new Date().toLocaleDateString("pt-MZ"))}
               </pre>
             </div>
           </div>
