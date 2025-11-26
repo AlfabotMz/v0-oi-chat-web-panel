@@ -49,10 +49,11 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
     ]
 
     const revenues = [
-        "Até 50.000 MT",
-        "50.000 MT - 200.000 MT",
-        "200.000 MT - 1.000.000 MT",
-        "+1.000.000 MT",
+        "Até 5.000 MT",
+        "5.000 MT - 10.000 MT",
+        "10.000 MT - 50.000 MT",
+        "50.000 MT - 100.000 MT",
+        "+100.000 MT",
     ]
 
     const markets = [

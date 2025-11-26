@@ -139,7 +139,7 @@ export default function LandingPage() {
             </FadeIn>
 
             {/* Dashboard Preview */}
-            <FadeIn delay={500} className="mt-16 relative mx-auto max-w-5xl">
+            <FadeIn delay={500} className="hidden md:block mt-16 relative mx-auto max-w-5xl">
               <div className="relative rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm shadow-2xl overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-10 bg-muted/50 border-b border-border/50 flex items-center px-4 gap-2 z-20">
                   <div className="w-3 h-3 rounded-full bg-red-500/50" />
