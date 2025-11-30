@@ -1,22 +1,21 @@
--- Reset all users to 'business' plan with 7-day trial
+-- Reset all users to 'business' plan with 7-day trial based on CREATION DATE
 -- This script should be run manually in Supabase SQL Editor
 
--- 1. Update profiles to set plan to 'business' (using 'premium' as internal value if that's what we use, 
--- but previous scripts used 'free', 'pro', 'premium'. User said "plano gratis" but context implies trial of paid.
--- I will use 'premium' as the internal value for the top tier).
+-- 1. Update profiles to set plan to 'premium' (Business)
+-- The trial start date is the user's creation date (created_at).
+-- The trial end date is creation date + 7 days.
+-- If the user created the account more than 7 days ago, the trial will be expired immediately.
 
 UPDATE public.profiles
 SET 
   plan = 'premium',
   subscription_status = 'trial',
-  plan_start_date = NOW(),
-  plan_end_date = NOW() + INTERVAL '7 days',
+  plan_start_date = created_at,
+  plan_end_date = created_at + INTERVAL '7 days',
   status = 'active',
   trial_used = FALSE;
 
 -- 2. Ensure we have the whatsapp column (it should exist, but just in case we populate it from phone if empty and phone exists)
--- Note: We are not creating columns here, just ensuring data consistency if needed.
--- If phone exists and whatsapp is null, copy phone to whatsapp.
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'phone') THEN
@@ -42,7 +41,7 @@ BEGIN
   user_plan := 'premium'; -- Force premium for trial
   user_full_name := COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
   
-  -- Set trial end date to 7 days from now
+  -- Set trial end date to 7 days from creation (which is NOW() for new users)
   trial_end := NOW() + INTERVAL '7 days';
 
   -- Inserir ou atualizar profile
@@ -56,7 +55,9 @@ BEGIN
     subscription_status,
     plan_start_date,
     plan_end_date,
-    trial_used
+    trial_used,
+    created_at,
+    updated_at
   )
   VALUES (
     new.id, 
@@ -66,9 +67,11 @@ BEGIN
     user_status,
     user_plan,
     'trial',
-    NOW(),
-    trial_end,
-    FALSE
+    NOW(), -- plan_start_date
+    trial_end, -- plan_end_date
+    FALSE,
+    NOW(), -- created_at
+    NOW()  -- updated_at
   )
   ON CONFLICT (id) 
   DO UPDATE SET
