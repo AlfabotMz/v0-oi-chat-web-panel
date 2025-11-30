@@ -119,6 +119,12 @@ export default function AdminPage() {
     { name: 'Premium', value: users.filter(u => u.plan === 'premium').length },
   ].filter(d => d.value > 0);
 
+  const financialStatusData = [
+    { name: 'Pagantes', value: users.filter(u => u.subscription_status === 'active').length, color: '#10b981' }, // Green
+    { name: 'Trial', value: users.filter(u => u.subscription_status === 'trial').length, color: '#f59e0b' }, // Amber
+    { name: 'Outros', value: users.filter(u => u.subscription_status !== 'active' && u.subscription_status !== 'trial').length, color: '#94a3b8' }, // Slate
+  ].filter(d => d.value > 0);
+
   const statusData = [
     { name: 'Ativo', value: users.filter(u => u.status === 'active').length },
     { name: 'Inativo', value: users.filter(u => u.status === 'inactive').length },
@@ -175,8 +181,36 @@ export default function AdminPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 space-y-8">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="border-purple-200/20 bg-purple-50/50 dark:bg-purple-900/10">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total de Usuários</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{users.length}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-green-200/20 bg-green-50/50 dark:bg-green-900/10">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Usuários Ativos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{users.filter(u => u.status === 'active').length}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-blue-200/20 bg-blue-50/50 dark:bg-blue-900/10">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pagantes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{users.filter(u => u.subscription_status === 'active').length}</div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Charts Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
           <Card className="border-purple-200/20">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Novos Usuários (7 dias)</CardTitle>
@@ -214,6 +248,36 @@ export default function AdminPage() {
                   >
                     {planData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="border-purple-200/20">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Status Financeiro</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={financialStatusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {financialStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip
