@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [phone, setPhone] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -26,7 +27,7 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, isAdmin)
+        const { error } = await signUp(email, password, phone, isAdmin)
         if (error) throw error
         // Se não for admin, redirecionar para onboarding após verificar email
         if (!isAdmin) {
@@ -96,9 +97,12 @@ export default function LoginPage() {
                     id="phone"
                     type="tel"
                     placeholder="84 123 4567"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
                     className="border-purple-200/30"
                   />
-                  <p className="text-xs text-muted-foreground">Opcional, mas recomendado para notificações.</p>
+                  <p className="text-xs text-muted-foreground">Obrigatório para notificações.</p>
                 </div>
               )}
 
