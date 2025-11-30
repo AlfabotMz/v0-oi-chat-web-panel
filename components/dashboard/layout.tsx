@@ -7,6 +7,7 @@ import { Navigation } from "./navigation"
 import { Header } from "./header"
 import { CommunityInviteDialog } from "./community-invite-dialog"
 import { createClient } from "@/lib/supabase/client"
+import { TrialChecker } from "./trial-checker"
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -93,11 +94,11 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         </div>
       </main>
 
-      {/* Popup de convite para comunidade */}
       <CommunityInviteDialog
         communityLink={communityLink}
         whatsappLink={supportWhatsAppLink}
       />
+      <TrialChecker />
     </div>
   )
 }

@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Users, LogOut, Crown, HelpCircle, MessageCircle } from "lucide-react"
+import { Users, LogOut, Crown, HelpCircle, MessageCircle, Phone } from "lucide-react"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 
 interface UserProfile {
   id: string
@@ -18,7 +19,11 @@ interface UserProfile {
   plan: "free" | "pro" | "premium"
   status: "active" | "inactive"
   created_at: string
+  whatsapp?: string
+  phone?: string
 }
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function AdminPage() {
   const router = useRouter()
@@ -36,25 +41,19 @@ export default function AdminPage() {
     const checkAdmin = async () => {
       try {
         setChecking(true)
-        
-        // Obter o perfil do usuário diretamente
+
         const profile = await getUserProfile()
-        
-        // Se não há perfil, o usuário não está autenticado
+
         if (!profile) {
-          console.log("Usuário não autenticado, redirecionando para login")
           router.push("/login")
           return
         }
-        
-        // Verificar se o usuário é admin
+
         if (profile.role !== "admin") {
-          console.log("Usuário não é admin, redirecionando para dashboard")
           router.push("/dashboard")
           return
         }
-        
-        // Se chegou aqui, o usuário é admin
+
         setAdminProfile(profile)
         setCommunityLink(profile.community_link || "")
         setSupportWhatsAppLink(profile.support_whatsapp_link || "")
@@ -62,7 +61,6 @@ export default function AdminPage() {
         setChecking(false)
       } catch (error) {
         console.error("Erro ao verificar admin:", error)
-        // Em caso de erro, redirecionar para dashboard após um breve delay
         setTimeout(() => {
           router.push("/dashboard")
         }, 500)
@@ -75,39 +73,19 @@ export default function AdminPage() {
     try {
       setLoading(true)
       const supabase = createClient()
-      
-      console.log("Tentando carregar usuários...")
-      
-      // Primeiro, verificar se conseguimos ver qualquer perfil
-      const { data: testData, error: testError } = await supabase
-        .from("profiles")
-        .select("*")
-        .limit(1)
-      
-      console.log("Teste de acesso aos perfis:", { testData, testError })
-      
-      // Buscar apenas usuários (não admins) - filtrar diretamente na query
+
       const { data: userData, error: userError } = await supabase
         .from("profiles")
         .select("*")
-        .eq("role", "user")  // Filtrar apenas usuários, não admins
+        .eq("role", "user")
         .order("created_at", { ascending: false })
-      
-      console.log("Usuários encontrados:", { userData, userError })
-      
+
       if (userError) {
         console.error("Erro ao carregar usuários:", userError)
-        // Se houver erro de permissão, mostrar mensagem específica
-        if (userError.code === "42501" || userError.message.includes("permission") || userError.message.includes("policy")) {
-          console.error("ERRO DE PERMISSÃO: As políticas RLS podem não estar configuradas corretamente.")
-          console.error("Execute o script scripts/011_fix_admin_view_profiles.sql no Supabase")
-        }
         setUsers([])
       } else if (userData) {
-        console.log("Perfis de usuários carregados:", userData.length)
         setUsers(userData)
       } else {
-        console.log("Nenhum usuário encontrado")
         setUsers([])
       }
     } catch (err) {
@@ -133,7 +111,32 @@ export default function AdminPage() {
     router.push("/login")
   }
 
-  // Mostrar loading enquanto está verificando ou carregando
+  // Prepare chart data
+  const planData = [
+    { name: 'Free', value: users.filter(u => u.plan === 'free').length },
+    { name: 'Pro', value: users.filter(u => u.plan === 'pro').length },
+    { name: 'Premium', value: users.filter(u => u.plan === 'premium').length },
+  ].filter(d => d.value > 0);
+
+  const statusData = [
+    { name: 'Ativo', value: users.filter(u => u.status === 'active').length },
+    { name: 'Inativo', value: users.filter(u => u.status === 'inactive').length },
+  ].filter(d => d.value > 0);
+
+  // Group users by created_at date (last 7 days)
+  const last7Days = [...Array(7)].map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    return d.toISOString().split('T')[0];
+  }).reverse();
+
+  const growthData = last7Days.map(date => {
+    return {
+      date: date.split('-').slice(1).join('/'),
+      users: users.filter(u => u.created_at.startsWith(date)).length
+    };
+  });
+
   if (checking || !adminProfile) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-background/80 flex items-center justify-center">
@@ -147,7 +150,6 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
-      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-purple-200/20 bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center gap-3">
@@ -171,37 +173,85 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        {/* Stats Cards */}
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
-          <Card className="border-purple-200/20 bg-gradient-to-br from-purple-50/50 to-purple-50/20 dark:from-purple-950/20 dark:to-purple-950/10">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 space-y-8">
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="border-purple-200/20">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total de Usuários</CardTitle>
+              <CardTitle className="text-sm font-medium">Novos Usuários (7 dias)</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-600">{users.length}</div>
+            <CardContent className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={growthData}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                  <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Bar dataKey="users" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="border-purple-200/20 bg-gradient-to-br from-purple-50/50 to-purple-50/20 dark:from-purple-950/20 dark:to-purple-950/10">
+          <Card className="border-purple-200/20">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Contas Ativas</CardTitle>
+              <CardTitle className="text-sm font-medium">Distribuição de Planos</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-600">
-                {users.filter((u) => u.status === "active").length}
-              </div>
+            <CardContent className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={planData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {planData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                </PieChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="border-purple-200/20 bg-gradient-to-br from-purple-50/50 to-purple-50/20 dark:from-purple-950/20 dark:to-purple-950/10">
+          <Card className="border-purple-200/20">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Planos Pro/Premium</CardTitle>
+              <CardTitle className="text-sm font-medium">Status dos Usuários</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-purple-600">
-                {users.filter((u) => u.plan === "pro" || u.plan === "premium").length}
-              </div>
+            <CardContent className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#ef4444'} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                </PieChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
@@ -216,29 +266,25 @@ export default function AdminPage() {
             <CardDescription>Configure os links de suporte e comunidade</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="communityLink">Link da Comunidade</Label>
-              <Input
-                id="communityLink"
-                placeholder="https://chat.whatsapp.com/..."
-                value={communityLink}
-                onChange={(e) => setCommunityLink(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Link do grupo da comunidade OiChat no WhatsApp
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="supportWhatsAppLink">Link do WhatsApp de Suporte</Label>
-              <Input
-                id="supportWhatsAppLink"
-                placeholder="https://wa.me/5511999999999"
-                value={supportWhatsAppLink}
-                onChange={(e) => setSupportWhatsAppLink(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Link do WhatsApp para suporte direto
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="communityLink">Link da Comunidade</Label>
+                <Input
+                  id="communityLink"
+                  placeholder="https://chat.whatsapp.com/..."
+                  value={communityLink}
+                  onChange={(e) => setCommunityLink(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="supportWhatsAppLink">Link do WhatsApp de Suporte</Label>
+                <Input
+                  id="supportWhatsAppLink"
+                  placeholder="https://wa.me/5511999999999"
+                  value={supportWhatsAppLink}
+                  onChange={(e) => setSupportWhatsAppLink(e.target.value)}
+                />
+              </div>
             </div>
             <Button
               onClick={async () => {
@@ -293,13 +339,6 @@ export default function AdminPage() {
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-2" />
                 <p className="text-muted-foreground">Nenhum usuário cadastrado ainda</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Os usuários aparecerão aqui quando se registrarem
-                </p>
-                <p className="text-xs text-muted-foreground mt-4 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg">
-                  <strong>Nota:</strong> Se você acabou de executar as migrações SQL, verifique se o script{" "}
-                  <code className="bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded">011_fix_admin_view_profiles.sql</code> foi executado.
-                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -307,9 +346,10 @@ export default function AdminPage() {
                   <thead>
                     <tr className="border-b border-purple-200/20">
                       <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Usuário</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Contato</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Status</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Plano Atual</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Data de Criação</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Plano</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Data</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Ações</th>
                     </tr>
                   </thead>
@@ -322,29 +362,39 @@ export default function AdminPage() {
                         <td className="py-3 px-4">
                           <div>
                             <p className="font-medium text-foreground">{user.full_name}</p>
-                            <p className="text-sm text-muted-foreground">{user.id.slice(0, 8)}...</p>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            {user.whatsapp || user.phone ? (
+                              <>
+                                <Phone className="w-3 h-3" />
+                                {user.whatsapp || user.phone}
+                              </>
+                            ) : (
+                              <span className="text-xs italic">Sem número</span>
+                            )}
                           </div>
                         </td>
                         <td className="py-3 px-4">
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                              user.status === "active"
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === "active"
                                 ? "bg-green-100/50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
                                 : "bg-red-100/50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
-                            }`}
+                              }`}
                           >
                             {user.status === "active" ? "Ativo" : "Inativo"}
                           </span>
                         </td>
                         <td className="py-3 px-4">
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                              user.plan === "premium"
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.plan === "premium"
                                 ? "bg-purple-100/50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400"
                                 : user.plan === "pro"
                                   ? "bg-blue-100/50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
                                   : "bg-gray-100/50 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400"
-                            }`}
+                              }`}
                           >
                             {user.plan === "free" ? "Grátis" : user.plan === "pro" ? "Pro" : "Premium"}
                           </span>
@@ -357,7 +407,7 @@ export default function AdminPage() {
                             <div className="flex gap-2">
                               <Select value={newPlan} onValueChange={setNewPlan}>
                                 <SelectTrigger className="w-32 h-8 border-purple-200/30">
-                                  <SelectValue placeholder="Selecionar plano" />
+                                  <SelectValue placeholder="Plano" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="free">Grátis</SelectItem>
@@ -376,11 +426,11 @@ export default function AdminPage() {
                           ) : (
                             <Button
                               size="sm"
-                              variant="outline"
+                              variant="ghost"
                               onClick={() => setSelectedUser(user.id)}
-                              className="border-purple-200/30 hover:bg-purple-50/5"
+                              className="h-8 px-2"
                             >
-                              Mudar Plano
+                              Editar
                             </Button>
                           )}
                         </td>
