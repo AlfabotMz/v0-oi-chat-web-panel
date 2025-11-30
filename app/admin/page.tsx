@@ -22,6 +22,9 @@ interface UserProfile {
   whatsapp?: string
   phone?: string
   subscription_status?: string
+  role?: string
+  community_link?: string
+  support_whatsapp_link?: string
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
@@ -37,6 +40,12 @@ export default function AdminPage() {
   const [communityLink, setCommunityLink] = useState("")
   const [supportWhatsAppLink, setSupportWhatsAppLink] = useState("")
   const [savingSupport, setSavingSupport] = useState(false)
+
+  // Filters
+  const [searchTerm, setSearchTerm] = useState("")
+  const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user">("all")
+  const [planFilter, setPlanFilter] = useState<"all" | "free" | "pro" | "premium">("all")
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "trial" | "inactive">("all")
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -78,14 +87,13 @@ export default function AdminPage() {
       const { data: userData, error: userError } = await supabase
         .from("profiles")
         .select("*")
-        .eq("role", "user")
         .order("created_at", { ascending: false })
 
       if (userError) {
         console.error("Erro ao carregar usuários:", userError)
         setUsers([])
       } else if (userData) {
-        setUsers(userData)
+        setUsers(userData as UserProfile[])
       } else {
         setUsers([])
       }
@@ -111,6 +119,22 @@ export default function AdminPage() {
     await supabase.auth.signOut()
     router.push("/login")
   }
+
+  // Filter users
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = (user.full_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (user.email?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+
+    const matchesRole = roleFilter === "all" || user.role === roleFilter
+    const matchesPlan = planFilter === "all" || user.plan === planFilter
+
+    let matchesStatus = true
+    if (statusFilter === "active") matchesStatus = user.subscription_status === "active"
+    else if (statusFilter === "trial") matchesStatus = user.subscription_status === "trial"
+    else if (statusFilter === "inactive") matchesStatus = user.subscription_status !== "active" && user.subscription_status !== "trial"
+
+    return matchesSearch && matchesRole && matchesPlan && matchesStatus
+  })
 
   // Prepare chart data
   const planData = [
@@ -393,6 +417,54 @@ export default function AdminPage() {
             <CardDescription>Visualize e altere os planos dos usuários</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Filters */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="flex-1">
+                <Input
+                  placeholder="Buscar por nome ou email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="border-purple-200/30"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
+                  <SelectTrigger className="w-[130px] border-purple-200/30">
+                    <SelectValue placeholder="Função" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas Funções</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="user">Usuário</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={planFilter} onValueChange={(v: any) => setPlanFilter(v)}>
+                  <SelectTrigger className="w-[130px] border-purple-200/30">
+                    <SelectValue placeholder="Plano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Planos</SelectItem>
+                    <SelectItem value="free">Grátis</SelectItem>
+                    <SelectItem value="pro">Pro</SelectItem>
+                    <SelectItem value="premium">Premium</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
+                  <SelectTrigger className="w-[140px] border-purple-200/30">
+                    <SelectValue placeholder="Status Fin." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Status</SelectItem>
+                    <SelectItem value="active">Pagante</SelectItem>
+                    <SelectItem value="trial">Trial</SelectItem>
+                    <SelectItem value="inactive">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-center">
@@ -400,10 +472,10 @@ export default function AdminPage() {
                   <p className="text-muted-foreground">Carregando usuários...</p>
                 </div>
               </div>
-            ) : users.length === 0 ? (
+            ) : filteredUsers.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-2" />
-                <p className="text-muted-foreground">Nenhum usuário cadastrado ainda</p>
+                <p className="text-muted-foreground">Nenhum usuário encontrado</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -419,14 +491,21 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                       <tr
                         key={user.id}
                         className="border-b border-purple-100/20 hover:bg-purple-50/5 transition-colors"
                       >
                         <td className="py-3 px-4">
                           <div>
-                            <p className="font-medium text-foreground">{user.full_name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-foreground">{user.full_name}</p>
+                              {user.role === 'admin' && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300">
+                                  ADMIN
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground">{user.email}</p>
                           </div>
                         </td>
