@@ -524,8 +524,8 @@ export default function AdminPage() {
                         <td className="py-3 px-4">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === "active"
-                                ? "bg-green-100/50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-                                : "bg-red-100/50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+                              ? "bg-green-100/50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
+                              : "bg-red-100/50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
                               }`}
                           >
                             {user.status === "active" ? "Ativo" : "Inativo"}
@@ -535,20 +535,20 @@ export default function AdminPage() {
                           <div className="flex flex-col gap-1">
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${user.plan === "premium"
-                                  ? "bg-purple-100/50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400"
-                                  : user.plan === "pro"
-                                    ? "bg-blue-100/50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
-                                    : "bg-gray-100/50 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400"
+                                ? "bg-purple-100/50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400"
+                                : user.plan === "pro"
+                                  ? "bg-blue-100/50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
+                                  : "bg-gray-100/50 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400"
                                 }`}
                             >
                               {user.plan === "free" ? "Grátis" : user.plan === "pro" ? "Pro" : "Premium"}
                             </span>
                             {user.plan !== "free" && (
                               <span className={`text-[10px] uppercase font-bold tracking-wider ${user.subscription_status === 'active'
-                                  ? "text-green-600 dark:text-green-400"
-                                  : user.subscription_status === 'trial'
-                                    ? "text-orange-500 dark:text-orange-400"
-                                    : "text-muted-foreground"
+                                ? "text-green-600 dark:text-green-400"
+                                : user.subscription_status === 'trial'
+                                  ? "text-orange-500 dark:text-orange-400"
+                                  : "text-muted-foreground"
                                 }`}>
                                 {user.subscription_status === 'active' ? 'Pago' : user.subscription_status === 'trial' ? 'Trial' : user.subscription_status}
                               </span>
@@ -559,36 +559,67 @@ export default function AdminPage() {
                           {new Date(user.created_at).toLocaleDateString("pt-BR")}
                         </td>
                         <td className="py-3 px-4">
-                          {selectedUser === user.id ? (
-                            <div className="flex gap-2">
-                              <Select value={newPlan} onValueChange={setNewPlan}>
-                                <SelectTrigger className="w-32 h-8 border-purple-200/30">
-                                  <SelectValue placeholder="Plano" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="free">Grátis</SelectItem>
-                                  <SelectItem value="pro">Pro</SelectItem>
-                                  <SelectItem value="premium">Premium</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Button
-                                size="sm"
-                                onClick={handlePlanChange}
-                                className="bg-purple-600 hover:bg-purple-700"
-                              >
-                                OK
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setSelectedUser(user.id)}
-                              className="h-8 px-2"
-                            >
-                              Editar
-                            </Button>
-                          )}
+                          <div className="flex gap-2">
+                            {selectedUser === user.id ? (
+                              <>
+                                <Select value={newPlan} onValueChange={setNewPlan}>
+                                  <SelectTrigger className="w-32 h-8 border-purple-200/30">
+                                    <SelectValue placeholder="Plano" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="free">Grátis</SelectItem>
+                                    <SelectItem value="pro">Pro</SelectItem>
+                                    <SelectItem value="premium">Premium</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  size="sm"
+                                  onClick={handlePlanChange}
+                                  className="bg-purple-600 hover:bg-purple-700"
+                                >
+                                  OK
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setSelectedUser(user.id)}
+                                  className="h-8 px-2"
+                                >
+                                  Editar
+                                </Button>
+                                {user.subscription_status === 'trial' && (
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    onClick={async () => {
+                                      try {
+                                        const supabase = createClient()
+                                        const { error } = await supabase
+                                          .from("profiles")
+                                          .update({
+                                            subscription_status: 'active',
+                                            plan_end_date: null // Remove trial end date
+                                          })
+                                          .eq("id", user.id)
+
+                                        if (error) throw error
+                                        alert("Usuário convertido para pagante com sucesso!")
+                                        await loadUsers()
+                                      } catch (err: any) {
+                                        alert("Erro ao converter: " + err.message)
+                                      }
+                                    }}
+                                    className="h-8 px-2 bg-green-600 hover:bg-green-700"
+                                  >
+                                    → Pago
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
