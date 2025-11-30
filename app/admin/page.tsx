@@ -21,6 +21,7 @@ interface UserProfile {
   created_at: string
   whatsapp?: string
   phone?: string
+  subscription_status?: string
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
@@ -388,16 +389,28 @@ export default function AdminPage() {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.plan === "premium"
-                                ? "bg-purple-100/50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400"
-                                : user.plan === "pro"
-                                  ? "bg-blue-100/50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
-                                  : "bg-gray-100/50 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400"
-                              }`}
-                          >
-                            {user.plan === "free" ? "Grátis" : user.plan === "pro" ? "Pro" : "Premium"}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${user.plan === "premium"
+                                  ? "bg-purple-100/50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400"
+                                  : user.plan === "pro"
+                                    ? "bg-blue-100/50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
+                                    : "bg-gray-100/50 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400"
+                                }`}
+                            >
+                              {user.plan === "free" ? "Grátis" : user.plan === "pro" ? "Pro" : "Premium"}
+                            </span>
+                            {user.plan !== "free" && (
+                              <span className={`text-[10px] uppercase font-bold tracking-wider ${user.subscription_status === 'active'
+                                  ? "text-green-600 dark:text-green-400"
+                                  : user.subscription_status === 'trial'
+                                    ? "text-orange-500 dark:text-orange-400"
+                                    : "text-muted-foreground"
+                                }`}>
+                                {user.subscription_status === 'active' ? 'Pago' : user.subscription_status === 'trial' ? 'Trial' : user.subscription_status}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-sm text-muted-foreground">
                           {new Date(user.created_at).toLocaleDateString("pt-BR")}
