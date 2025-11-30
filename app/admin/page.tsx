@@ -136,22 +136,24 @@ export default function AdminPage() {
     return matchesSearch && matchesRole && matchesPlan && matchesStatus
   })
 
-  // Prepare chart data
+  // Prepare chart data (exclude admin users from statistics)
+  const nonAdminUsers = users.filter(u => u.role !== 'admin');
+
   const planData = [
-    { name: 'Free', value: users.filter(u => u.plan === 'free').length },
-    { name: 'Pro', value: users.filter(u => u.plan === 'pro').length },
-    { name: 'Premium', value: users.filter(u => u.plan === 'premium').length },
+    { name: 'Free', value: nonAdminUsers.filter(u => u.plan === 'free').length },
+    { name: 'Pro', value: nonAdminUsers.filter(u => u.plan === 'pro').length },
+    { name: 'Premium', value: nonAdminUsers.filter(u => u.plan === 'premium').length },
   ].filter(d => d.value > 0);
 
   const financialStatusData = [
-    { name: 'Pagantes', value: users.filter(u => u.subscription_status === 'active').length, color: '#10b981' }, // Green
-    { name: 'Trial', value: users.filter(u => u.subscription_status === 'trial').length, color: '#f59e0b' }, // Amber
-    { name: 'Outros', value: users.filter(u => u.subscription_status !== 'active' && u.subscription_status !== 'trial').length, color: '#94a3b8' }, // Slate
+    { name: 'Pagantes', value: nonAdminUsers.filter(u => u.subscription_status === 'active').length, color: '#10b981' }, // Green
+    { name: 'Trial', value: nonAdminUsers.filter(u => u.subscription_status === 'trial').length, color: '#f59e0b' }, // Amber
+    { name: 'Outros', value: nonAdminUsers.filter(u => u.subscription_status !== 'active' && u.subscription_status !== 'trial').length, color: '#94a3b8' }, // Slate
   ].filter(d => d.value > 0);
 
   const statusData = [
-    { name: 'Ativo', value: users.filter(u => u.status === 'active').length },
-    { name: 'Inativo', value: users.filter(u => u.status === 'inactive').length },
+    { name: 'Ativo', value: nonAdminUsers.filter(u => u.status === 'active').length },
+    { name: 'Inativo', value: nonAdminUsers.filter(u => u.status === 'inactive').length },
   ].filter(d => d.value > 0);
 
   // Group users by created_at date (last 7 days)
@@ -164,7 +166,7 @@ export default function AdminPage() {
   const growthData = last7Days.map(date => {
     return {
       date: date.split('-').slice(1).join('/'),
-      users: users.filter(u => u.created_at.startsWith(date)).length
+      users: nonAdminUsers.filter(u => u.created_at.startsWith(date)).length
     };
   });
 
@@ -207,428 +209,401 @@ export default function AdminPage() {
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 space-y-8">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border-purple-200/20 bg-purple-50/50 dark:bg-purple-900/10">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total de Usuários</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
-            </CardContent>
-          </Card>
-          <Card className="border-green-200/20 bg-green-50/50 dark:bg-green-900/10">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Usuários Ativos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{users.filter(u => u.status === 'active').length}</div>
-            </CardContent>
-          </Card>
-          <Card className="border-blue-200/20 bg-blue-50/50 dark:bg-blue-900/10">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pagantes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{users.filter(u => u.subscription_status === 'active').length}</div>
-            </CardContent>
-          </Card>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+            <Card className="border-purple-200/20">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Novos Usuários (7 dias)</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={growthData}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                      itemStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Bar dataKey="users" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+            <Card className="border-purple-200/20">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Distribuição de Planos</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={planData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {planData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                      itemStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="border-purple-200/20">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Status Financeiro</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={financialStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {financialStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                      itemStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="border-purple-200/20">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium">Status dos Usuários</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#ef4444'} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                      itemStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Support Links Configuration */}
           <Card className="border-purple-200/20">
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Novos Usuários (7 dias)</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-purple-600" />
+                Configurações de Suporte
+              </CardTitle>
+              <CardDescription>Configure os links de suporte e comunidade</CardDescription>
             </CardHeader>
-            <CardContent className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={growthData}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="communityLink">Link da Comunidade</Label>
+                  <Input
+                    id="communityLink"
+                    placeholder="https://chat.whatsapp.com/..."
+                    value={communityLink}
+                    onChange={(e) => setCommunityLink(e.target.value)}
                   />
-                  <Bar dataKey="users" fill="#8884d8" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200/20">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Distribuição de Planos</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={planData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {planData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                    itemStyle={{ color: 'hsl(var(--foreground))' }}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="supportWhatsAppLink">Link do WhatsApp de Suporte</Label>
+                  <Input
+                    id="supportWhatsAppLink"
+                    placeholder="https://wa.me/5511999999999"
+                    value={supportWhatsAppLink}
+                    onChange={(e) => setSupportWhatsAppLink(e.target.value)}
                   />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200/20">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Status Financeiro</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={financialStatusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {financialStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                    itemStyle={{ color: 'hsl(var(--foreground))' }}
-                  />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="border-purple-200/20">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Status dos Usuários</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#ef4444'} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                    itemStyle={{ color: 'hsl(var(--foreground))' }}
-                  />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Support Links Configuration */}
-        <Card className="border-purple-200/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <HelpCircle className="w-5 h-5 text-purple-600" />
-              Configurações de Suporte
-            </CardTitle>
-            <CardDescription>Configure os links de suporte e comunidade</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="communityLink">Link da Comunidade</Label>
-                <Input
-                  id="communityLink"
-                  placeholder="https://chat.whatsapp.com/..."
-                  value={communityLink}
-                  onChange={(e) => setCommunityLink(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="supportWhatsAppLink">Link do WhatsApp de Suporte</Label>
-                <Input
-                  id="supportWhatsAppLink"
-                  placeholder="https://wa.me/5511999999999"
-                  value={supportWhatsAppLink}
-                  onChange={(e) => setSupportWhatsAppLink(e.target.value)}
-                />
-              </div>
-            </div>
-            <Button
-              onClick={async () => {
-                setSavingSupport(true)
-                try {
-                  const supabase = createClient()
-                  const profile = await getUserProfile()
-                  if (!profile) return
-
-                  const { error } = await supabase
-                    .from("profiles")
-                    .update({
-                      community_link: communityLink || null,
-                      support_whatsapp_link: supportWhatsAppLink || null,
-                    })
-                    .eq("id", profile.id)
-
-                  if (error) throw error
-                  alert("Links de suporte salvos com sucesso!")
-                } catch (err: any) {
-                  alert("Erro ao salvar: " + err.message)
-                } finally {
-                  setSavingSupport(false)
-                }
-              }}
-              disabled={savingSupport}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {savingSupport ? "Salvando..." : "Salvar Links"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Users Management */}
-        <Card className="border-purple-200/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-purple-600" />
-              Gerenciar Usuários
-            </CardTitle>
-            <CardDescription>Visualize e altere os planos dos usuários</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="flex-1">
-                <Input
-                  placeholder="Buscar por nome ou email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border-purple-200/30"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
-                  <SelectTrigger className="w-[130px] border-purple-200/30">
-                    <SelectValue placeholder="Função" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas Funções</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="user">Usuário</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={planFilter} onValueChange={(v: any) => setPlanFilter(v)}>
-                  <SelectTrigger className="w-[130px] border-purple-200/30">
-                    <SelectValue placeholder="Plano" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos Planos</SelectItem>
-                    <SelectItem value="free">Grátis</SelectItem>
-                    <SelectItem value="pro">Pro</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
-                  <SelectTrigger className="w-[140px] border-purple-200/30">
-                    <SelectValue placeholder="Status Fin." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos Status</SelectItem>
-                    <SelectItem value="active">Pagante</SelectItem>
-                    <SelectItem value="trial">Trial</SelectItem>
-                    <SelectItem value="inactive">Outros</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-center">
-                  <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                  <p className="text-muted-foreground">Carregando usuários...</p>
                 </div>
               </div>
-            ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-8">
-                <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-2" />
-                <p className="text-muted-foreground">Nenhum usuário encontrado</p>
+              <Button
+                onClick={async () => {
+                  setSavingSupport(true)
+                  try {
+                    const supabase = createClient()
+                    const profile = await getUserProfile()
+                    if (!profile) return
+
+                    const { error } = await supabase
+                      .from("profiles")
+                      .update({
+                        community_link: communityLink || null,
+                        support_whatsapp_link: supportWhatsAppLink || null,
+                      })
+                      .eq("id", profile.id)
+
+                    if (error) throw error
+                    alert("Links de suporte salvos com sucesso!")
+                  } catch (err: any) {
+                    alert("Erro ao salvar: " + err.message)
+                  } finally {
+                    setSavingSupport(false)
+                  }
+                }}
+                disabled={savingSupport}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {savingSupport ? "Salvando..." : "Salvar Links"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Users Management */}
+          <Card className="border-purple-200/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-600" />
+                Gerenciar Usuários
+              </CardTitle>
+              <CardDescription>Visualize e altere os planos dos usuários</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Filters */}
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Buscar por nome ou email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border-purple-200/30"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Select value={roleFilter} onValueChange={(v: any) => setRoleFilter(v)}>
+                    <SelectTrigger className="w-[130px] border-purple-200/30">
+                      <SelectValue placeholder="Função" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas Funções</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="user">Usuário</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={planFilter} onValueChange={(v: any) => setPlanFilter(v)}>
+                    <SelectTrigger className="w-[130px] border-purple-200/30">
+                      <SelectValue placeholder="Plano" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Planos</SelectItem>
+                      <SelectItem value="free">Grátis</SelectItem>
+                      <SelectItem value="pro">Pro</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
+                    <SelectTrigger className="w-[140px] border-purple-200/30">
+                      <SelectValue placeholder="Status Fin." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Status</SelectItem>
+                      <SelectItem value="active">Pagante</SelectItem>
+                      <SelectItem value="trial">Trial</SelectItem>
+                      <SelectItem value="inactive">Outros</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-purple-200/20">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Usuário</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Contato</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Status</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Plano</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Data</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((user) => (
-                      <tr
-                        key={user.id}
-                        className="border-b border-purple-100/20 hover:bg-purple-50/5 transition-colors"
-                      >
-                        <td className="py-3 px-4">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-foreground">{user.full_name}</p>
-                              {user.role === 'admin' && (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300">
-                                  ADMIN
+
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    <p className="text-muted-foreground">Carregando usuários...</p>
+                  </div>
+                </div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-muted-foreground/50 mx-auto mb-2" />
+                  <p className="text-muted-foreground">Nenhum usuário encontrado</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-purple-200/20">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Usuário</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Contato</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Status</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Plano</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Data</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-foreground">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((user) => (
+                        <tr
+                          key={user.id}
+                          className="border-b border-purple-100/20 hover:bg-purple-50/5 transition-colors"
+                        >
+                          <td className="py-3 px-4">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-foreground">{user.full_name}</p>
+                                {user.role === 'admin' && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300">
+                                    ADMIN
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground">{user.email}</p>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              {user.whatsapp || user.phone ? (
+                                <>
+                                  <Phone className="w-3 h-3" />
+                                  {user.whatsapp || user.phone}
+                                </>
+                              ) : (
+                                <span className="text-xs italic">Sem número</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === "active"
+                                ? "bg-green-100/50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
+                                : "bg-red-100/50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
+                                }`}
+                            >
+                              {user.status === "active" ? "Ativo" : "Inativo"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex flex-col gap-1">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${user.plan === "premium"
+                                  ? "bg-purple-100/50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400"
+                                  : user.plan === "pro"
+                                    ? "bg-blue-100/50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
+                                    : "bg-gray-100/50 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400"
+                                  }`}
+                              >
+                                {user.plan === "free" ? "Grátis" : user.plan === "pro" ? "Pro" : "Premium"}
+                              </span>
+                              {user.plan !== "free" && (
+                                <span className={`text-[10px] uppercase font-bold tracking-wider ${user.subscription_status === 'active'
+                                  ? "text-green-600 dark:text-green-400"
+                                  : user.subscription_status === 'trial'
+                                    ? "text-orange-500 dark:text-orange-400"
+                                    : "text-muted-foreground"
+                                  }`}>
+                                  {user.subscription_status === 'active' ? 'Pago' : user.subscription_status === 'trial' ? 'Trial' : user.subscription_status}
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-muted-foreground">{user.email}</p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            {user.whatsapp || user.phone ? (
-                              <>
-                                <Phone className="w-3 h-3" />
-                                {user.whatsapp || user.phone}
-                              </>
-                            ) : (
-                              <span className="text-xs italic">Sem número</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === "active"
-                              ? "bg-green-100/50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-                              : "bg-red-100/50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
-                              }`}
-                          >
-                            {user.status === "active" ? "Ativo" : "Inativo"}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex flex-col gap-1">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${user.plan === "premium"
-                                ? "bg-purple-100/50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400"
-                                : user.plan === "pro"
-                                  ? "bg-blue-100/50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
-                                  : "bg-gray-100/50 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400"
-                                }`}
-                            >
-                              {user.plan === "free" ? "Grátis" : user.plan === "pro" ? "Pro" : "Premium"}
-                            </span>
-                            {user.plan !== "free" && (
-                              <span className={`text-[10px] uppercase font-bold tracking-wider ${user.subscription_status === 'active'
-                                ? "text-green-600 dark:text-green-400"
-                                : user.subscription_status === 'trial'
-                                  ? "text-orange-500 dark:text-orange-400"
-                                  : "text-muted-foreground"
-                                }`}>
-                                {user.subscription_status === 'active' ? 'Pago' : user.subscription_status === 'trial' ? 'Trial' : user.subscription_status}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">
-                          {new Date(user.created_at).toLocaleDateString("pt-BR")}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-2">
-                            {selectedUser === user.id ? (
-                              <>
-                                <Select value={newPlan} onValueChange={setNewPlan}>
-                                  <SelectTrigger className="w-32 h-8 border-purple-200/30">
-                                    <SelectValue placeholder="Plano" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="free">Grátis</SelectItem>
-                                    <SelectItem value="pro">Pro</SelectItem>
-                                    <SelectItem value="premium">Premium</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <Button
-                                  size="sm"
-                                  onClick={handlePlanChange}
-                                  className="bg-purple-600 hover:bg-purple-700"
-                                >
-                                  OK
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => setSelectedUser(user.id)}
-                                  className="h-8 px-2"
-                                >
-                                  Editar
-                                </Button>
-                                {user.subscription_status === 'trial' && (
+                          </td>
+                          <td className="py-3 px-4 text-sm text-muted-foreground">
+                            {new Date(user.created_at).toLocaleDateString("pt-BR")}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex gap-2">
+                              {selectedUser === user.id ? (
+                                <>
+                                  <Select value={newPlan} onValueChange={setNewPlan}>
+                                    <SelectTrigger className="w-32 h-8 border-purple-200/30">
+                                      <SelectValue placeholder="Plano" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="free">Grátis</SelectItem>
+                                      <SelectItem value="pro">Pro</SelectItem>
+                                      <SelectItem value="premium">Premium</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                   <Button
                                     size="sm"
-                                    variant="default"
-                                    onClick={async () => {
-                                      try {
-                                        const supabase = createClient()
-                                        const { error } = await supabase
-                                          .from("profiles")
-                                          .update({
-                                            subscription_status: 'active',
-                                            plan_end_date: null // Remove trial end date
-                                          })
-                                          .eq("id", user.id)
-
-                                        if (error) throw error
-                                        alert("Usuário convertido para pagante com sucesso!")
-                                        await loadUsers()
-                                      } catch (err: any) {
-                                        alert("Erro ao converter: " + err.message)
-                                      }
-                                    }}
-                                    className="h-8 px-2 bg-green-600 hover:bg-green-700"
+                                    onClick={handlePlanChange}
+                                    className="bg-purple-600 hover:bg-purple-700"
                                   >
-                                    → Pago
+                                    OK
                                   </Button>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                                </>
+                              ) : (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setSelectedUser(user.id)}
+                                    className="h-8 px-2"
+                                  >
+                                    Editar
+                                  </Button>
+                                  {user.subscription_status === 'trial' && (
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      onClick={async () => {
+                                        try {
+                                          const supabase = createClient()
+                                          const { error } = await supabase
+                                            .from("profiles")
+                                            .update({
+                                              subscription_status: 'active',
+                                              plan_end_date: null // Remove trial end date
+                                            })
+                                            .eq("id", user.id)
+
+                                          if (error) throw error
+                                          alert("Usuário convertido para pagante com sucesso!")
+                                          await loadUsers()
+                                        } catch (err: any) {
+                                          alert("Erro ao converter: " + err.message)
+                                        }
+                                      }}
+                                      className="h-8 px-2 bg-green-600 hover:bg-green-700"
+                                    >
+                                      → Pago
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
       </main>
     </div>
   )

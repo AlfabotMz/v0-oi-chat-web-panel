@@ -1,14 +1,14 @@
--- Reset all users to 'business' plan with 7-day trial based on CREATION DATE
+-- Reset all users to 'pro' plan with 7-day trial based on CREATION DATE
 -- This script should be run manually in Supabase SQL Editor
 
--- 1. Update profiles to set plan to 'premium' (Business)
+-- 1. Update profiles to set plan to 'pro' (Business)
 -- The trial start date is the user's creation date (created_at).
 -- The trial end date is creation date + 7 days.
 -- If the user created the account more than 7 days ago, the trial will be expired immediately.
 
 UPDATE public.profiles
 SET 
-  plan = 'premium',
+  plan = 'pro',
   subscription_status = 'trial',
   plan_start_date = created_at,
   plan_end_date = created_at + INTERVAL '7 days',
@@ -38,7 +38,7 @@ BEGIN
   -- Ler valores do metadata
   user_role := COALESCE(new.raw_user_meta_data->>'role', 'user');
   user_status := COALESCE(new.raw_user_meta_data->>'status', 'active'); -- Active by default for trial
-  user_plan := 'premium'; -- Force premium for trial
+  user_plan := 'pro'; -- Force pro for trial
   user_full_name := COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
   
   -- Set trial end date to 7 days from creation (which is NOW() for new users)
