@@ -16,9 +16,57 @@ export default function LoginPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [phone, setPhone] = useState("")
+  const [phone, setPhone] = useState("+258 ")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  // Função para formatar o número de telefone
+  const formatPhoneNumber = (value: string) => {
+    // Remove tudo exceto números
+    const numbers = value.replace(/\D/g, "")
+
+    // Se começar com 258, mantém, senão adiciona 258
+    let formatted = numbers.startsWith("258") ? numbers : "258" + numbers
+
+    // Limita a 11 dígitos (258 + 8 dígitos)
+    formatted = formatted.slice(0, 11)
+
+    // Formata como +258 XX XXX XXXX
+    if (formatted.length > 3) {
+      const countryCode = formatted.slice(0, 3)
+      const firstPart = formatted.slice(3, 5)
+      const secondPart = formatted.slice(5, 8)
+      const thirdPart = formatted.slice(8, 11)
+
+      let result = `+${countryCode}`
+      if (firstPart) result += ` ${firstPart}`
+      if (secondPart) result += ` ${secondPart}`
+      if (thirdPart) result += ` ${thirdPart}`
+
+      return result
+    }
+
+    return `+${formatted}`
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value
+
+    // Se apagar tudo, volta para +258
+    if (input.length === 0 || input === "+") {
+      setPhone("+258 ")
+      return
+    }
+
+    // Não permite apagar o +258
+    if (!input.startsWith("+258")) {
+      setPhone("+258 ")
+      return
+    }
+
+    const formatted = formatPhoneNumber(input)
+    setPhone(formatted)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,9 +144,9 @@ export default function LoginPage() {
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="84 123 4567"
+                    placeholder="+258 84 123 4567"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={handlePhoneChange}
                     required
                     className="border-purple-200/30"
                   />
