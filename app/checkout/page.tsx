@@ -212,6 +212,54 @@ export default function CheckoutPage() {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Botão de Pagamento Mobile - Visível apenas em telas pequenas */}
+                        <Card className="border-zinc-800 bg-zinc-900/50 backdrop-blur-sm shadow-xl lg:hidden">
+                            <CardContent className="pt-6 space-y-4">
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-zinc-400">Plano Business</span>
+                                        <span className="font-medium text-white">960 MT</span>
+                                    </div>
+                                    {!trialUsed && (
+                                        <div className="flex justify-between text-green-400">
+                                            <span>Bônus (1 Mês Extra)</span>
+                                            <span>Grátis</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between pt-2 border-t border-zinc-800 text-base font-bold text-white">
+                                        <span>Total</span>
+                                        <span>960 MT</span>
+                                    </div>
+                                </div>
+
+                                {error && (
+                                    <div className="w-full p-3 bg-red-900/10 text-red-400 text-sm rounded-md border border-red-900/20">
+                                        {error}
+                                    </div>
+                                )}
+
+                                <Button
+                                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white py-6 text-lg font-semibold shadow-lg shadow-purple-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                                    onClick={handlePayment}
+                                    disabled={processing}
+                                >
+                                    {processing ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                            Processando...
+                                        </>
+                                    ) : (
+                                        "Pagar Agora"
+                                    )}
+                                </Button>
+
+                                <div className="flex items-center justify-center gap-2 text-xs text-zinc-500">
+                                    <ShieldCheck className="h-4 w-4" />
+                                    <span>Pagamento 100% Seguro</span>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     {/* Coluna da Direita - Resumo do Pedido */}
