@@ -58,10 +58,12 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
     setMessage(null)
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from("agents")
-        .update({
+      const response = await fetch(`/api/agents/${agent.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           name,
           prompt,
           status,
@@ -72,10 +74,15 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           contact_delivery: contactDelivery || null,
           custom_message: customMessage,
           message_delay: messageDelay,
-        })
-        .eq("id", agent.id)
+        }),
+      })
 
-      if (error) throw error
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Falha ao atualizar agente")
+      }
+
       setMessage({ type: "success", text: "Agente atualizado com sucesso" })
       router.refresh()
     } catch (err: unknown) {
@@ -83,6 +90,10 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
         type: "error",
         text: err instanceof Error ? err.message : "Falha ao atualizar agente",
       })
+      // Reverter status visualmente se falhou (opcional, mas bom para UX)
+      if (status !== agent.status) {
+        setStatus(agent.status)
+      }
     } finally {
       setIsLoading(false)
     }
