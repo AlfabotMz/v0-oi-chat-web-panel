@@ -7,20 +7,10 @@ export async function updateSession(request: NextRequest) {
       request,
     })
 
-    // [v0] Added console logs to debug which environment variables are being read
-    console.log("[v0] Checking Supabase environment variables...")
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC__SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC__SUPABASE_ANON_KEY
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseKey) {
-      // [v0] Improved error message to include which variables were checked
-      console.error(
-        `Middleware Error: Missing Supabase environment variables.
-        NEXT_PUBLIC_SUPABASE_URL: ${!!process.env.NEXT_PUBLIC_SUPABASE_URL}
-        NEXT_PUBLIC__SUPABASE_URL: ${!!process.env.NEXT_PUBLIC__SUPABASE_URL}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${!!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}
-        NEXT_PUBLIC__SUPABASE_ANON_KEY: ${!!process.env.NEXT_PUBLIC__SUPABASE_ANON_KEY}`,
-      )
       return supabaseResponse
     }
 
