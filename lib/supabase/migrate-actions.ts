@@ -51,30 +51,6 @@ export async function runMigrations() {
 
       const statements = sql002
         .split(";")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0)
-
-      for (const statement of statements) {
-        try {
-          await supabase.rpc("exec_sql", { sql: statement + ";" }).catch(() => {
-            // Alguns statements podem não estar disponíveis via RPC
-          })
-        } catch (e) {
-          console.log("[v0] Statement processado:", e)
-        }
-      }
-    }
-
-    console.log("[v0] ✓ Migrações concluídas com sucesso!")
-    return {
-      success: true,
-      message: "Banco de dados migrado com sucesso! Você pode começar a usar a plataforma.",
-    }
-  } catch (error) {
-    console.error("[v0] Erro ao executar migrações:", error)
-    return {
-      error: "Erro ao executar migrações. Consulte os logs do servidor.",
-      success: false,
     }
   }
 }

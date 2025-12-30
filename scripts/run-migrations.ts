@@ -59,7 +59,7 @@ async function runMigrations() {
     console.log("[v0] ✓ All migrations completed successfully!")
     process.exit(0)
   } catch (error) {
-    console.error("[v0] Migration failed:", error)
+    console.error("Migration failed:", error)
     process.exit(1)
   }
 }

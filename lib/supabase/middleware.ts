@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
     if (!supabaseUrl || !supabaseKey) {
       // [v0] Improved error message to include which variables were checked
       console.error(
-        `[v0] Middleware Error: Missing Supabase environment variables.
+        `Middleware Error: Missing Supabase environment variables.
         NEXT_PUBLIC_SUPABASE_URL: ${!!process.env.NEXT_PUBLIC_SUPABASE_URL}
         NEXT_PUBLIC__SUPABASE_URL: ${!!process.env.NEXT_PUBLIC__SUPABASE_URL}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${!!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}
