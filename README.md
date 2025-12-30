@@ -40,14 +40,14 @@ This section documents the backend endpoints consumed by the frontend.
 **Description:** Submits the business plan interest form. Forwards data to an n8n webhook.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "name": "string",
   "businessName": "string",
   "employees": "string",
   "budget": "string"
 }
-```
+\`\`\`
 
 **Response:**
 - Success: `{ "success": true }`
@@ -62,22 +62,22 @@ This section documents the backend endpoints consumed by the frontend.
 **Description:** Processes payments via PayMoz, updates Supabase records, and sends a confirmation email.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "metodo": "mpesa" | "emola",
   "numero_celular": "string"
 }
-```
+\`\`\`
 
 **Response:**
 - Success:
-```json
+\`\`\`json
 {
   "success": true,
   "message": "string",
   "plan_end_date": "ISO8601 Date String"
 }
-```
+\`\`\`
 - Error: `{ "success": false, "error": "string" }` (Status 400/500)
 
 ---
@@ -89,7 +89,7 @@ This section documents the backend endpoints consumed by the frontend.
 **Description:** Updates the user's profile information in Supabase.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "businessName": "string",
   "whatsapp": "string",
@@ -97,7 +97,7 @@ This section documents the backend endpoints consumed by the frontend.
   "goal": "string",
   "source": "string"
 }
-```
+\`\`\`
 
 **Response:**
 - Success: `{ "success": true }`
@@ -112,12 +112,12 @@ This section documents the backend endpoints consumed by the frontend.
 **Description:** Forwards onboarding survey data to an n8n webhook, appending user ID and email.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   // Any data from the onboarding survey
   ...
 }
-```
+\`\`\`
 
 **Response:**
 - Success: `{ "success": true }`
@@ -133,24 +133,24 @@ This section documents the backend endpoints consumed by the frontend.
 **Description:** Creates a new agent. Attempts to create via n8n webhook first; falls back to local Supabase creation if n8n fails.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "nome": "string",
   "prompt": "string",
   "phone_number": "string" | null
 }
-```
+\`\`\`
 
 **Response:**
 - Success:
-```json
+\`\`\`json
 {
   "success": true,
   "message": "string",
   "agent": { ... },
   "warning": "string" // Optional
 }
-```
+\`\`\`
 - Error: `{ "success": false, "error": "string" }` (Status 400/403/500)
 
 #### Connect WhatsApp
@@ -159,22 +159,22 @@ This section documents the backend endpoints consumed by the frontend.
 **Description:** Requests a QR code from n8n to connect an agent to WhatsApp.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "agent_id": "string"
 }
-```
+\`\`\`
 
 **Response:**
 - Success:
-```json
+\`\`\`json
 {
   "success": true,
   "qr": "string", // Base64 image or data string
   "status": "string",
   "message": "string"
 }
-```
+\`\`\`
 - Error: `{ "success": false, "error": "string" }` (Status 400/401/404/500)
 
 #### Check Agent Status
@@ -184,14 +184,14 @@ This section documents the backend endpoints consumed by the frontend.
 
 **Response:**
 - Success:
-```json
+\`\`\`json
 {
   "success": true,
   "status": "connected" | "disconnected" | "pending",
   "connected": boolean,
   "message": "string"
 }
-```
+\`\`\`
 - Error: `{ "success": false, "status": "disconnected", "connected": false, "error": "string" }` (Status 400/401/404/500)
 
 #### Delete Agent
