@@ -54,6 +54,14 @@ export async function signUp(email: string, password: string, phone: string, isA
   })
 
   if (data?.user && !error) {
+    // Se não houver sessão (email verification required), não podemos verificar/criar profile agora
+    // pois o usuário não tem permissão RLS ainda.
+    // Nesse caso, confiamos no trigger do banco de dados.
+    if (!data.session) {
+      console.log("Signup realizado com sucesso, aguardando verificação de email. Profile será criado via trigger.")
+      return { data, error }
+    }
+
     // Aguardar um pouco para garantir que o trigger executou
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
