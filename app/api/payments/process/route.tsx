@@ -166,30 +166,35 @@ export async function POST(request: NextRequest) {
               duration={durationText}
             />
           })
-
-          return NextResponse.json({
-            success: true,
-            message: (isFirstPayment && !trialUsed)
-              ? "Pagamento confirmado! Você ganhou 2 meses de acesso."
-              : "Pagamento confirmado! Assinatura renovada por 1 mês.",
-            plan_end_date: newEndDate.toISOString()
-          })
-
-        } else {
-          // Pagamento falhou na PayMoz
-          await supabaseAdmin
-            .from("payments")
-            .update({ status: "failed" })
-            .eq("id", payment.id)
-
-          return NextResponse.json({
-            success: false,
-            error: data.message || "Falha no processamento do pagamento"
-          }, { status: 400 })
+          console.log("Email de fatura enviado")
+        } catch (emailError) {
+          console.error("Erro ao enviar email de fatura:", emailError)
         }
-
-      } catch (error: any) {
-        console.error("Erro no processamento de pagamento:", error)
-        return NextResponse.json({ success: false, error: error.message || "Erro interno" }, { status: 500 })
       }
+
+      return NextResponse.json({
+        success: true,
+        message: (isFirstPayment && !trialUsed)
+          ? "Pagamento confirmado! Você ganhou 2 meses de acesso."
+          : "Pagamento confirmado! Assinatura renovada por 1 mês.",
+        plan_end_date: newEndDate.toISOString()
+      })
+
+    } else {
+      // Pagamento falhou na PayMoz
+      await supabaseAdmin
+        .from("payments")
+        .update({ status: "failed" })
+        .eq("id", payment.id)
+
+      return NextResponse.json({
+        success: false,
+        error: data.message || "Falha no processamento do pagamento"
+      }, { status: 400 })
     }
+
+  } catch (error: any) {
+    console.error("Erro no processamento de pagamento:", error)
+    return NextResponse.json({ success: false, error: error.message || "Erro interno" }, { status: 500 })
+  }
+}
