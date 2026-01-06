@@ -158,15 +158,22 @@ export async function POST(request: NextRequest) {
             to: profile.email,
             subject: "Fatura OiChat - Pagamento Confirmado",
             react: <PaymentSuccessEmail
-      }
+              userName={profile.full_name || "Cliente"}
+              transactionId={data.transaction_id || payment.id}
+              date={new Date().toLocaleDateString('pt-BR')}
+              amount={`${AMOUNT} MT`}
+              planName="Plano Business"
+              duration={durationText}
+            />
+          })
 
-      return NextResponse.json({
-              success: true,
-              message: (isFirstPayment && !trialUsed)
-                ? "Pagamento confirmado! Você ganhou 2 meses de acesso."
-                : "Pagamento confirmado! Assinatura renovada por 1 mês.",
-              plan_end_date: newEndDate.toISOString()
-            })
+          return NextResponse.json({
+            success: true,
+            message: (isFirstPayment && !trialUsed)
+              ? "Pagamento confirmado! Você ganhou 2 meses de acesso."
+              : "Pagamento confirmado! Assinatura renovada por 1 mês.",
+            plan_end_date: newEndDate.toISOString()
+          })
 
         } else {
           // Pagamento falhou na PayMoz
