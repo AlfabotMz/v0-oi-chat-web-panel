@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
         .from("profiles")
         .update({
           subscription_status: "active",
-          plan: "business", // Define explicitamente o plano Business
+          plan: "pro", // Define explicitamente o plano Pro (antigo Business)
           plan_end_date: newEndDate.toISOString(),
           last_payment_id: payment.id,
           trial_used: true // Marca como true pois agora é assinante
@@ -157,45 +157,32 @@ export async function POST(request: NextRequest) {
             from: FROM_EMAIL,
             to: profile.email,
             subject: "Fatura OiChat - Pagamento Confirmado",
-            react: PaymentSuccessEmail({
-              userName: profile.full_name || "Cliente",
-              transactionId: data.transaction_id || payment.id,
-              date: new Date().toLocaleDateString('pt-BR'),
-              amount: `${AMOUNT} MT`,
-              planName: "Plano Business",
-              duration: durationText
-            })
-          })
-          console.log("Email de fatura enviado")
-        } catch (emailError) {
-          console.error("Erro ao enviar email de fatura:", emailError)
-          // Não falhar a requisição se o email falhar
-        }
+            react: <PaymentSuccessEmail
       }
 
       return NextResponse.json({
-        success: true,
-        message: (isFirstPayment && !trialUsed)
-          ? "Pagamento confirmado! Você ganhou 2 meses de acesso."
-          : "Pagamento confirmado! Assinatura renovada por 1 mês.",
-        plan_end_date: newEndDate.toISOString()
-      })
+              success: true,
+              message: (isFirstPayment && !trialUsed)
+                ? "Pagamento confirmado! Você ganhou 2 meses de acesso."
+                : "Pagamento confirmado! Assinatura renovada por 1 mês.",
+              plan_end_date: newEndDate.toISOString()
+            })
 
-    } else {
-      // Pagamento falhou na PayMoz
-      await supabaseAdmin
-        .from("payments")
-        .update({ status: "failed" })
-        .eq("id", payment.id)
+        } else {
+          // Pagamento falhou na PayMoz
+          await supabaseAdmin
+            .from("payments")
+            .update({ status: "failed" })
+            .eq("id", payment.id)
 
-      return NextResponse.json({
-        success: false,
-        error: data.message || "Falha no processamento do pagamento"
-      }, { status: 400 })
+          return NextResponse.json({
+            success: false,
+            error: data.message || "Falha no processamento do pagamento"
+          }, { status: 400 })
+        }
+
+      } catch (error: any) {
+        console.error("Erro no processamento de pagamento:", error)
+        return NextResponse.json({ success: false, error: error.message || "Erro interno" }, { status: 500 })
+      }
     }
-
-  } catch (error: any) {
-    console.error("Erro no processamento de pagamento:", error)
-    return NextResponse.json({ success: false, error: error.message || "Erro interno" }, { status: 500 })
-  }
-}

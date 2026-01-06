@@ -41,6 +41,14 @@ export default function AdminPage() {
   const [supportWhatsAppLink, setSupportWhatsAppLink] = useState("")
   const [savingSupport, setSavingSupport] = useState(false)
 
+  // Subscription Management State
+  const [isExtendTrialOpen, setIsExtendTrialOpen] = useState(false)
+  const [isManageSubOpen, setIsManageSubOpen] = useState(false)
+  const [extendDays, setExtendDays] = useState(7)
+  const [manageAction, setManageAction] = useState<"add_days" | "set_date" | "cancel">("add_days")
+  const [manageValue, setManageValue] = useState("")
+  const [processingAction, setProcessingAction] = useState(false)
+
   // Filters
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user">("all")
@@ -59,7 +67,7 @@ export default function AdminPage() {
           return
         }
 
-        if (profile.role !== "admin") {
+        if (profile.role !== "admin" && profile.role !== "moder") {
           router.push("/dashboard")
           return
         }
@@ -112,6 +120,87 @@ export default function AdminPage() {
     setNewPlan("")
     setSelectedUser(null)
     await loadUsers()
+  }
+
+  const handleExtendTrial = async () => {
+    if (!selectedUser) return
+    setProcessingAction(true)
+    try {
+      const supabase = createClient()
+      const user = users.find(u => u.id === selectedUser)
+      if (!user) return
+
+      const currentEndDate = user.plan_end_date ? new Date(user.plan_end_date) : new Date()
+      const newEndDate = new Date(currentEndDate)
+      newEndDate.setDate(newEndDate.getDate() + extendDays)
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          plan_end_date: newEndDate.toISOString(),
+          subscription_status: 'trial'
+        })
+        .eq("id", selectedUser)
+
+      if (error) throw error
+      alert(`Trial estendido por ${extendDays} dias!`)
+      setIsExtendTrialOpen(false)
+      setSelectedUser(null)
+      await loadUsers()
+    } catch (err: any) {
+      alert("Erro ao estender trial: " + err.message)
+    } finally {
+      setProcessingAction(false)
+    }
+  }
+
+  const handleManageSubscription = async () => {
+    if (!selectedUser) return
+    setProcessingAction(true)
+    try {
+      const supabase = createClient()
+      const user = users.find(u => u.id === selectedUser)
+      if (!user) return
+
+      let updates: any = {}
+
+      if (manageAction === "cancel") {
+        updates = {
+          subscription_status: 'cancelled',
+          // Optionally clear plan_end_date or keep it until it expires
+        }
+      } else if (manageAction === "add_days") {
+        const days = parseInt(manageValue)
+        if (isNaN(days)) throw new Error("Dias inválidos")
+
+        const currentEndDate = user.plan_end_date ? new Date(user.plan_end_date) : new Date()
+        // If expired, start from now
+        const baseDate = currentEndDate < new Date() ? new Date() : currentEndDate
+
+        const newEndDate = new Date(baseDate)
+        newEndDate.setDate(newEndDate.getDate() + days)
+        updates = { plan_end_date: newEndDate.toISOString(), subscription_status: 'active' }
+      } else if (manageAction === "set_date") {
+        if (!manageValue) throw new Error("Data inválida")
+        updates = { plan_end_date: new Date(manageValue).toISOString(), subscription_status: 'active' }
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", selectedUser)
+
+      if (error) throw error
+      alert("Assinatura atualizada com sucesso!")
+      setIsManageSubOpen(false)
+      setSelectedUser(null)
+      setManageValue("")
+      await loadUsers()
+    } catch (err: any) {
+      alert("Erro ao gerenciar assinatura: " + err.message)
+    } finally {
+      setProcessingAction(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -379,6 +468,105 @@ export default function AdminPage() {
             >
               {savingSupport ? "Salvando..." : "Salvar Links"}
             </Button>
+            {/* Dialogs for Subscription Management */}
+            {isExtendTrialOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                <Card className="w-full max-w-md border-purple-200/20 bg-card">
+                  <CardHeader>
+                    <CardTitle>Estender Período de Teste</CardTitle>
+                    <CardDescription>Adicione mais dias ao trial do usuário.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Dias Adicionais</Label>
+                      <Select value={extendDays.toString()} onValueChange={(v) => setExtendDays(parseInt(v))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione os dias" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3">3 Dias</SelectItem>
+                          <SelectItem value="7">7 Dias</SelectItem>
+                          <SelectItem value="15">15 Dias</SelectItem>
+                          <SelectItem value="30">30 Dias</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button variant="outline" onClick={() => { setIsExtendTrialOpen(false); setSelectedUser(null) }}>Cancelar</Button>
+                      <Button onClick={handleExtendTrial} disabled={processingAction} className="bg-purple-600 hover:bg-purple-700">
+                        {processingAction ? "Processando..." : "Confirmar"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {isManageSubOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                <Card className="w-full max-w-md border-purple-200/20 bg-card">
+                  <CardHeader>
+                    <CardTitle>Gerenciar Assinatura</CardTitle>
+                    <CardDescription>Modifique a assinatura do usuário.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Ação</Label>
+                      <Select value={manageAction} onValueChange={(v: any) => setManageAction(v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a ação" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="add_days">Adicionar Dias</SelectItem>
+                          <SelectItem value="set_date">Definir Data Final</SelectItem>
+                          <SelectItem value="cancel">Cancelar Assinatura</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {manageAction === "add_days" && (
+                      <div className="space-y-2">
+                        <Label>Quantidade de Dias</Label>
+                        <Input
+                          type="number"
+                          value={manageValue}
+                          onChange={(e) => setManageValue(e.target.value)}
+                          placeholder="Ex: 30"
+                        />
+                      </div>
+                    )}
+
+                    {manageAction === "set_date" && (
+                      <div className="space-y-2">
+                        <Label>Nova Data Final</Label>
+                        <Input
+                          type="date"
+                          value={manageValue}
+                          onChange={(e) => setManageValue(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    {manageAction === "cancel" && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-500 text-sm">
+                        A assinatura será cancelada imediatamente. O usuário perderá acesso aos recursos premium.
+                      </div>
+                    )}
+
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button variant="outline" onClick={() => { setIsManageSubOpen(false); setSelectedUser(null) }}>Cancelar</Button>
+                      <Button
+                        onClick={handleManageSubscription}
+                        disabled={processingAction}
+                        className={manageAction === 'cancel' ? "bg-red-600 hover:bg-red-700" : "bg-purple-600 hover:bg-purple-700"}
+                      >
+                        {processingAction ? "Processando..." : "Confirmar"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -535,64 +723,79 @@ export default function AdminPage() {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex gap-2">
-                            {selectedUser === user.id ? (
-                              <>
-                                <Select value={newPlan} onValueChange={setNewPlan}>
-                                  <SelectTrigger className="w-32 h-8 border-purple-200/30">
-                                    <SelectValue placeholder="Plano" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="free">Grátis</SelectItem>
-                                    <SelectItem value="pro">Pro</SelectItem>
-                                    <SelectItem value="premium">Premium</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <Button
-                                  size="sm"
-                                  onClick={handlePlanChange}
-                                  className="bg-purple-600 hover:bg-purple-700"
-                                >
-                                  OK
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => setSelectedUser(user.id)}
-                                  className="h-8 px-2"
-                                >
-                                  Editar
-                                </Button>
-                                {user.subscription_status === 'trial' && (
+                            {/* Actions for Admin Only */}
+                            {adminProfile?.role === 'admin' ? (
+                              selectedUser === user.id ? (
+                                <>
+                                  <Select value={newPlan} onValueChange={setNewPlan}>
+                                    <SelectTrigger className="w-32 h-8 border-purple-200/30">
+                                      <SelectValue placeholder="Plano" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="free">Grátis</SelectItem>
+                                      <SelectItem value="pro">Pro</SelectItem>
+                                      <SelectItem value="premium">Premium</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                   <Button
                                     size="sm"
-                                    variant="default"
-                                    onClick={async () => {
-                                      try {
-                                        const supabase = createClient()
-                                        const { error } = await supabase
-                                          .from("profiles")
-                                          .update({
-                                            subscription_status: 'active',
-                                            plan_end_date: null // Remove trial end date
-                                          })
-                                          .eq("id", user.id)
-
-                                        if (error) throw error
-                                        alert("Usuário convertido para pagante com sucesso!")
-                                        await loadUsers()
-                                      } catch (err: any) {
-                                        alert("Erro ao converter: " + err.message)
-                                      }
-                                    }}
-                                    className="h-8 px-2 bg-green-600 hover:bg-green-700"
+                                    onClick={handlePlanChange}
+                                    className="bg-purple-600 hover:bg-purple-700"
                                   >
-                                    → Pago
+                                    OK
                                   </Button>
-                                )}
-                              </>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setSelectedUser(null)}
+                                  >
+                                    X
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setSelectedUser(user.id)}
+                                    className="h-8 px-2"
+                                  >
+                                    Editar
+                                  </Button>
+
+                                  {/* Subscription Management Buttons */}
+                                  {user.subscription_status === 'trial' && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setSelectedUser(user.id)
+                                        setIsExtendTrialOpen(true)
+                                      }}
+                                      className="h-8 px-2 text-orange-500 border-orange-500/20 hover:bg-orange-500/10"
+                                    >
+                                      + Trial
+                                    </Button>
+                                  )}
+
+                                  {(user.subscription_status === 'active' || user.plan !== 'free') && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setSelectedUser(user.id)
+                                        setIsManageSubOpen(true)
+                                      }}
+                                      className="h-8 px-2 text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
+                                    >
+                                      Gerenciar
+                                    </Button>
+                                  )}
+                                </>
+                              )
+                            ) : (
+                              // Read-only view for Moder
+                              <span className="text-xs text-muted-foreground italic">Visualização</span>
                             )}
                           </div>
                         </td>
@@ -605,6 +808,6 @@ export default function AdminPage() {
           </CardContent>
         </Card>
       </main>
-    </div>
+    </div >
   )
 }
