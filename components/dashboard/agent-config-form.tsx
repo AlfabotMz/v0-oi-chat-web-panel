@@ -14,6 +14,7 @@ import { WhatsAppConnect } from "./whatsapp-connect"
 import { Badge } from "@/components/ui/badge"
 import { BackButton } from "@/components/ui/back-button"
 import { PromptEditor } from "./prompt-editor"
+import { toast } from "sonner"
 
 interface AgentConfigFormProps {
   agent: any
@@ -35,7 +36,6 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
   )
   const [messageDelay, setMessageDelay] = useState(agent.message_delay || 0)
   const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
   const isActive = status === "active"
 
@@ -49,13 +49,39 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
     }
   }, [agent])
 
-  const handleToggleStatus = (checked: boolean) => {
-    setStatus(checked ? "active" : "inactive")
+  const handleToggleStatus = async (checked: boolean) => {
+    const newStatus = checked ? "active" : "inactive"
+    setStatus(newStatus) // Optimistic update
+
+    try {
+      const response = await fetch(`/api/agents/${agent.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Falha ao atualizar status")
+      }
+
+      toast.success(`Agente ${checked ? "ativado" : "desativado"} com sucesso`)
+      router.refresh()
+    } catch (err: unknown) {
+      // Revert on error
+      setStatus(agent.status)
+      toast.error("Erro ao atualizar status do agente")
+      console.error(err)
+    }
   }
 
   const handleSave = async () => {
     setIsLoading(true)
-    setMessage(null)
 
     try {
       const response = await fetch(`/api/agents/${agent.id}`, {
@@ -83,17 +109,10 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
         throw new Error(data.error || "Falha ao atualizar agente")
       }
 
-      setMessage({ type: "success", text: "Agente atualizado com sucesso" })
+      toast.success("Agente atualizado com sucesso")
       router.refresh()
     } catch (err: unknown) {
-      setMessage({
-        type: "error",
-        text: err instanceof Error ? err.message : "Falha ao atualizar agente",
-      })
-      // Reverter status visualmente se falhou (opcional, mas bom para UX)
-      if (status !== agent.status) {
-        setStatus(agent.status)
-      }
+      toast.error(err instanceof Error ? err.message : "Falha ao atualizar agente")
     } finally {
       setIsLoading(false)
     }
@@ -190,16 +209,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           </div>
 
 
-          {message && (
-            <div
-              className={`p-3 rounded-lg text-sm ${message.type === "success"
-                ? "bg-green-500/10 text-green-700"
-                : "bg-red-500/10 text-red-700"
-                }`}
-            >
-              {message.text}
-            </div>
-          )}
+
 
           <Button onClick={handleSave} disabled={isLoading} className="w-full">
             {isLoading ? "Salvando..." : "Salvar Alterações"}
