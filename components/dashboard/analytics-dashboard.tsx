@@ -2,13 +2,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -55,72 +54,112 @@ export function AnalyticsDashboard({ agents, analytics }: AnalyticsDashboardProp
   })
 
   // since CSS variables containing oklch() values cannot be used inside hsl()
-  const primaryColor = "#6D28D9" // Purple primary
-  const chartColor1 = "#FF8A5B" // Orange chart color
+  const primaryColor = "#8b5cf6" // Violet 500
+  const chartColor1 = "#f97316" // Orange 500
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-border/50">
+        <Card className="glass border-0 overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-base">Messages Over Time</CardTitle>
+            <CardTitle className="text-base font-medium text-muted-foreground">Messages Over Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="messages" stroke={primaryColor} strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorMessages" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={primaryColor} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={primaryColor} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="messages"
+                    stroke={primaryColor}
+                    fillOpacity={1}
+                    fill="url(#colorMessages)"
+                    strokeWidth={3}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/50">
+        <Card className="glass border-0 overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-base">Conversations Over Time</CardTitle>
+            <CardTitle className="text-base font-medium text-muted-foreground">Conversations Over Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="conversations" fill={chartColor1} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  />
+                  <Bar dataKey="conversations" fill={chartColor1} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-border/50">
+      <Card className="glass border-0">
         <CardHeader>
           <CardTitle>Agent Performance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-border/50">
+              <thead className="border-b border-white/10">
                 <tr>
-                  <th className="text-left py-2 px-4 font-medium text-muted-foreground">Agent</th>
-                  <th className="text-right py-2 px-4 font-medium text-muted-foreground">Messages</th>
-                  <th className="text-right py-2 px-4 font-medium text-muted-foreground">Conversations</th>
-                  <th className="text-right py-2 px-4 font-medium text-muted-foreground">Avg Response Time</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Agent</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Messages</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Conversations</th>
+                  <th className="text-right py-3 px-4 font-medium text-muted-foreground">Avg Response Time</th>
                 </tr>
               </thead>
               <tbody>
                 {agentStats.map((stat) => (
-                  <tr key={stat.name} className="border-b border-border/50 hover:bg-secondary/50">
-                    <td className="py-2 px-4 text-foreground">{stat.name}</td>
-                    <td className="py-2 px-4 text-right text-foreground font-medium">{stat.messages}</td>
-                    <td className="py-2 px-4 text-right text-foreground font-medium">{stat.conversations}</td>
-                    <td className="py-2 px-4 text-right text-foreground font-medium">
-                      {stat.avgResponseTime.toFixed(0)}s
+                  <tr key={stat.name} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                    <td className="py-3 px-4 text-foreground font-medium">{stat.name}</td>
+                    <td className="py-3 px-4 text-right text-foreground">{stat.messages}</td>
+                    <td className="py-3 px-4 text-right text-foreground">{stat.conversations}</td>
+                    <td className="py-3 px-4 text-right text-foreground">
+                      {stat.avgResponseTime.toFixed(1)}s
                     </td>
                   </tr>
                 ))}
