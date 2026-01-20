@@ -84,14 +84,15 @@ export async function PATCH(
                     .select("id")
                     .eq("phone_number", phoneToCheck)
                     .eq("status", "active")
-                    .neq("id", agentId) // Não conflitar consigo mesmo
+                    .neq("id", agentId)
                     .single()
 
                 if (existingActive) {
-                    return NextResponse.json({
-                        success: false,
-                        error: "Este número de WhatsApp já está sendo usado por outro agente ativo.",
-                    }, { status: 400 })
+                    // Auto-deactivate the other agent
+                    await supabase
+                        .from("agents")
+                        .update({ status: "inactive" })
+                        .eq("id", existingActive.id)
                 }
             }
         }
@@ -121,6 +122,15 @@ export async function PATCH(
 
     } catch (error: any) {
         console.error("Erro ao atualizar agente:", error)
+
+        // Handle unique constraint violation
+        if (error.code === '23505' || error.message?.includes('unique_active_agent_phone')) {
+            return NextResponse.json({
+                success: false,
+                error: "Este número de WhatsApp já está ativo em outro agente (possivelmente em outra conta)."
+            }, { status: 409 }) // 409 Conflict
+        }
+
         return NextResponse.json({
             success: false,
             error: error.message || "Erro interno ao atualizar agente"
