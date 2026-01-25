@@ -5,7 +5,7 @@ import { Resend } from "resend"
 import { PaymentSuccessEmail } from "@/components/emails/PaymentSuccessEmail"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2025-01-27.acacia",
+    apiVersion: "2025-12-15.clover",
 })
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -117,24 +117,23 @@ export async function POST(request: NextRequest) {
                     subject: "Fatura OiChat - Pagamento Confirmado",
                     react: (
                         <PaymentSuccessEmail
-              userName= { profile.full_name || "Cliente" }
-              transactionId={ session.id }
-              date={ new Date().toLocaleDateString("pt-BR") }
-              amount={`${session.amount_total ? session.amount_total / 100 : 0} ${session.currency?.toUpperCase()}`
-                }
-              planName = "Plano Business"
-              duration = { durationText }
-                    />
-          ),
-        })
+                            userName={profile.full_name || "Cliente"}
+                            transactionId={session.id}
+                            date={new Date().toLocaleDateString("pt-BR")}
+                            amount={`${session.amount_total ? session.amount_total / 100 : 0} ${session.currency?.toUpperCase()}`}
+                            planName="Plano Business"
+                            duration={durationText}
+                        />
+                    ),
+                })
+            }
+
+            console.log(`Pagamento processado com sucesso para user ${userId}`)
+        } catch (error) {
+            console.error("Erro ao processar webhook:", error)
+            return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
         }
-
-      console.log(`Pagamento processado com sucesso para user ${userId}`)
-    } catch (error) {
-        console.error("Erro ao processar webhook:", error)
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
     }
-}
 
-return NextResponse.json({ received: true })
+    return NextResponse.json({ received: true })
 }
