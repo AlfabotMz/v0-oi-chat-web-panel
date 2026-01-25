@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Falha de Pagamento em Renovação
     if (event.type === "invoice.payment_failed") {
-        const invoice = event.data.object as Stripe.Invoice
+        const invoice = event.data.object as any
         const subscriptionId = invoice.subscription as string
 
         if (subscriptionId) {
@@ -172,6 +172,44 @@ export async function POST(request: NextRequest) {
                 .eq("stripe_subscription_id", subscriptionId)
 
             console.log(`Pagamento falhou para assinatura ${subscriptionId}. Status atualizado para inativo.`)
+        }
+    }
+
+    // 3. Pagamento de Renovação com Sucesso (invoice.paid)
+    if (event.type === "invoice.paid") {
+        const invoice = event.data.object as any
+        const subscriptionId = invoice.subscription as string
+
+        if (subscriptionId && invoice.billing_reason === 'subscription_cycle') {
+            const supabaseAdmin = createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+                auth: { autoRefreshToken: false, persistSession: false },
+            })
+
+            const { data: profile } = await supabaseAdmin
+                .from("profiles")
+                .select("id, plan_end_date")
+                .eq("stripe_subscription_id", subscriptionId)
+                .single()
+
+            if (profile) {
+                const now = new Date()
+                let currentEndDate = profile.plan_end_date ? new Date(profile.plan_end_date) : now
+                if (currentEndDate < now) currentEndDate = now
+
+                const newEndDate = new Date(currentEndDate)
+                newEndDate.setDate(newEndDate.getDate() + 30)
+
+                await supabaseAdmin
+                    .from("profiles")
+                    .update({
+                        subscription_status: "active",
+                        status: "active",
+                        plan_end_date: newEndDate.toISOString()
+                    })
+                    .eq("id", profile.id)
+
+                console.log(`Assinatura ${subscriptionId} renovada com sucesso.`)
+            }
         }
     }
 
