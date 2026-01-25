@@ -25,15 +25,7 @@ export async function POST(request: NextRequest) {
             payment_method_types: ["card"],
             line_items: [
                 {
-                    price_data: {
-                        currency: "mzn",
-                        product_data: {
-                            name: "Plano Business - OiChat",
-                            description: "Automação completa + IA (Mensal)",
-                            images: ["https://oichat.com/oichat-icon.jpg"], // Replace with actual image URL if available
-                        },
-                        unit_amount: 96000, // 960.00 MT in cents
-                    },
+                    price: process.env.STRIPE_PRICE_ID,
                     quantity: 1,
                 },
             ],
