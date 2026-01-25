@@ -148,9 +148,9 @@ function CheckoutContent() {
 
                         <Card className="glass border-0">
                             <CardHeader>
-                                <CardTitle className="text-white">Pagamento Seguro</CardTitle>
+                                <CardTitle className="text-white">Inicie seu Teste de 7 Dias</CardTitle>
                                 <CardDescription className="text-zinc-400">
-                                    Você será redirecionado para o Stripe para completar o pagamento com segurança.
+                                    Você não será cobrado hoje. O teste termina em 7 dias, após o qual a assinatura será ativada automaticamente.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
@@ -158,7 +158,7 @@ function CheckoutContent() {
                                     <CreditCard className="h-8 w-8 text-purple-500" />
                                     <div>
                                         <p className="font-medium text-white">Cartão de Crédito / Débito</p>
-                                        <p className="text-sm text-zinc-500">Processado via Stripe</p>
+                                        <p className="text-sm text-zinc-500">Checkout Seguro via Stripe</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -169,18 +169,12 @@ function CheckoutContent() {
                             <CardContent className="pt-6 space-y-4">
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between">
-                                        <span className="text-zinc-400">Plano Business</span>
-                                        <span className="font-medium text-white">960 MT</span>
+                                        <span className="text-zinc-400">Plano Pro (7 Dias Grátis)</span>
+                                        <span className="font-medium text-white">0 MT</span>
                                     </div>
-                                    {!trialUsed && (
-                                        <div className="flex justify-between text-green-400">
-                                            <span>Bônus (1 Mês Extra)</span>
-                                            <span>Grátis</span>
-                                        </div>
-                                    )}
                                     <div className="flex justify-between pt-2 border-t border-zinc-800 text-base font-bold text-white">
-                                        <span>Total</span>
-                                        <span>960 MT</span>
+                                        <span>Total Hoje</span>
+                                        <span>0 MT</span>
                                     </div>
                                 </div>
 
@@ -195,7 +189,7 @@ function CheckoutContent() {
                                             Redirecionando...
                                         </>
                                     ) : (
-                                        "Pagar com Stripe"
+                                        "Iniciar Teste Grátis"
                                     )}
                                 </Button>
                             </CardContent>
@@ -214,39 +208,33 @@ function CheckoutContent() {
                                         <Image src="/oichat-icon.jpg" alt="Plano" width={64} height={64} className="object-cover" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-white">Plano Business</h3>
+                                        <h3 className="font-semibold text-white">Plano Pro</h3>
                                         <p className="text-sm text-zinc-400">Automação completa + IA</p>
-                                        {!trialUsed && (
-                                            <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
-                                                Oferta Especial
-                                            </div>
-                                        )}
+                                        <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                            7 Dias Grátis
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between">
                                         <span className="text-zinc-400">Subtotal</span>
-                                        <span className="font-medium text-white">960 MT</span>
+                                        <span className="font-medium text-white">960 MT/mês</span>
                                     </div>
-                                    {!trialUsed && (
-                                        <div className="flex justify-between text-green-400">
-                                            <span>Bônus (1 Mês Extra)</span>
-                                            <span>Grátis</span>
-                                        </div>
-                                    )}
+                                    <div className="flex justify-between text-green-400">
+                                        <span>Teste Grátis (7 Dias)</span>
+                                        <span>-960 MT</span>
+                                    </div>
                                     <div className="flex justify-between pt-2 border-t border-zinc-800 text-base font-bold text-white">
-                                        <span>Total</span>
-                                        <span>960 MT</span>
+                                        <span>Total Hoje</span>
+                                        <span>0 MT</span>
                                     </div>
                                 </div>
 
                                 <div className="bg-purple-900/10 p-3 rounded-md text-xs text-purple-300 border border-purple-500/20">
-                                    <p className="font-semibold mb-1">Incluso:</p>
+                                    <p className="font-semibold mb-1">Incluso no Teste:</p>
                                     <ul className="list-disc list-inside space-y-1 text-purple-200/70">
-                                        <li>
-                                            {trialUsed ? "1 Mês de Acesso (30 dias)" : "2 Meses de Acesso (60 dias)"}
-                                        </li>
+                                        <li>Acesso Completo (7 dias)</li>
                                         <li>Suporte Prioritário</li>
                                         <li>Configuração Assistida</li>
                                     </ul>
@@ -264,12 +252,12 @@ function CheckoutContent() {
                                             Redirecionando...
                                         </>
                                     ) : (
-                                        "Pagar com Stripe"
+                                        "Iniciar Teste Grátis"
                                     )}
                                 </Button>
                                 <div className="flex items-center justify-center gap-2 text-xs text-zinc-500">
                                     <ShieldCheck className="h-4 w-4" />
-                                    <span>Pagamento 100% Seguro</span>
+                                    <span>Checkout Seguro via Stripe</span>
                                 </div>
                             </CardFooter>
                         </Card>

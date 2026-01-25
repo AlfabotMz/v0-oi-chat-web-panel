@@ -30,6 +30,9 @@ export async function POST(request: NextRequest) {
                 },
             ],
             mode: "subscription",
+            subscription_data: {
+                trial_period_days: 7,
+            },
             success_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?payment=success`,
             cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout?payment=cancelled`,
             metadata: {
