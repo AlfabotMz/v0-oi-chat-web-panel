@@ -78,6 +78,13 @@ export async function POST(request: NextRequest) {
             const daysToAdd = isFirstPayment ? 60 : 30
             const durationText = isFirstPayment ? "2 Meses (Oferta Especial)" : "1 Mês"
 
+            // Carregar perfil para email e data atual
+            const { data: profile } = await supabaseAdmin
+                .from("profiles")
+                .select("trial_used, full_name, email, plan_end_date")
+                .eq("id", userId)
+                .single()
+
             // Calcular nova data
             const now = new Date()
             let currentEndDate = profile?.plan_end_date ? new Date(profile.plan_end_date) : now
@@ -86,7 +93,7 @@ export async function POST(request: NextRequest) {
             const newEndDate = new Date(currentEndDate)
             newEndDate.setDate(newEndDate.getDate() + daysToAdd)
 
-            // 3. Atualizar perfil
+            // 3. Atualizar perfil com Stripe IDs e Status Pro
             await supabaseAdmin
                 .from("profiles")
                 .update({
@@ -94,6 +101,8 @@ export async function POST(request: NextRequest) {
                     status: "active",
                     plan: "pro",
                     access_type: "subscription",
+                    stripe_customer_id: session.customer as string,
+                    stripe_subscription_id: session.subscription as string,
                     plan_end_date: newEndDate.toISOString(),
                     last_payment_id: payment.id,
                     trial_used: true,
@@ -123,6 +132,49 @@ export async function POST(request: NextRequest) {
         } catch (error) {
             console.error("Erro ao processar webhook:", error)
             return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+        }
+    }
+
+    // --- NOVOS EVENTOS PARA SINCRONIZAÇÃO DE STATUS ---
+
+    // 1. Assinatura Deletada (Cancelada ou Falta de Pagamento)
+    if (event.type === "customer.subscription.deleted") {
+        const subscription = event.data.object as Stripe.Subscription
+
+        const supabaseAdmin = createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+            auth: { autoRefreshToken: false, persistSession: false },
+        })
+
+        await supabaseAdmin
+            .from("profiles")
+            .update({
+                subscription_status: "expired", // Ou "cancelled"
+                status: "inactive"
+            })
+            .eq("stripe_subscription_id", subscription.id)
+
+        console.log(`Assinatura ${subscription.id} expirada/cancelada no Stripe.`)
+    }
+
+    // 2. Falha de Pagamento em Renovação
+    if (event.type === "invoice.payment_failed") {
+        const invoice = event.data.object as Stripe.Invoice
+        const subscriptionId = invoice.subscription as string
+
+        if (subscriptionId) {
+            const supabaseAdmin = createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+                auth: { autoRefreshToken: false, persistSession: false },
+            })
+
+            await supabaseAdmin
+                .from("profiles")
+                .update({
+                    subscription_status: "past_due",
+                    status: "inactive"
+                })
+                .eq("stripe_subscription_id", subscriptionId)
+
+            console.log(`Pagamento falhou para assinatura ${subscriptionId}. Status atualizado para inativo.`)
         }
     }
 
