@@ -49,10 +49,11 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
     ]
 
     const revenues = [
-        "Até 50.000 MT",
-        "50.000 MT - 200.000 MT",
-        "200.000 MT - 1.000.000 MT",
-        "+1.000.000 MT",
+        "Até 5.000 MT",
+        "5.000 MT - 10.000 MT",
+        "10.000 MT - 50.000 MT",
+        "50.000 MT - 100.000 MT",
+        "+100.000 MT",
     ]
 
     const markets = [
@@ -97,6 +98,68 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
                     {step === 1 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
                             <h2 className="text-2xl font-semibold text-white text-center mb-8">
+                                Qual seu número de WhatsApp?
+                            </h2>
+                            <div className="max-w-md mx-auto space-y-4">
+                                <div className="relative">
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                                    <span className="absolute left-12 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">+258</span>
+                                    <Input
+                                        placeholder="84 123 4567"
+                                        value={formData.whatsapp}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/\D/g, "").slice(0, 9)
+                                            handleChange("whatsapp", value)
+                                        }}
+                                        className="pl-24 py-6 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-purple-500 text-lg"
+                                    />
+                                </div>
+                                <p className="text-sm text-zinc-500 text-center">
+                                    Usaremos para enviar dicas e atualizações importantes.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                            <h2 className="text-2xl font-semibold text-white text-center mb-8">
+                                Qual seu faturamento mensal estimado?
+                            </h2>
+                            <div className="space-y-3">
+                                {revenues.map((rev) => (
+                                    <button
+                                        key={rev}
+                                        onClick={() => handleChange("monthlyRevenue", rev)}
+                                        className={cn(
+                                            "w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group text-left",
+                                            formData.monthlyRevenue === rev
+                                                ? "bg-purple-500/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
+                                                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <DollarSign className={cn(
+                                                "w-5 h-5",
+                                                formData.monthlyRevenue === rev ? "text-purple-400" : "text-zinc-500"
+                                            )} />
+                                            <span className={cn(
+                                                "font-medium transition-colors duration-300",
+                                                formData.monthlyRevenue === rev ? "text-white" : "text-zinc-400 group-hover:text-white"
+                                            )}>{rev}</span>
+                                        </div>
+                                        {formData.monthlyRevenue === rev && (
+                                            <Check className="w-5 h-5 text-purple-400" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+                            <h2 className="text-2xl font-semibold text-white text-center mb-8">
                                 Como você nos conheceu?
                             </h2>
                             <div className="grid grid-cols-2 gap-4">
@@ -129,29 +192,7 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
                         </div>
                     )}
 
-                    {step === 2 && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
-                            <h2 className="text-2xl font-semibold text-white text-center mb-8">
-                                Qual seu número de WhatsApp?
-                            </h2>
-                            <div className="max-w-md mx-auto space-y-4">
-                                <div className="relative">
-                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
-                                    <Input
-                                        placeholder="84 123 4567"
-                                        value={formData.whatsapp}
-                                        onChange={(e) => handleChange("whatsapp", e.target.value)}
-                                        className="pl-12 py-6 bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-purple-500 text-lg"
-                                    />
-                                </div>
-                                <p className="text-sm text-zinc-500 text-center">
-                                    Usaremos para enviar dicas e atualizações importantes.
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {step === 3 && (
+                    {step === 4 && (
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
                             <h2 className="text-2xl font-semibold text-white text-center mb-8">
                                 Qual seu modelo de negócio?
@@ -182,42 +223,6 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
                                         </button>
                                     )
                                 })}
-                            </div>
-                        </div>
-                    )}
-
-                    {step === 4 && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
-                            <h2 className="text-2xl font-semibold text-white text-center mb-8">
-                                Qual seu faturamento mensal estimado?
-                            </h2>
-                            <div className="space-y-3">
-                                {revenues.map((rev) => (
-                                    <button
-                                        key={rev}
-                                        onClick={() => handleChange("monthlyRevenue", rev)}
-                                        className={cn(
-                                            "w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-300 group text-left",
-                                            formData.monthlyRevenue === rev
-                                                ? "bg-purple-500/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)]"
-                                                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
-                                        )}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <DollarSign className={cn(
-                                                "w-5 h-5",
-                                                formData.monthlyRevenue === rev ? "text-purple-400" : "text-zinc-500"
-                                            )} />
-                                            <span className={cn(
-                                                "font-medium transition-colors duration-300",
-                                                formData.monthlyRevenue === rev ? "text-white" : "text-zinc-400 group-hover:text-white"
-                                            )}>{rev}</span>
-                                        </div>
-                                        {formData.monthlyRevenue === rev && (
-                                            <Check className="w-5 h-5 text-purple-400" />
-                                        )}
-                                    </button>
-                                ))}
                             </div>
                         </div>
                     )}
@@ -263,10 +268,10 @@ export function OnboardingSurvey({ onComplete }: OnboardingSurveyProps) {
                     <Button
                         onClick={handleNext}
                         disabled={
-                            (step === 1 && !formData.source) ||
-                            (step === 2 && !formData.whatsapp) ||
-                            (step === 3 && !formData.businessType) ||
-                            (step === 4 && !formData.monthlyRevenue) ||
+                            (step === 1 && (!formData.whatsapp || formData.whatsapp.length !== 9 || !formData.whatsapp.startsWith("8"))) ||
+                            (step === 2 && !formData.monthlyRevenue) ||
+                            (step === 3 && !formData.source) ||
+                            (step === 4 && !formData.businessType) ||
                             (step === 5 && !formData.market)
                         }
                         className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/25 rounded-xl px-8 py-6 text-lg font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"

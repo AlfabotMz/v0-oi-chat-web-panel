@@ -185,11 +185,18 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
 
           <div className="space-y-2">
             <Label>Telefone</Label>
-            <Input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+258 84 123 4567"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">+258</span>
+              <Input
+                value={phone}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "").slice(0, 9)
+                  setPhone(value)
+                }}
+                placeholder="84 123 4567"
+                className="pl-14"
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
               Adicione seu número para receber notificações.
             </p>

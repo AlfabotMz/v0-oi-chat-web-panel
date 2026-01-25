@@ -7,13 +7,26 @@ async function countAdmins() {
   return count || 0
 }
 
-export async function signUp(email: string, password: string, isAdmin = false) {
+export async function signUp(email: string, password: string, phone: string, isAdmin = false) {
   const supabase = createClient()
 
   if (isAdmin) {
     const adminCount = await countAdmins()
     if (adminCount > 0) {
       return { data: null, error: new Error("Já existe uma conta de administrador") }
+    }
+  }
+
+  // Check if phone already exists
+  if (phone) {
+    const { data: existingPhone } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("phone", phone)
+      .single()
+
+    if (existingPhone) {
+      return { data: null, error: new Error("Este número de telefone já está em uso.") }
     }
   }
 
@@ -35,11 +48,20 @@ export async function signUp(email: string, password: string, isAdmin = false) {
         status: userStatus,
         plan: userPlan,
         full_name: userFullName,
+        phone: phone, // Pass phone to metadata as well, though trigger might not use it directly
       },
     },
   })
 
   if (data?.user && !error) {
+    // Se não houver sessão (email verification required), não podemos verificar/criar profile agora
+    // pois o usuário não tem permissão RLS ainda.
+    // Nesse caso, confiamos no trigger do banco de dados.
+    if (!data.session) {
+      console.log("Signup realizado com sucesso, aguardando verificação de email. Profile será criado via trigger.")
+      return { data, error }
+    }
+
     // Aguardar um pouco para garantir que o trigger executou
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
@@ -57,7 +79,8 @@ export async function signUp(email: string, password: string, isAdmin = false) {
 
       if (profile) {
         // Verificar se os valores estão corretos
-        if (profile.role === userRole && profile.plan === userPlan && profile.status === userStatus) {
+        // Also check if phone is set correctly
+        if (profile.role === userRole && profile.plan === userPlan && profile.status === userStatus && profile.phone === phone) {
           profileCorrect = true
         } else {
           // Atualizar com os valores corretos
@@ -69,6 +92,7 @@ export async function signUp(email: string, password: string, isAdmin = false) {
               plan: userPlan,
               email: data.user.email || email,
               full_name: userFullName,
+              phone: phone,
             })
             .eq("id", data.user.id)
 
@@ -87,6 +111,7 @@ export async function signUp(email: string, password: string, isAdmin = false) {
           role: userRole,
           status: userStatus,
           plan: userPlan,
+          phone: phone,
         })
 
         if (insertError) {

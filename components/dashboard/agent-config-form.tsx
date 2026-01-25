@@ -14,6 +14,7 @@ import { WhatsAppConnect } from "./whatsapp-connect"
 import { Badge } from "@/components/ui/badge"
 import { BackButton } from "@/components/ui/back-button"
 import { PromptEditor } from "./prompt-editor"
+import { toast } from "sonner"
 
 interface AgentConfigFormProps {
   agent: any
@@ -35,7 +36,6 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
   )
   const [messageDelay, setMessageDelay] = useState(agent.message_delay || 0)
   const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
   const isActive = status === "active"
 
@@ -49,19 +49,47 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
     }
   }, [agent])
 
-  const handleToggleStatus = (checked: boolean) => {
-    setStatus(checked ? "active" : "inactive")
+  const handleToggleStatus = async (checked: boolean) => {
+    const newStatus = checked ? "active" : "inactive"
+    setStatus(newStatus) // Optimistic update
+
+    try {
+      const response = await fetch(`/api/agents/${agent.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Falha ao atualizar status")
+      }
+
+      toast.success(`Agente ${checked ? "ativado" : "desativado"} com sucesso`)
+      router.refresh()
+    } catch (err: unknown) {
+      // Revert on error
+      setStatus(agent.status)
+      toast.error("Erro ao atualizar status do agente")
+      console.error(err)
+    }
   }
 
   const handleSave = async () => {
     setIsLoading(true)
-    setMessage(null)
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from("agents")
-        .update({
+      const response = await fetch(`/api/agents/${agent.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           name,
           prompt,
           status,
@@ -72,17 +100,19 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           contact_delivery: contactDelivery || null,
           custom_message: customMessage,
           message_delay: messageDelay,
-        })
-        .eq("id", agent.id)
+        }),
+      })
 
-      if (error) throw error
-      setMessage({ type: "success", text: "Agente atualizado com sucesso" })
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Falha ao atualizar agente")
+      }
+
+      toast.success("Agente atualizado com sucesso")
       router.refresh()
     } catch (err: unknown) {
-      setMessage({
-        type: "error",
-        text: err instanceof Error ? err.message : "Falha ao atualizar agente",
-      })
+      toast.error(err instanceof Error ? err.message : "Falha ao atualizar agente")
     } finally {
       setIsLoading(false)
     }
@@ -179,16 +209,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           </div>
 
 
-          {message && (
-            <div
-              className={`p-3 rounded-lg text-sm ${message.type === "success"
-                ? "bg-green-500/10 text-green-700"
-                : "bg-red-500/10 text-red-700"
-                }`}
-            >
-              {message.text}
-            </div>
-          )}
+
 
           <Button onClick={handleSave} disabled={isLoading} className="w-full">
             {isLoading ? "Salvando..." : "Salvar Alterações"}
@@ -207,12 +228,19 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="contactOwner">Contact Owner (WhatsApp)</Label>
-            <Input
-              id="contactOwner"
-              placeholder="+258 84 123 4567"
-              value={contactOwner}
-              onChange={(e) => setContactOwner(e.target.value)}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">+258</span>
+              <Input
+                id="contactOwner"
+                placeholder="84 123 4567"
+                value={contactOwner}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "").slice(0, 9)
+                  setContactOwner(value)
+                }}
+                className="pl-14"
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
               Número do dono/responsável que receberá notificações
             </p>
@@ -220,12 +248,19 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="contactDelivery">Contact Delivery (WhatsApp - Opcional)</Label>
-            <Input
-              id="contactDelivery"
-              placeholder="+258 84 123 4567"
-              value={contactDelivery}
-              onChange={(e) => setContactDelivery(e.target.value)}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">+258</span>
+              <Input
+                id="contactDelivery"
+                placeholder="84 123 4567"
+                value={contactDelivery}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "").slice(0, 9)
+                  setContactDelivery(value)
+                }}
+                className="pl-14"
+              />
+            </div>
             <p className="text-xs text-muted-foreground">
               Número do entregador/logística para receber notificações
             </p>
@@ -243,6 +278,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
                 { label: "product", value: "{{product}}", description: "Nome do produto" },
                 { label: "number", value: "{{number}}", description: "Número do cliente" },
                 { label: "location", value: "{{location}}", description: "Localização do cliente" },
+                { label: "date", value: "{{date}}", description: "Data da conversão" },
               ]}
             />
             <p className="text-xs text-muted-foreground">
@@ -254,7 +290,8 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
                 {customMessage
                   .replace("{{product}}", product || "Produto Exemplo")
                   .replace("{{number}}", "+258 84 123 4567")
-                  .replace("{{location}}", "Maputo, Moçambique")}
+                  .replace("{{location}}", "Maputo, Moçambique")
+                  .replace("{{date}}", new Date().toLocaleDateString("pt-PT", { day: 'numeric', month: 'long', year: 'numeric' }))}
               </pre>
             </div>
           </div>

@@ -10,12 +10,15 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Crown } from "lucide-react"
 
+import { PhoneInput } from "@/components/ui/phone-input"
+
 export default function LoginPage() {
   const router = useRouter()
   const [isSignUp, setIsSignUp] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [phone, setPhone] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -26,7 +29,7 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password, isAdmin)
+        const { error } = await signUp(email, password, phone, isAdmin)
         if (error) throw error
         // Se não for admin, redirecionar para onboarding após verificar email
         if (!isAdmin) {
@@ -88,6 +91,18 @@ export default function LoginPage() {
                   className="border-purple-200/30"
                 />
               </div>
+
+              {isSignUp && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                  <Label htmlFor="phone">Número de Celular</Label>
+                  <PhoneInput
+                    value={phone}
+                    onChange={setPhone}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">Obrigatório para notificações.</p>
+                </div>
+              )}
 
               {/* Admin option removed */}
 
