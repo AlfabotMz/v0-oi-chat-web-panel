@@ -72,22 +72,11 @@ export async function POST(request: NextRequest) {
                 .eq("status", "completed")
 
             // Se count for 1, é o primeiro pagamento (o que acabamos de inserir)
-            // Mas para segurança, vamos considerar "primeiro pagamento" se count <= 1
             const isFirstPayment = (count || 0) <= 1
 
-            const { data: profile } = await supabaseAdmin
-                .from("profiles")
-                .select("trial_used, full_name, email, plan_end_date")
-                .eq("id", userId)
-                .single()
-
-            const trialUsed = profile?.trial_used || false
-
-            // Lógica de Bônus:
-            // Se for primeiro pagamento E não usou trial = 60 dias
-            // Caso contrário = 30 dias
-            const daysToAdd = isFirstPayment && !trialUsed ? 60 : 30
-            const durationText = isFirstPayment && !trialUsed ? "2 Meses (Oferta Especial)" : "1 Mês"
+            // Lógica de "Lead": Se for a primeira assinatura, ganha 2 meses. As próximas ganham 1 mês.
+            const daysToAdd = isFirstPayment ? 60 : 30
+            const durationText = isFirstPayment ? "2 Meses (Oferta Especial)" : "1 Mês"
 
             // Calcular nova data
             const now = new Date()
