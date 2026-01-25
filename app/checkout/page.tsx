@@ -92,9 +92,9 @@ function CheckoutContent() {
                         </p>
                         <Button
                             className="w-full bg-purple-600 hover:bg-purple-700 text-white mt-4"
-                            onClick={() => router.push("/dashboard")}
+                            onClick={() => router.push("/onboarding")}
                         >
-                            Ir para o Dashboard
+                            Começar Agora
                         </Button>
                     </CardContent>
                 </Card>
