@@ -278,53 +278,21 @@ export default function LandingPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {/* Free Plan */}
-              <FadeIn delay={200} className="relative rounded-2xl border border-border bg-card p-8 shadow-sm hover:shadow-md transition-shadow">
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold">Teste Grátis</h3>
-                  <p className="text-muted-foreground mt-2">Para conhecer a plataforma</p>
-                </div>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">0 MT</span>
-                  <span className="text-muted-foreground"> / 7 dias</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  <li className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-500" />
-                    <span>Acesso a todos os recursos</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-500" />
-                    <span>1 Agente de IA</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-500" />
-                    <span>Suporte básico</span>
-                  </li>
-                </ul>
-                <Link href="/login">
-                  <Button variant="outline" className="w-full h-12 text-lg">
-                    Começar Grátis
-                  </Button>
-                </Link>
-              </FadeIn>
-
-              {/* Business Plan */}
+              {/* Free Trial Plan */}
               <FadeIn delay={400} className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-xl transform md:-translate-y-4">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-medium">
-                  Mais Popular
+                  Recomendado
                 </div>
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold">Business</h3>
-                  <p className="text-muted-foreground mt-2">Para empresas em crescimento</p>
+                  <h3 className="text-2xl font-bold">Plano Pro</h3>
+                  <p className="text-muted-foreground mt-2">Tudo que você precisa para automatizar</p>
                 </div>
                 <div className="mb-6">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold">960 MT</span>
-                    <span className="text-muted-foreground">/mês</span>
+                    <span className="text-4xl font-bold">7 Dias Grátis</span>
                   </div>
-                  <p className="text-sm text-green-600 font-medium mt-2">
-                    Oferta: Pague 1 mês e ganhe +1 grátis!
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Depois apenas 960 MT/mês
                   </p>
                 </div>
                 <ul className="space-y-3 mb-8">
@@ -347,7 +315,7 @@ export default function LandingPage() {
                 </ul>
                 <Link href="/checkout">
                   <Button className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25">
-                    Assinar Agora
+                    Começar Teste Grátis
                   </Button>
                 </Link>
               </FadeIn>
@@ -364,25 +332,20 @@ export default function LandingPage() {
 
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Pronto para transformar seu atendimento?</h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Aproveite nossa oferta de lançamento: <strong className="text-foreground">2 meses de acesso pelo preço de 1 (960 MT)</strong>.
-                Sem fidelidade, cancele quando quiser.
+                Teste todos os recursos da OiChat por <strong className="text-foreground">7 dias totalmente grátis</strong>.
+                Sem compromisso, cancele quando quiser.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link href="/checkout" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20">
-                    Garantir Oferta Agora
-                  </Button>
-                </Link>
-                <Link href="/login" className="w-full sm:w-auto">
-                  <Button variant="outline" size="lg" className="w-full h-14 px-8 text-lg">
-                    Testar 7 Dias Grátis
+                    Começar Teste Grátis
                   </Button>
                 </Link>
               </div>
 
               <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Pagamento Seguro (M-Pesa/e-Mola)</span>
+                <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Checkout Seguro via Stripe</span>
                 <span className="flex items-center gap-1"><Check className="w-4 h-4 text-primary" /> Ativação Imediata</span>
               </div>
             </FadeIn>

@@ -71,12 +71,9 @@ export async function POST(request: NextRequest) {
                 .eq("user_id", userId)
                 .eq("status", "completed")
 
-            // Se count for 1, é o primeiro pagamento (o que acabamos de inserir)
-            const isFirstPayment = (count || 0) <= 1
-
-            // Lógica de "Lead": Se for a primeira assinatura, ganha 2 meses. As próximas ganham 1 mês.
-            const daysToAdd = isFirstPayment ? 60 : 30
-            const durationText = isFirstPayment ? "2 Meses (Oferta Especial)" : "1 Mês"
+            // Lógica Padrão: 30 dias de acesso (1 mês)
+            const daysToAdd = 30
+            const durationText = "1 Mês"
 
             // Carregar perfil para email e data atual
             const { data: profile } = await supabaseAdmin
