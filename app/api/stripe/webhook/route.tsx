@@ -102,7 +102,9 @@ export async function POST(request: NextRequest) {
                 .from("profiles")
                 .update({
                     subscription_status: "active",
+                    status: "active",
                     plan: "pro",
+                    access_type: "subscription",
                     plan_end_date: newEndDate.toISOString(),
                     last_payment_id: payment.id,
                     trial_used: true,

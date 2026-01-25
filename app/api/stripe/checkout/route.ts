@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
                 },
             ],
             mode: "subscription",
-            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout?payment=success`,
+            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding?payment=success`,
             cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout?payment=cancelled`,
             metadata: {
                 userId: user.id,
