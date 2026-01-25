@@ -1,17 +1,18 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from "recharts"
+import dynamic from "next/dynamic"
+
+// Dynamically import Recharts to avoid SSR errors
+const ResponsiveContainer = dynamic(() => import("recharts").then(mod => mod.ResponsiveContainer), { ssr: false })
+const AreaChart = dynamic(() => import("recharts").then(mod => mod.AreaChart), { ssr: false })
+const Area = dynamic(() => import("recharts").then(mod => mod.Area), { ssr: false })
+const XAxis = dynamic(() => import("recharts").then(mod => mod.XAxis), { ssr: false })
+const YAxis = dynamic(() => import("recharts").then(mod => mod.YAxis), { ssr: false })
+const CartesianGrid = dynamic(() => import("recharts").then(mod => mod.CartesianGrid), { ssr: false })
+const Tooltip = dynamic(() => import("recharts").then(mod => mod.Tooltip), { ssr: false })
+const BarChart = dynamic(() => import("recharts").then(mod => mod.BarChart), { ssr: false })
+const Bar = dynamic(() => import("recharts").then(mod => mod.Bar), { ssr: false })
 import { format, parseISO } from "date-fns"
 
 interface AnalyticsDashboardProps {
