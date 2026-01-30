@@ -15,6 +15,26 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
+  // Verificar acesso: trial sem cartão não entra no dashboard
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("subscription_status, access_type, stripe_subscription_id, role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile) {
+    const isTrialWithoutCard =
+      profile.subscription_status === 'trial' &&
+      profile.access_type === 'subscription' &&
+      !profile.stripe_subscription_id
+
+    const isUser = profile.role === 'user' || profile.role === 'moderator'
+
+    if (isUser && isTrialWithoutCard) {
+      redirect("/checkout")
+    }
+  }
+
   // Por enquanto, assumir que usuários regulares acessam /dashboard e admins acessam /admin via proteção de rota
 
   // Fetch agents for this user
