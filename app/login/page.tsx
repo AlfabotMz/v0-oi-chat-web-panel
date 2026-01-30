@@ -68,7 +68,7 @@ export default function LoginPage() {
           <CardContent>
             <Button
               type="button"
-              className="w-full bg-white text-black border border-zinc-200 hover:bg-zinc-50 hover:text-black shadow-md h-11 transition-all"
+              className="w-full bg-white text-black border border-purple-100 hover:bg-zinc-50 shadow-sm h-11 transition-all rounded-lg font-medium"
               onClick={async () => {
                 setError(null)
                 setIsLoading(true)
