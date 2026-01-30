@@ -97,7 +97,7 @@ function CheckoutContent() {
                         <CardContent className="space-y-4">
                             <Button
                                 type="button"
-                                className="w-full bg-white text-black hover:bg-zinc-100 hover:text-black flex items-center justify-center gap-2 h-12 text-lg font-medium border border-zinc-200 shadow-sm"
+                                className="w-full bg-white text-black hover:bg-zinc-100 hover:text-black flex items-center justify-center gap-2 h-12 text-lg font-medium border border-zinc-200 shadow-md transition-all"
                                 onClick={async () => {
                                     try {
                                         const { error } = await signInWithGoogle()
