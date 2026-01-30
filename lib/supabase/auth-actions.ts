@@ -147,6 +147,21 @@ export async function signIn(email: string, password: string) {
   return { data, error }
 }
 
+export async function signInWithGoogle() {
+  const supabase = createClient()
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo:
+        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+        `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=/dashboard`,
+    },
+  })
+
+  return { data, error }
+}
+
 export async function signOut() {
   const supabase = createClient()
   return await supabase.auth.signOut()
