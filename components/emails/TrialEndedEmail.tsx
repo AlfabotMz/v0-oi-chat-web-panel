@@ -13,7 +13,7 @@ export const TrialEndedEmail: React.FC<TrialEndedEmailProps> = ({
 }) => (
     <div style={{ fontFamily: 'sans-serif', color: '#333' }}>
         <h1>Olá, {userName}!</h1>
-        <p>Seu período de teste gratuito de 7 dias no <strong>{planName}</strong> acabou.</p>
+        <p>Seu período de teste gratuito de 3 dias no <strong>{planName}</strong> acabou.</p>
         <p>Esperamos que você tenha gostado de usar o OiChat para automatizar seu atendimento.</p>
         <p>Para continuar usando todos os recursos e não perder seus agentes configurados, ative sua assinatura agora.</p>
         <p>
