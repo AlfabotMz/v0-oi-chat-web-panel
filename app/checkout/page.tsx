@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2, CheckCircle2, ShieldCheck, ArrowLeft, CreditCard, XCircle } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { signInWithGoogle } from "@/lib/supabase/auth-actions"
 
 function CheckoutContent() {
     const router = useRouter()
@@ -29,20 +30,17 @@ function CheckoutContent() {
             const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
 
-            if (!user) {
-                router.push("/login?redirect=/checkout")
-                return
-            }
+            if (user) {
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("*")
+                    .eq("id", user.id)
+                    .single()
 
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("*")
-                .eq("id", user.id)
-                .single()
-
-            setUser(user)
-            if (profile?.trial_used) {
-                setTrialUsed(true)
+                setUser(user)
+                if (profile?.trial_used) {
+                    setTrialUsed(true)
+                }
             }
             setLoading(false)
         }
@@ -74,6 +72,70 @@ function CheckoutContent() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
                 <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center justify-center p-4">
+                <div className="w-full max-w-md space-y-8">
+                    <div className="text-center space-y-2">
+                        <div className="flex justify-center mb-4">
+                            <div className="relative w-12 h-12 overflow-hidden rounded-xl">
+                                <Image src="/oichat-icon.jpg" alt="OiChat" fill className="object-cover" />
+                            </div>
+                        </div>
+                        <h1 className="text-3xl font-bold text-white">OiChat Checkout</h1>
+                        <p className="text-zinc-400">Entre ou crie uma conta para iniciar seu teste de 3 dias</p>
+                    </div>
+
+                    <Card className="glass border-zinc-800 bg-zinc-900/50">
+                        <CardHeader>
+                            <CardTitle className="text-xl text-center">Acesse sua conta</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Button
+                                type="button"
+                                className="w-full bg-white text-black hover:bg-zinc-100 flex items-center justify-center gap-2 h-12 text-lg font-medium"
+                                onClick={async () => {
+                                    try {
+                                        const { error } = await signInWithGoogle()
+                                        if (error) throw error
+                                    } catch (err: any) {
+                                        alert(err.message || "Erro ao entrar com Google")
+                                    }
+                                }}
+                            >
+                                <svg className="h-5 w-5" viewBox="0 0 488 512">
+                                    <path fill="#4285F4" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                                </svg>
+                                Entrar com Google
+                            </Button>
+
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-zinc-800"></span>
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-zinc-900 px-2 text-zinc-500">Ou use seu email</span>
+                                </div>
+                            </div>
+
+                            <Button
+                                variant="outline"
+                                className="w-full border-zinc-800 hover:bg-zinc-800/50 text-zinc-300"
+                                onClick={() => router.push("/login?redirect=/checkout")}
+                            >
+                                Entrar com Email e Senha
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <p className="text-center text-sm text-zinc-500">
+                        Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade.
+                    </p>
+                </div>
             </div>
         )
     }
@@ -148,9 +210,9 @@ function CheckoutContent() {
 
                         <Card className="glass border-0">
                             <CardHeader>
-                                <CardTitle className="text-white">Inicie seu Teste de 7 Dias</CardTitle>
+                                <CardTitle className="text-white">Inicie seu Teste de 3 Dias</CardTitle>
                                 <CardDescription className="text-zinc-400">
-                                    Você não será cobrado hoje. O teste termina em 7 dias, após o qual a assinatura será ativada automaticamente.
+                                    Você não será cobrado hoje. O teste termina em 3 dias, após o qual a assinatura será ativada automaticamente.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
@@ -169,7 +231,7 @@ function CheckoutContent() {
                             <CardContent className="pt-6 space-y-4">
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between">
-                                        <span className="text-zinc-400">Plano Pro (7 Dias Grátis)</span>
+                                        <span className="text-zinc-400">Plano Pro (3 Dias Grátis)</span>
                                         <span className="font-medium text-white">0 MT</span>
                                     </div>
                                     <div className="flex justify-between pt-2 border-t border-zinc-800 text-base font-bold text-white">
@@ -211,7 +273,7 @@ function CheckoutContent() {
                                         <h3 className="font-semibold text-white">Plano Pro</h3>
                                         <p className="text-sm text-zinc-400">Automação completa + IA</p>
                                         <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                                            7 Dias Grátis
+                                            3 Dias Grátis
                                         </div>
                                     </div>
                                 </div>
@@ -222,7 +284,7 @@ function CheckoutContent() {
                                         <span className="font-medium text-white">960 MT/mês</span>
                                     </div>
                                     <div className="flex justify-between text-green-400">
-                                        <span>Teste Grátis (7 Dias)</span>
+                                        <span>Teste Grátis (3 Dias)</span>
                                         <span>-960 MT</span>
                                     </div>
                                     <div className="flex justify-between pt-2 border-t border-zinc-800 text-base font-bold text-white">
@@ -234,7 +296,7 @@ function CheckoutContent() {
                                 <div className="bg-purple-900/10 p-3 rounded-md text-xs text-purple-300 border border-purple-500/20">
                                     <p className="font-semibold mb-1">Incluso no Teste:</p>
                                     <ul className="list-disc list-inside space-y-1 text-purple-200/70">
-                                        <li>Acesso Completo (7 dias)</li>
+                                        <li>Acesso Completo (3 dias)</li>
                                         <li>Suporte Prioritário</li>
                                         <li>Configuração Assistida</li>
                                     </ul>
