@@ -219,7 +219,7 @@ export default function LandingPage() {
                     {
                       icon: <MessageSquare className="w-8 h-8 text-primary" />,
                       title: "Respostas Instantâneas",
-                      desc: "Atenda seus clientes em segundos, 24 horas por dia, 7 dias por semana."
+                      desc: "Atenda seus clientes em segundos, 24 horas por dia, 3 dias por semana."
                     },
                     {
                       icon: <Zap className="w-8 h-8 text-yellow-500" />,
@@ -289,7 +289,7 @@ export default function LandingPage() {
                 </div>
                 <div className="mb-6">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold">7 Dias Grátis</span>
+                    <span className="text-4xl font-bold">3 Dias Grátis</span>
                   </div>
                   <p className="text-sm text-muted-foreground mt-2">
                     Depois apenas 960 MT/mês
@@ -306,7 +306,7 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-5 h-5 text-primary" />
-                    <span>Suporte Prioritário 24/7</span>
+                    <span>Suporte Prioritário 24/3</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="w-5 h-5 text-primary" />
@@ -332,7 +332,7 @@ export default function LandingPage() {
 
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Pronto para transformar seu atendimento?</h2>
               <p className="text-lg text-muted-foreground mb-8">
-                Teste todos os recursos da OiChat por <strong className="text-foreground">7 dias totalmente grátis</strong>.
+                Teste todos os recursos da OiChat por <strong className="text-foreground">3 dias totalmente grátis</strong>.
                 Sem compromisso, cancele quando quiser.
               </p>
 
