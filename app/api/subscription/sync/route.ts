@@ -1,17 +1,13 @@
-import { NextResponse } from "next/server"
-
-export const dynamic = 'force-dynamic'
-
 export async function GET() {
-    return NextResponse.json({
-        message: "API Route is working!",
-        time: new Date().toISOString()
+    return new Response(JSON.stringify({ test: "atomic_ok" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
     })
 }
 
 export async function POST() {
-    return NextResponse.json({
-        message: "POST is also working!",
-        time: new Date().toISOString()
+    return new Response(JSON.stringify({ test: "atomic_post_ok" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
     })
 }
