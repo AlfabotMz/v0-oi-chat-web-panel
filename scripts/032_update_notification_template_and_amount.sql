@@ -6,15 +6,15 @@ ADD COLUMN IF NOT EXISTS amount TEXT;
 UPDATE public.agents
 SET custom_message = '🚀 Nova Encomenda Recebida!
 
-💸 Produto: {{product}}
+💸 Produto: {{produto}}
 
-💸 Quantidade de unidades: {{quantity}}
+💸 Quantidade de unidades: {{quantidade}}
 
-💸 Valor: {{amount}}
+💸 Valor: {{valor}}
 
-💸 Número: {{number}}
+💸 Número: {{numero}}
 
-💸 Local: {{location}}';
+💸 Local: {{localizacao}}';
 
 -- 3. Comentário para documentação
 COMMENT ON COLUMN public.agents.amount IS 'Valor monetário configurado para o produto do agente';
