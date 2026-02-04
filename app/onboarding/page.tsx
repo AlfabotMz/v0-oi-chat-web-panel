@@ -86,36 +86,43 @@ export default function OnboardingPage() {
       const maxAttempts = 10 // 20 segundos total
 
       const checkPayment = async () => {
-        const supabase = (await import("@/lib/supabase/client")).createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        try {
+          const response = await fetch("/api/subscription/sync", {
+            method: "POST",
+          })
+          const data = await response.json()
 
-        if (!user) {
-          router.push("/login")
-          return
-        }
+          if (data.success && data.synced) {
+            // Se sincronizou com sucesso e encontrou assinatura
+            // Vamos recarregar o perfil localmente para ver se o onboarding_completed foi setado
+            const supabase = (await import("@/lib/supabase/client")).createClient()
+            const { data: { user } } = await supabase.auth.getUser()
 
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("stripe_subscription_id, onboarding_completed")
-          .eq("id", user.id)
-          .single()
+            if (user) {
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("onboarding_completed")
+                .eq("id", user.id)
+                .single()
 
-        if (profile?.stripe_subscription_id) {
-          // Se o onboarding já foi concluído antes, ir direto pro dashboard
-          if (profile.onboarding_completed) {
-            router.push("/dashboard")
-          } else {
-            // Caso contrário, continua no onboarding mas sem o loading de check
+              if (profile?.onboarding_completed) {
+                router.push("/dashboard")
+                return
+              }
+            }
+
+            // Se sincronizou mas ainda não redirecionou (onboarding pendente)
             setIsCheckingPayment(false)
+            return
           }
-          return
+        } catch (err) {
+          console.error("Erro no polling de pagamento:", err)
         }
 
         attempts++
         if (attempts < maxAttempts) {
           setTimeout(checkPayment, 2000)
         } else {
-          // Timeout - deixa o usuário prosseguir mas avisa ou loga
           setIsCheckingPayment(false)
         }
       }
