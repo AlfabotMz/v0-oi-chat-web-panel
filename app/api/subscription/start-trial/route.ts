@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
         // Ativar Trial
         const now = new Date()
         const trialEndDate = new Date()
-        trialEndDate.setDate(now.getDate() + 3) // 3 dias de trial
+        trialEndDate.setDate(now.getDate() + 7) // 7 dias de trial
 
         const { error: updateError } = await supabase
             .from("profiles")

@@ -31,6 +31,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
     }
 
+    const supabaseAdmin = createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    // 1. Checkout Completo (Primeira Assinatura ou Trial)
     if (event.type === "checkout.session.completed") {
         const session = event.data.object as Stripe.Checkout.Session
         const userId = session.metadata?.userId
@@ -40,16 +45,21 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "UserId missing" }, { status: 400 })
         }
 
-        const supabaseAdmin = createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false,
-            },
-        })
-
         try {
-            // 1. Registrar pagamento
-            const { data: payment, error: paymentError } = await supabaseAdmin
+            let subscriptionStatus = "active"
+            let planEndDate: Date
+
+            if (session.subscription) {
+                const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+                subscriptionStatus = subscription.status // 'trialing', 'active', etc.
+                planEndDate = new Date((subscription as any).current_period_end * 1000)
+            } else {
+                planEndDate = new Date()
+                planEndDate.setDate(planEndDate.getDate() + 30)
+            }
+
+            // Registrar pagamento
+            const { data: payment } = await supabaseAdmin
                 .from("payments")
                 .insert({
                     user_id: userId,
@@ -62,52 +72,27 @@ export async function POST(request: NextRequest) {
                 .select()
                 .single()
 
-            if (paymentError) throw paymentError
-
-            // 2. Verificar histórico para bônus
-            const { count } = await supabaseAdmin
-                .from("payments")
-                .select("*", { count: "exact", head: true })
-                .eq("user_id", userId)
-                .eq("status", "completed")
-
-            // Lógica Padrão: 30 dias de acesso (1 mês)
-            const daysToAdd = 30
-            const durationText = "1 Mês"
-
-            // Carregar perfil para email e data atual
             const { data: profile } = await supabaseAdmin
                 .from("profiles")
-                .select("trial_used, full_name, email, plan_end_date")
+                .select("full_name, email")
                 .eq("id", userId)
                 .single()
 
-            // Calcular nova data
-            const now = new Date()
-            let currentEndDate = profile?.plan_end_date ? new Date(profile.plan_end_date) : now
-            if (currentEndDate < now) currentEndDate = now
-
-            const newEndDate = new Date(currentEndDate)
-            newEndDate.setDate(newEndDate.getDate() + daysToAdd)
-
-            // 3. Atualizar perfil com Stripe IDs e Status Pro
             await supabaseAdmin
                 .from("profiles")
                 .update({
-                    subscription_status: "active",
+                    subscription_status: subscriptionStatus === "trialing" ? "trial" : "active",
                     status: "active",
                     plan: "pro",
                     access_type: "subscription",
                     stripe_customer_id: session.customer as string,
                     stripe_subscription_id: session.subscription as string,
-                    plan_end_date: newEndDate.toISOString(),
-                    last_payment_id: payment.id,
+                    plan_end_date: planEndDate.toISOString(),
                     trial_used: true,
                 })
                 .eq("id", userId)
 
-            // 4. Enviar Email
-            if (profile?.email) {
+            if (profile?.email && session.amount_total! > 0) {
                 await resend.emails.send({
                     from: FROM_EMAIL,
                     to: profile.email,
@@ -119,50 +104,47 @@ export async function POST(request: NextRequest) {
                             date={new Date().toLocaleDateString("pt-BR")}
                             amount={`${session.amount_total ? session.amount_total / 100 : 0} ${session.currency?.toUpperCase()}`}
                             planName="Plano Business"
-                            duration={durationText}
+                            duration="1 Mês"
                         />
                     ),
                 })
             }
-
-            console.log(`Pagamento processado com sucesso para user ${userId}`)
         } catch (error) {
-            console.error("Erro ao processar webhook:", error)
-            return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+            console.error("Erro ao processar checkout.session.completed:", error)
         }
     }
 
-    // --- NOVOS EVENTOS PARA SINCRONIZAÇÃO DE STATUS ---
-
-    // 1. Assinatura Deletada (Cancelada ou Falta de Pagamento)
-    if (event.type === "customer.subscription.deleted") {
+    // 2. Sincronização Geral de Assinatura (Update ou Delete)
+    if (event.type === "customer.subscription.deleted" || event.type === "customer.subscription.updated") {
         const subscription = event.data.object as Stripe.Subscription
 
-        const supabaseAdmin = createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-            auth: { autoRefreshToken: false, persistSession: false },
-        })
+        const statusMap: Record<string, string> = {
+            active: "active",
+            trialing: "trial",
+            past_due: "past_due",
+            canceled: "cancelled",
+            unpaid: "unpaid",
+            incomplete: "incomplete"
+        }
+
+        const newStatus = statusMap[subscription.status] || subscription.status
 
         await supabaseAdmin
             .from("profiles")
             .update({
-                subscription_status: "expired", // Ou "cancelled"
-                status: "inactive"
+                subscription_status: newStatus,
+                status: (newStatus === "active" || newStatus === "trial") ? "active" : "inactive",
+                plan_end_date: new Date(subscription.current_period_end * 1000).toISOString()
             })
             .eq("stripe_subscription_id", subscription.id)
-
-        console.log(`Assinatura ${subscription.id} expirada/cancelada no Stripe.`)
     }
 
-    // 2. Falha de Pagamento em Renovação
+    // 3. Falha de Pagamento
     if (event.type === "invoice.payment_failed") {
         const invoice = event.data.object as any
         const subscriptionId = invoice.subscription as string
 
         if (subscriptionId) {
-            const supabaseAdmin = createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-                auth: { autoRefreshToken: false, persistSession: false },
-            })
-
             await supabaseAdmin
                 .from("profiles")
                 .update({
@@ -170,21 +152,15 @@ export async function POST(request: NextRequest) {
                     status: "inactive"
                 })
                 .eq("stripe_subscription_id", subscriptionId)
-
-            console.log(`Pagamento falhou para assinatura ${subscriptionId}. Status atualizado para inativo.`)
         }
     }
 
-    // 3. Pagamento de Renovação com Sucesso (invoice.paid)
+    // 4. Pagamento de Renovação bem sucedido
     if (event.type === "invoice.paid") {
         const invoice = event.data.object as any
         const subscriptionId = invoice.subscription as string
 
         if (subscriptionId && invoice.billing_reason === 'subscription_cycle') {
-            const supabaseAdmin = createAdminClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-                auth: { autoRefreshToken: false, persistSession: false },
-            })
-
             const { data: profile } = await supabaseAdmin
                 .from("profiles")
                 .select("id, plan_end_date")
@@ -207,8 +183,6 @@ export async function POST(request: NextRequest) {
                         plan_end_date: newEndDate.toISOString()
                     })
                     .eq("id", profile.id)
-
-                console.log(`Assinatura ${subscriptionId} renovada com sucesso.`)
             }
         }
     }

@@ -87,7 +87,7 @@ function CheckoutContent() {
                             </div>
                         </div>
                         <h1 className="text-3xl font-bold text-white">OiChat Checkout</h1>
-                        <p className="text-zinc-400">Entre ou crie uma conta para iniciar seu teste de 3 dias</p>
+                        <p className="text-zinc-400">Entre ou crie uma conta para iniciar seu teste de 7 dias</p>
                     </div>
 
                     <Card className="glass border-zinc-800 bg-zinc-900/50">
@@ -210,9 +210,9 @@ function CheckoutContent() {
 
                         <Card className="glass border-0">
                             <CardHeader>
-                                <CardTitle className="text-white">Inicie seu Teste de 3 Dias</CardTitle>
+                                <CardTitle className="text-white">Inicie seu Teste de 7 Dias</CardTitle>
                                 <CardDescription className="text-zinc-400">
-                                    Você não será cobrado hoje. O teste termina em 3 dias, após o qual a assinatura será ativada automaticamente.
+                                    Você não será cobrado hoje. O teste termina em 7 dias, após o qual a assinatura será ativada automaticamente.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
@@ -231,7 +231,7 @@ function CheckoutContent() {
                             <CardContent className="pt-6 space-y-4">
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between">
-                                        <span className="text-zinc-400">Plano Pro (3 Dias Grátis)</span>
+                                        <span className="text-zinc-400">Plano Pro (7 Dias Grátis)</span>
                                         <span className="font-medium text-white">0 MT</span>
                                     </div>
                                     <div className="flex justify-between pt-2 border-t border-zinc-800 text-base font-bold text-white">
@@ -273,7 +273,7 @@ function CheckoutContent() {
                                         <h3 className="font-semibold text-white">Plano Pro</h3>
                                         <p className="text-sm text-zinc-400">Automação completa + IA</p>
                                         <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                                            3 Dias Grátis
+                                            7 Dias Grátis
                                         </div>
                                     </div>
                                 </div>
@@ -284,7 +284,7 @@ function CheckoutContent() {
                                         <span className="font-medium text-white">960 MT/mês</span>
                                     </div>
                                     <div className="flex justify-between text-green-400">
-                                        <span>Teste Grátis (3 Dias)</span>
+                                        <span>Teste Grátis (7 Dias)</span>
                                         <span>-960 MT</span>
                                     </div>
                                     <div className="flex justify-between pt-2 border-t border-zinc-800 text-base font-bold text-white">
@@ -296,7 +296,7 @@ function CheckoutContent() {
                                 <div className="bg-purple-900/10 p-3 rounded-md text-xs text-purple-300 border border-purple-500/20">
                                     <p className="font-semibold mb-1">Incluso no Teste:</p>
                                     <ul className="list-disc list-inside space-y-1 text-purple-200/70">
-                                        <li>Acesso Completo (3 dias)</li>
+                                        <li>Acesso Completo (7 dias)</li>
                                         <li>Suporte Prioritário</li>
                                         <li>Configuração Assistida</li>
                                     </ul>
