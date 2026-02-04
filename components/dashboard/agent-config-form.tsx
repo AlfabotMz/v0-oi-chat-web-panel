@@ -300,17 +300,38 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
             <p className="text-xs text-muted-foreground">
               Use variáveis para personalizar a mensagem.
             </p>
-            <div className="mt-2 p-3 bg-muted rounded-md">
-              <p className="text-xs font-medium mb-1">Preview:</p>
-              <pre className="text-xs whitespace-pre-wrap text-muted-foreground">
-                {customMessage
-                  .replace("{{produto}}", product || "Produto Exemplo")
-                  .replace("{{quantidade}}", "1")
-                  .replace("{{valor}}", amount || "960 MT")
-                  .replace("{{numero}}", "+258 84 123 4567")
-                  .replace("{{localizacao}}", "Maputo, Moçambique")
-                  .replace("{{date}}", new Date().toLocaleDateString("pt-PT", { day: 'numeric', month: 'long', year: 'numeric' }))}
-              </pre>
+            <div className="mt-4 space-y-2">
+              <Label>Aparência no WhatsApp (Preview)</Label>
+              <div className="bg-[#e5ddd5] dark:bg-[#0b141a] p-6 rounded-xl relative overflow-hidden border border-border/50 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat">
+                <div className="flex flex-col gap-1 max-w-[85%]">
+                  <div className="bg-white dark:bg-[#1f2c33] p-3 rounded-lg rounded-tl-none shadow-sm relative ml-2">
+                    {/* Triangle tail */}
+                    <div className="absolute top-0 left-[-8px] w-0 h-0 border-t-[10px] border-t-white dark:border-t-[#1f2c33] border-l-[10px] border-l-transparent" />
+
+                    <div className="text-sm whitespace-pre-wrap break-words text-zinc-800 dark:text-zinc-100">
+                      {customMessage
+                        .replace(/{{produto}}|{{product}}/g, product || "Consultoria de IA")
+                        .replace(/{{quantidade}}|{{quantity}}/g, "1")
+                        .replace(/{{valor}}|{{amount}}/g, amount || "960 MT")
+                        .replace(/{{numero}}|{{number}}/g, "+258 84 123 4567")
+                        .replace(/{{localizacao}}|{{location}}/g, "Maputo, Moçambique")
+                        .replace(/{{date}}/g, new Date().toLocaleDateString("pt-PT", { day: 'numeric', month: 'long' }))}
+                    </div>
+
+                    <div className="flex justify-end mt-1 gap-1">
+                      <span className="text-[10px] text-muted-foreground/70">
+                        {new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <div className="flex">
+                        <svg width="16" height="11" viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-400">
+                          <path d="M4.5 9L1.5 6L0.5 7L4.5 11L13.5 2L12.5 1L4.5 9Z" fill="currentColor" />
+                          <path d="M15.5 2L6.5 11L6 10.5L14.5 2L15.5 2Z" fill="currentColor" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
