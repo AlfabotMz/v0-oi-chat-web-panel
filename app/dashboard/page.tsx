@@ -15,14 +15,20 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
-  // Verificar acesso: trial sem cartão não entra no dashboard
+  // Verificar acesso:
   const { data: profile } = await supabase
     .from("profiles")
-    .select("subscription_status, access_type, stripe_subscription_id, role")
+    .select("subscription_status, access_type, stripe_subscription_id, role, onboarding_completed")
     .eq("id", user.id)
     .single()
 
   if (profile) {
+    // 1. Forçar Onboarding primeiro
+    if (!profile.onboarding_completed && profile.role !== 'admin') {
+      redirect("/onboarding")
+    }
+
+    // 2. Bloquear trial sem cartão (apenas se onboarding concluído)
     const isTrialWithoutCard =
       profile.subscription_status === 'trial' &&
       profile.access_type === 'subscription' &&
