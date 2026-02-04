@@ -14,15 +14,15 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
-        const { businessName, whatsapp, companySize, goal, source } = body
+        const { businessType, whatsapp, monthlyRevenue, market, source } = body
 
         const { error: updateError } = await supabase
             .from("profiles")
             .update({
-                business_name: businessName,
+                business_type: businessType,
                 whatsapp,
-                company_size: companySize,
-                goal,
+                monthly_revenue: monthlyRevenue,
+                market,
                 source,
                 onboarding_completed: true,
                 updated_at: new Date().toISOString(),

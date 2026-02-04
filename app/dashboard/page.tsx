@@ -23,8 +23,9 @@ export default async function DashboardPage() {
     .single()
 
   if (profile) {
-    // 1. Forçar Onboarding primeiro
-    if (!profile.onboarding_completed && profile.role !== 'admin') {
+    // 1. Forçar Onboarding primeiro (apenas se não tiver assinatura ativa)
+    const hasActiveSubscription = !!profile.stripe_subscription_id
+    if (!profile.onboarding_completed && profile.role !== 'admin' && !hasActiveSubscription) {
       redirect("/onboarding")
     }
 
