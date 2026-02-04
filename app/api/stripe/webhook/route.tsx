@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
                     stripe_subscription_id: session.subscription as string,
                     plan_end_date: planEndDate.toISOString(),
                     trial_used: true,
+                    onboarding_completed: true,
                 })
                 .eq("id", userId)
 
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
             .update({
                 subscription_status: newStatus,
                 status: (newStatus === "active" || newStatus === "trial") ? "active" : "inactive",
-                plan_end_date: new Date(subscription.current_period_end * 1000).toISOString()
+                plan_end_date: new Date((subscription as any).current_period_end * 1000).toISOString()
             })
             .eq("stripe_subscription_id", subscription.id)
     }

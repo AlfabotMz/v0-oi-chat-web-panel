@@ -27,11 +27,14 @@ export function TrialChecker() {
 
             const { data: profile } = await supabase
                 .from("profiles")
-                .select("subscription_status, plan_end_date, plan")
+                .select("subscription_status, plan_end_date, plan, stripe_subscription_id")
                 .eq("id", user.id)
                 .single()
 
             if (profile) {
+                // Se tiver assinatura ativa no Stripe, não bloquear por trial
+                if (profile.stripe_subscription_id) return
+
                 const isTrial = profile.subscription_status === 'trial'
                 const isExpired = profile.plan_end_date && new Date(profile.plan_end_date) < new Date()
 
