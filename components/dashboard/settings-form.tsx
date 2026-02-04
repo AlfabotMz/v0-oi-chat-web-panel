@@ -52,6 +52,8 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
 
   const [phone, setPhone] = useState(profile?.phone || "")
   const [isSaving, setIsSaving] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
 
   const plan = profile?.plan || "free"
   const planLabel = planLabels[plan] || plan
@@ -80,6 +82,22 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
       })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    setIsCancelling(true)
+    try {
+      const response = await fetch("/api/stripe/cancel", { method: "POST" })
+      const data = await response.json()
+      if (!data.success) throw new Error(data.error)
+      setMessage({ type: "success", text: "Sua assinatura será cancelada ao final do período atual." })
+      setCancelDialogOpen(false)
+      router.refresh()
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message || "Erro ao cancelar assinatura." })
+    } finally {
+      setIsCancelling(false)
     }
   }
 
@@ -224,6 +242,26 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
               )}
             </Button>
           </div>
+          {profile?.stripe_subscription_id && profile?.subscription_status !== 'cancelled' && (
+            <div className="pt-4 border-t border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Assinatura</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Cancele sua renovação automática
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-red-500 border-red-200 hover:bg-red-50"
+                  onClick={() => setCancelDialogOpen(true)}
+                >
+                  Cancelar Assinatura
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -261,6 +299,28 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
           {message.text}
         </div>
       )}
+
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar Assinatura?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você continuará tendo acesso aos recursos Pro até o final do período atual.
+              Após isso, seus agentes serão pausados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelSubscription}
+              disabled={isCancelling}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isCancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sim, Cancelar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
