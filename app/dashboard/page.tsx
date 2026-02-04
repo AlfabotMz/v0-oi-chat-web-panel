@@ -29,10 +29,13 @@ export default async function DashboardPage() {
     }
 
     // 2. Bloquear trial sem cartão (apenas se onboarding concluído)
+    // Se o usuário tiver stripe_subscription_id, ele TEM acesso.
+    const hasSubscription = !!profile.stripe_subscription_id
+
     const isTrialWithoutCard =
       profile.subscription_status === 'trial' &&
       profile.access_type === 'subscription' &&
-      !profile.stripe_subscription_id
+      !hasSubscription
 
     const isUser = profile.role === 'user' || profile.role === 'moderator'
 

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ArrowLeft, Loader2, CheckCircle2, Bot, Sparkles, Zap, MessageSquare, PlayCircle } from "lucide-react"
 import { OnboardingSurvey } from "@/components/onboarding/onboarding-survey"
@@ -68,11 +68,61 @@ const tones = [
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false)
   const [selectedPersona, setSelectedPersona] = useState<string>("")
   const [selectedTone, setSelectedTone] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
+
+  // Polling para verificar se o pagamento foi processado pelo webhook
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment")
+    if (paymentStatus === "success") {
+      setIsCheckingPayment(true)
+
+      let attempts = 0
+      const maxAttempts = 10 // 20 segundos total
+
+      const checkPayment = async () => {
+        const supabase = (await import("@/lib/supabase/client")).createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+          router.push("/login")
+          return
+        }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("stripe_subscription_id, onboarding_completed")
+          .eq("id", user.id)
+          .single()
+
+        if (profile?.stripe_subscription_id) {
+          // Se o onboarding já foi concluído antes, ir direto pro dashboard
+          if (profile.onboarding_completed) {
+            router.push("/dashboard")
+          } else {
+            // Caso contrário, continua no onboarding mas sem o loading de check
+            setIsCheckingPayment(false)
+          }
+          return
+        }
+
+        attempts++
+        if (attempts < maxAttempts) {
+          setTimeout(checkPayment, 2000)
+        } else {
+          // Timeout - deixa o usuário prosseguir mas avisa ou loga
+          setIsCheckingPayment(false)
+        }
+      }
+
+      checkPayment()
+    }
+  }, [searchParams, router])
 
   const handleSurveyComplete = async (data: any) => {
     setIsLoading(true)
@@ -176,6 +226,30 @@ export default function OnboardingPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Se estiver verificando pagamento, mostrar tela de espera amigável
+  if (isCheckingPayment) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] px-4 py-12 relative overflow-hidden text-center">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[120px]" />
+        </div>
+        <div className="z-10 space-y-6">
+          <div className="relative mx-auto w-24 h-24">
+            <div className="absolute inset-0 bg-purple-500 rounded-full animate-ping opacity-20" />
+            <div className="relative flex items-center justify-center w-24 h-24 bg-zinc-900 border border-purple-500/50 rounded-full">
+              <Loader2 className="w-10 h-10 animate-spin text-purple-500" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-white">Confirmando seu Pagamento</h2>
+            <p className="text-zinc-400 max-w-sm">Estamos apenas sincronizando seus dados com o Stripe. Isso levará apenas alguns segundos...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   // Step 0: Survey (Full Screen)

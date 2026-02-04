@@ -37,9 +37,18 @@ function CheckoutContent() {
                     .eq("id", user.id)
                     .single()
 
-                setUser(user)
-                if (profile?.trial_used) {
-                    setTrialUsed(true)
+                if (profile) {
+                    setUser(user)
+
+                    // Se já tiver uma assinatura do Stripe, redirecionar para o dashboard
+                    if (profile.stripe_subscription_id) {
+                        router.push("/dashboard")
+                        return
+                    }
+
+                    if (profile.trial_used) {
+                        setTrialUsed(true)
+                    }
                 }
             }
             setLoading(false)
