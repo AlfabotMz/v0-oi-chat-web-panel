@@ -242,23 +242,48 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
               )}
             </Button>
           </div>
-          {profile?.stripe_subscription_id && profile?.subscription_status !== 'cancelled' && (
-            <div className="pt-4 border-t border-border/50">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Assinatura</Label>
+          {profile?.stripe_subscription_id && (
+            <div className="pt-6 border-t border-border/50">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-xl border border-border/50">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-base font-semibold">Minha Assinatura</Label>
+                    {profile.subscription_status === 'trial' ? (
+                      <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200">Período de Teste</Badge>
+                    ) : profile.subscription_status === 'cancelled' ? (
+                      <Badge variant="outline" className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-200">Cancelamento Programado</Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-200">Ativa</Badge>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground">
-                    Cancele sua renovação automática
+                    {profile.subscription_status === 'cancelled'
+                      ? "Sua assinatura não será renovada. Você terá acesso até o fim do período."
+                      : profile.subscription_status === 'trial'
+                        ? "Aproveite todos os recursos Pro durante seus 7 dias de teste."
+                        : "Sua assinatura Pro está ativa e renova automaticamente."}
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-red-500 border-red-200 hover:bg-red-50"
-                  onClick={() => setCancelDialogOpen(true)}
-                >
-                  Cancelar Assinatura
-                </Button>
+
+                {profile.subscription_status !== 'cancelled' ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 h-10 px-4"
+                    onClick={() => setCancelDialogOpen(true)}
+                  >
+                    Cancelar Plano
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-10 px-4 border-zinc-200"
+                    onClick={() => router.push("/checkout")}
+                  >
+                    Reativar Plano
+                  </Button>
+                )}
               </div>
             </div>
           )}

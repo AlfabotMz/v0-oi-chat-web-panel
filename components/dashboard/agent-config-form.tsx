@@ -28,11 +28,12 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
   const [webhookUrl, setWebhookUrl] = useState(agent.n8n_webhook_url || "")
   const [attachments, setAttachments] = useState<Record<string, string[]>>(agent.anexos || {})
   const [product, setProduct] = useState(agent.product || "")
+  const [amount, setAmount] = useState(agent.amount || "")
   const [contactOwner, setContactOwner] = useState(agent.contact_owner || "")
   const [contactDelivery, setContactDelivery] = useState(agent.contact_delivery || "")
   const [customMessage, setCustomMessage] = useState(
     agent.custom_message ||
-    "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{product}}\n\n💸 Número: {{number}}\n\n💸 Local: {{location}}"
+    "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{produto}}\n\n💸 Quantidade: {{quantidade}}\n\n💸 Valor: {{valor}}\n\n💸 Número: {{numero}}\n\n💸 Local: {{localizacao}}"
   )
   const [messageDelay, setMessageDelay] = useState(agent.message_delay || 0)
   const [isLoading, setIsLoading] = useState(false)
@@ -94,6 +95,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           prompt,
           status,
           product,
+          amount,
           n8n_webhook_url: webhookUrl,
           anexos: attachments,
           contact_owner: contactOwner || null,
@@ -158,18 +160,30 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="product">Produto</Label>
-            <Input
-              id="product"
-              value={product}
-              onChange={(e) => setProduct(e.target.value)}
-              placeholder="Ex: Consultoria de Marketing"
-            />
-            <p className="text-xs text-muted-foreground">
-              O produto ou serviço que este agente está vendendo
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="product">Produto</Label>
+              <Input
+                id="product"
+                value={product}
+                onChange={(e) => setProduct(e.target.value)}
+                placeholder="Ex: Consultoria"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">Valor (Amount)</Label>
+              <Input
+                id="amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Ex: 960 MT"
+              />
+            </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Configure o produto e o valor que aparecerão nas notificações.
+          </p>
 
 
 
@@ -227,7 +241,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="contactOwner">Contact Owner (WhatsApp)</Label>
+            <Label htmlFor="contactOwner">Número a Receber Formulário (WhatsApp)</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">+258</span>
               <Input
@@ -242,12 +256,12 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Número do dono/responsável que receberá notificações
+              Este número receberá os formulários preenchidos
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contactDelivery">Contact Delivery (WhatsApp - Opcional)</Label>
+            <Label htmlFor="contactDelivery">Número do Delivery (WhatsApp - Opcional)</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">+258</span>
               <Input
@@ -262,7 +276,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Número do entregador/logística para receber notificações
+              Este número receberá notificações de entrega/logística
             </p>
           </div>
 
@@ -275,9 +289,11 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               className="min-h-[150px] bg-background/50"
               mode="variables-only"
               variables={[
-                { label: "product", value: "{{product}}", description: "Nome do produto" },
-                { label: "number", value: "{{number}}", description: "Número do cliente" },
-                { label: "location", value: "{{location}}", description: "Localização do cliente" },
+                { label: "produto", value: "{{produto}}", description: "Nome do produto" },
+                { label: "quantidade", value: "{{quantidade}}", description: "Quantidade de itens" },
+                { label: "valor", value: "{{valor}}", description: "Valor total/unidade" },
+                { label: "numero", value: "{{numero}}", description: "Número do cliente" },
+                { label: "localizacao", value: "{{localizacao}}", description: "Localização do cliente" },
                 { label: "date", value: "{{date}}", description: "Data da conversão" },
               ]}
             />
@@ -288,9 +304,11 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               <p className="text-xs font-medium mb-1">Preview:</p>
               <pre className="text-xs whitespace-pre-wrap text-muted-foreground">
                 {customMessage
-                  .replace("{{product}}", product || "Produto Exemplo")
-                  .replace("{{number}}", "+258 84 123 4567")
-                  .replace("{{location}}", "Maputo, Moçambique")
+                  .replace("{{produto}}", product || "Produto Exemplo")
+                  .replace("{{quantidade}}", "1")
+                  .replace("{{valor}}", amount || "960 MT")
+                  .replace("{{numero}}", "+258 84 123 4567")
+                  .replace("{{localizacao}}", "Maputo, Moçambique")
                   .replace("{{date}}", new Date().toLocaleDateString("pt-PT", { day: 'numeric', month: 'long', year: 'numeric' }))}
               </pre>
             </div>
