@@ -24,6 +24,7 @@ export async function POST(request: Request) {
                 company_size: companySize,
                 goal,
                 source,
+                onboarding_completed: true,
                 updated_at: new Date().toISOString(),
             })
             .eq("id", user.id)

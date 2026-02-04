@@ -86,8 +86,14 @@ function CheckoutContent() {
                                 <Image src="/oichat-icon.jpg" alt="OiChat" fill className="object-cover" />
                             </div>
                         </div>
-                        <h1 className="text-3xl font-bold text-white">OiChat Checkout</h1>
-                        <p className="text-zinc-400">Entre ou crie uma conta para iniciar seu teste de 7 dias</p>
+                        <h1 className="text-3xl font-bold text-white">
+                            {searchParams.get("onboarding") === "complete" ? "Parabéns! Onboarding Concluído 🚀" : "OiChat Checkout"}
+                        </h1>
+                        <p className="text-zinc-400">
+                            {searchParams.get("onboarding") === "complete"
+                                ? "Seu agente está quase pronto. Só falta ativar seu teste de 7 dias."
+                                : "Entre ou crie uma conta para iniciar seu teste de 7 dias"}
+                        </p>
                     </div>
 
                     <Card className="glass border-zinc-800 bg-zinc-900/50">
@@ -210,9 +216,13 @@ function CheckoutContent() {
 
                         <Card className="glass border-0">
                             <CardHeader>
-                                <CardTitle className="text-white">Inicie seu Teste de 7 Dias</CardTitle>
+                                <CardTitle className="text-white">
+                                    {searchParams.get("onboarding") === "complete" ? "Ative seus 7 Dias Grátis" : "Inicie seu Teste de 7 Dias"}
+                                </CardTitle>
                                 <CardDescription className="text-zinc-400">
-                                    Você não será cobrado hoje. O teste termina em 7 dias, após o qual a assinatura será ativada automaticamente.
+                                    {searchParams.get("onboarding") === "complete"
+                                        ? "Como você concluiu a configuração, seu teste de 7 dias está disponível. Adicione um cartão para começar agora."
+                                        : "Você não será cobrado hoje. O teste termina em 7 dias, após o qual a assinatura será ativada automaticamente."}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">

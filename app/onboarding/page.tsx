@@ -98,10 +98,10 @@ export default function OnboardingPage() {
         console.warn("Failed to send data to n8n")
       }
 
-      router.push("/dashboard?onboarding=complete")
+      router.push("/checkout?onboarding=complete")
     } catch (err) {
       console.error("Erro ao salvar pesquisa:", err)
-      router.push("/dashboard?onboarding=complete")
+      router.push("/checkout?onboarding=complete")
     } finally {
       setIsLoading(false)
     }
@@ -110,7 +110,7 @@ export default function OnboardingPage() {
   const handleNext = () => {
     // Skip agent creation steps as requested
     if (currentStep === 1) {
-      router.push("/dashboard?onboarding=complete")
+      router.push("/checkout?onboarding=complete")
       return
     }
 
@@ -169,7 +169,7 @@ export default function OnboardingPage() {
         throw new Error(data.error || "Erro ao criar agente")
       }
 
-      router.push("/dashboard?onboarding=complete")
+      router.push("/checkout?onboarding=complete")
     } catch (err: unknown) {
       console.error("Erro ao criar agente:", err)
       setError(err instanceof Error ? err.message : "Erro ao criar agente")
