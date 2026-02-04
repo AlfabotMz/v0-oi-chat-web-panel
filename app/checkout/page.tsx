@@ -40,7 +40,24 @@ function CheckoutContent() {
                 if (profile) {
                     setUser(user)
 
-                    // Se já tiver uma assinatura do Stripe, redirecionar para o dashboard
+                    // Se não tiver assinatura no banco, tentar sincronizar uma última vez com o Stripe
+                    if (!profile.stripe_subscription_id) {
+                        try {
+                            const syncResponse = await fetch("/api/subscription/sync", {
+                                method: "POST",
+                            })
+                            const syncData = await syncResponse.json()
+                            if (syncData.success && syncData.synced) {
+                                // Se sincronizou algo novo, redirecionar para o dashboard
+                                router.push("/dashboard")
+                                return
+                            }
+                        } catch (err) {
+                            console.error("Erro ao tentar sincronizar no checkout:", err)
+                        }
+                    }
+
+                    // Se já tiver uma assinatura do Stripe (ou acabou de sincronizar acima), redirecionar para o dashboard
                     if (profile.stripe_subscription_id) {
                         router.push("/dashboard")
                         return

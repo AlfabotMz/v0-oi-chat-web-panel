@@ -38,8 +38,22 @@ export function TrialChecker() {
                 const isTrial = profile.subscription_status === 'trial'
                 const isExpired = profile.plan_end_date && new Date(profile.plan_end_date) < new Date()
 
-                // If trial expired, block access
+                // If trial expired, first try to sync with Stripe as a failsafe
                 if (isTrial && isExpired) {
+                    try {
+                        const syncResponse = await fetch("/api/subscription/sync", {
+                            method: "POST",
+                        })
+                        const syncData = await syncResponse.json()
+
+                        if (syncData.success && syncData.synced) {
+                            // Se sincronizou e achou algo, não bloqueia
+                            return
+                        }
+                    } catch (err) {
+                        console.error("Erro ao tentar sync de emergência:", err)
+                    }
+
                     setOpen(true)
                 }
             }
