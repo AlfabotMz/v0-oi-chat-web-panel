@@ -1,30 +1,43 @@
 import { createClient as createAdminClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2025-12-15.clover",
-})
+export async function POST(request: Request) {
+    console.log("[Sync] Recebida requisição de sincronização")
 
-const supabaseAdmin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-export async function POST(request: NextRequest) {
     try {
-        console.log("[Sync] Iniciando sync de subscrição...")
+        // 1. Verificar Variáveis de Ambiente
+        const stripeKey = process.env.STRIPE_SECRET_KEY
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-        // Diagnóstico de variáveis de ambiente
-        console.log("[Sync] Verificando variáveis de ambiente...")
-        if (!process.env.STRIPE_SECRET_KEY) console.error("[Sync] STRIPE_SECRET_KEY ausente")
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) console.error("[Sync] NEXT_PUBLIC_SUPABASE_URL ausente")
-        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) console.error("[Sync] SUPABASE_SERVICE_ROLE_KEY ausente")
+        if (!stripeKey || !supabaseUrl || !supabaseServiceKey) {
+            const missing = []
+            if (!stripeKey) missing.push("STRIPE_SECRET_KEY")
+            if (!supabaseUrl) missing.push("NEXT_PUBLIC_SUPABASE_URL")
+            if (!supabaseServiceKey) missing.push("SUPABASE_SERVICE_ROLE_KEY")
+
+            console.error("[Sync] Erro: Faltando variáveis:", missing)
+            return NextResponse.json({
+                success: false,
+                error: "Configuração do servidor incompleta.",
+                missing: missing
+            }, { status: 500 })
+        }
+
+        // 2. Inicializar Clients
+        const stripe = new Stripe(stripeKey, {
+            apiVersion: "2025-12-15.clover" as any,
+        })
+
+        const supabaseAdmin = createAdminClient(supabaseUrl, supabaseServiceKey, {
+            auth: { autoRefreshToken: false, persistSession: false },
+        })
 
         const supabase = await createClient()
 
-        // 1. Authenticate user
+        // 3. Autenticação
         const {
             data: { user },
             error: userError,
@@ -32,63 +45,44 @@ export async function POST(request: NextRequest) {
 
         if (userError || !user) {
             console.error("[Sync] Erro de autenticação:", userError)
-            return NextResponse.json({ success: false, error: "Acesso não autorizado. Por favor, faça login novamente." }, { status: 401 })
+            return NextResponse.json({ success: false, error: "Usuário não autenticado." }, { status: 401 })
         }
 
         const email = user.email
-        console.log("[Sync] Usuário autenticado:", email)
-
         if (!email) {
-            return NextResponse.json({ success: false, error: "Email do usuário não encontrado na sessão." }, { status: 400 })
+            return NextResponse.json({ success: false, error: "Email não encontrado na sessão." }, { status: 400 })
         }
 
-        // 2. Search for Customer in Stripe by Email
-        console.log("[Sync] Buscando cliente no Stripe por email:", email)
-        let customers;
-        try {
-            customers = await stripe.customers.list({
-                email: email,
-                limit: 1,
-            })
-        } catch (err: any) {
-            console.error("[Sync] Erro ao listar clientes no Stripe:", err)
-            return NextResponse.json({ success: false, error: `Erro na API do Stripe: ${err.message}` }, { status: 500 })
-        }
+        console.log(`[Sync] Sincronizando: ${email}`)
+
+        // 4. Stripe: Buscar Cliente
+        const customers = await stripe.customers.list({
+            email: email,
+            limit: 1,
+        })
 
         if (customers.data.length === 0) {
-            console.log("[Sync] Nenhum cliente encontrado no Stripe para:", email)
             return NextResponse.json({ success: false, message: "Nenhum cliente Stripe encontrado para este email." })
         }
 
         const customer = customers.data[0]
-        console.log("[Sync] Cliente encontrado:", customer.id)
 
-        // 3. List Subscriptions for this Customer
-        console.log("[Sync] Buscando assinaturas no Stripe para o cliente:", customer.id)
-        let subscriptions;
-        try {
-            subscriptions = await stripe.subscriptions.list({
-                customer: customer.id,
-                status: "all",
-                limit: 1,
-            })
-        } catch (err: any) {
-            console.error("[Sync] Erro ao listar assinaturas no Stripe:", err)
-            return NextResponse.json({ success: false, error: `Erro ao buscar assinaturas no Stripe: ${err.message}` }, { status: 500 })
-        }
+        // 5. Stripe: Buscar Assinaturas
+        const subscriptions = await stripe.subscriptions.list({
+            customer: customer.id,
+            status: "all",
+            limit: 1,
+        })
 
         if (subscriptions.data.length === 0) {
-            console.log("[Sync] Nenhuma assinatura encontrada para o cliente.")
-            return NextResponse.json({ success: false, message: "Nenhuma assinatura encontrada no Stripe para este cliente." })
+            return NextResponse.json({ success: false, message: "Nenhuma assinatura ativa encontrada." })
         }
 
         const subscription = subscriptions.data[0]
-        const status = subscription.status // 'active', 'trialing', etc.
+        const status = subscription.status
         const planEndDate = new Date((subscription as any).current_period_end * 1000)
-        console.log("[Sync] Assinatura encontrada:", subscription.id, "Status:", status)
 
-        // 4. Update Database using Admin Client to bypass RLS
-        console.log("[Sync] Atualizando banco de dados local via Admin...")
+        // 6. Supabase: Atualizar Perfil via Admin
         const { error: updateError } = await supabaseAdmin
             .from("profiles")
             .update({
@@ -104,11 +98,10 @@ export async function POST(request: NextRequest) {
             .eq("id", user.id)
 
         if (updateError) {
-            console.error("[Sync] Erro ao atualizar perfil no Supabase Admin:", updateError)
-            return NextResponse.json({ success: false, error: `Erro ao salvar dados no banco: ${updateError.message}` }, { status: 500 })
+            console.error("[Sync] Erro no database:", updateError)
+            return NextResponse.json({ success: false, error: "Erro ao atualizar banco de dados." }, { status: 500 })
         }
 
-        console.log("[Sync] Sincronização concluída com sucesso para:", email)
         return NextResponse.json({
             success: true,
             synced: true,
@@ -117,9 +110,9 @@ export async function POST(request: NextRequest) {
         })
 
     } catch (error: any) {
-        console.error("[Sync] Erro fatal inesperado:", error)
+        console.error("[Sync] Erro fatal:", error)
         return NextResponse.json(
-            { success: false, error: `Erro interno inesperado: ${error.message}` },
+            { success: false, error: error.message || "Erro interno do servidor" },
             { status: 500 }
         )
     }
