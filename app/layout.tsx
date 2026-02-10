@@ -16,6 +16,14 @@ const _sourceSerif_4 = V0_Font_Source_Serif_4({ subsets: ['latin'], weight: ["20
 export const metadata: Metadata = {
   title: "OiChat - Automação de Atendimento com IA",
   description: "Crie agentes de IA inteligentes para WhatsApp em minutos. Automatize seu suporte, vendas e atendimento com a OiChat.",
+  manifest: "/manifest.json",
+  themeColor: "#0F0F12",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "OiChat",
+  },
   icons: {
     icon: [
       {
@@ -32,6 +40,8 @@ export const metadata: Metadata = {
   generator: 'v0.app'
 }
 
+import { PWARegistration } from "@/components/pwa-registration"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,6 +57,7 @@ export default function RootLayout({
           disableTransitionOnChange
           storageKey="oichat-theme"
         >
+          <PWARegistration />
           {children}
           <Toaster />
         </ThemeProvider>

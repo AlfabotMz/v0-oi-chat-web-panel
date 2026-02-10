@@ -174,7 +174,7 @@ export function OnboardingTour() {
             {/* Tooltip */}
             <div
                 className={cn(
-                    "absolute pointer-events-auto w-[320px] bg-zinc-950/90 border border-white/10 rounded-[2rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 animate-in fade-in zoom-in-95 backdrop-blur-2xl",
+                    "absolute pointer-events-auto w-[calc(100vw-32px)] sm:w-[320px] bg-zinc-950/90 border border-white/10 rounded-[2rem] p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 animate-in fade-in zoom-in-95 backdrop-blur-2xl",
                     step.position === "right" && "ml-4",
                     step.position === "left" && "mr-4",
                     step.position === "bottom" && "mt-4",
@@ -184,9 +184,9 @@ export function OnboardingTour() {
                     top: step.position === "bottom" ? coords.top + coords.height + 12 :
                         step.position === "top" ? coords.top - 200 : // Approximation
                             coords.top + (coords.height / 2) - 100,
-                    left: step.position === "right" ? coords.left + coords.width + 12 :
-                        step.position === "left" ? coords.left - 312 :
-                            coords.left + (coords.width / 2) - 150
+                    left: step.position === "right" ? Math.min(coords.left + coords.width + 12, window.innerWidth - 300) :
+                        step.position === "left" ? Math.max(coords.left - 312, 12) :
+                            Math.max(12, Math.min(coords.left + (coords.width / 2) - 150, window.innerWidth - 300))
                 }}
             >
                 <div className="space-y-4">

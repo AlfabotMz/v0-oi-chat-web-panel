@@ -183,15 +183,15 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
         }, 300)
       }
     }}>
-      <DialogContent className="max-w-md bg-zinc-950/60 border-white/10 text-white overflow-hidden p-0 backdrop-blur-3xl shadow-[0_0_80px_rgba(0,0,0,0.8)] rounded-[2.5rem]">
-        <div className="relative h-1.5 w-full bg-white/5">
+      <DialogContent className="max-w-md w-[95vw] max-h-fit bg-zinc-950/60 border-white/10 text-white p-0 backdrop-blur-3xl shadow-[0_0_80px_rgba(0,0,0,0.8)] rounded-[2.5rem] overflow-hidden">
+        <div className="relative h-1.5 w-full bg-white/5 sticky top-0 z-[100]">
           <div
             className="absolute h-full bg-primary shadow-[0_0_20px_rgba(168,85,247,0.8)] transition-all duration-1000 ease-in-out"
             style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
 
-        <div className="p-10 pt-12">
+        <div className="p-6 sm:p-10 pt-10 sm:pt-12">
           <DialogHeader className="mb-10">
             <div className="flex items-center gap-4 mb-4">
               <div className="p-3.5 rounded-[1.2rem] bg-white/5 border border-white/10 backdrop-blur-2xl text-primary shadow-2xl">
@@ -202,7 +202,7 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
               </div>
               <div className="flex flex-col gap-0.5">
                 <span className="text-[10px] uppercase tracking-[0.3em] font-black text-primary/70">Fluxo de Criação</span>
-                <DialogTitle className="text-3xl font-black tracking-tighter">
+                <DialogTitle className="text-2xl sm:text-3xl font-black tracking-tighter">
                   {step === 1 && "Identidade"}
                   {step === 2 && "Personalidade"}
                   {step === 3 && "Revisão"}
@@ -220,18 +220,18 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
                   <Input
                     id="nome"
                     placeholder="Ex: Consultor OiChat"
-                    className="bg-white/5 border-white/10 text-white focus:ring-primary focus:border-primary/50 h-16 rounded-2xl text-xl font-medium backdrop-blur-md transition-all placeholder:text-zinc-700 px-6 shadow-inner"
+                    className="bg-white/5 border-white/10 text-white focus:ring-primary focus:border-primary/50 h-14 sm:h-16 rounded-2xl text-lg sm:text-xl font-medium backdrop-blur-md transition-all placeholder:text-zinc-700 px-6 shadow-inner"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2.5">
                     <Label htmlFor="product" className="text-[11px] font-black text-zinc-500 uppercase tracking-widest ml-1">Produto</Label>
                     <Input
                       id="product"
                       placeholder="Ex: Vendas"
-                      className="bg-white/5 border-white/10 text-white focus:ring-primary h-14 rounded-2xl backdrop-blur-md placeholder:text-zinc-700 px-4"
+                      className="bg-white/5 border-white/10 text-white focus:ring-primary h-12 sm:h-14 rounded-2xl backdrop-blur-md placeholder:text-zinc-700 px-4"
                       value={product}
                       onChange={(e) => setProduct(e.target.value)}
                     />
@@ -241,7 +241,7 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
                     <Input
                       id="amount"
                       placeholder="Ex: 990 MT"
-                      className="bg-white/5 border-white/10 text-white focus:ring-primary h-14 rounded-2xl backdrop-blur-md placeholder:text-zinc-700 px-4"
+                      className="bg-white/5 border-white/10 text-white focus:ring-primary h-12 sm:h-14 rounded-2xl backdrop-blur-md placeholder:text-zinc-700 px-4"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                     />
@@ -257,7 +257,7 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
                   <Textarea
                     id="prompt"
                     placeholder="Descreva como o agente deve agir..."
-                    className="bg-white/5 border-white/10 text-white focus:ring-primary min-h-[220px] rounded-3xl backdrop-blur-md text-base leading-relaxed p-6 placeholder:text-zinc-700 shadow-inner"
+                    className="bg-white/5 border-white/10 text-white focus:ring-primary min-h-[160px] sm:min-h-[220px] rounded-3xl backdrop-blur-md text-base leading-relaxed p-6 placeholder:text-zinc-700 shadow-inner"
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                   />
@@ -266,20 +266,37 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
             )}
 
             {step === 3 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-10 duration-700" data-tour="agent-dialog-step-3">
-                <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 space-y-6 backdrop-blur-2xl shadow-inner relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <Bot className="w-24 h-24" />
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-10 duration-700" data-tour="agent-dialog-step-3">
+                <div className="rounded-[2.5rem] border border-white/10 bg-white/5 p-8 sm:p-10 space-y-8 backdrop-blur-2xl shadow-inner relative overflow-hidden group">
+                  <div className="absolute -top-6 -right-6 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <Bot className="w-40 h-40" />
                   </div>
-                  <div className="flex flex-col gap-1.5 relative z-10">
-                    <span className="text-[10px] uppercase tracking-widest text-primary font-black">Resumo da Identidade</span>
-                    <span className="text-2xl font-bold">{nome}</span>
-                    <span className="text-sm text-zinc-400">Vendendo: {product || "Serviços Gerais"}</span>
+
+                  <div className="space-y-6 relative z-10">
+                    <div className="space-y-1 text-center sm:text-left">
+                      <span className="text-[10px] uppercase tracking-[0.3em] text-primary font-black">Identidade Confirmada</span>
+                      <h3 className="text-3xl font-black bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent break-words">{nome}</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Produto</span>
+                        <span className="text-sm font-bold text-zinc-200">{product || "Geral"}</span>
+                      </div>
+                      <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Preço</span>
+                        <span className="text-sm font-bold text-primary">{amount || "N/A"}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="pt-4 border-t border-white/5 relative z-10">
-                    <div className="flex items-center gap-2 text-zinc-400">
-                      <Check className="w-4 h-4 text-primary" />
-                      <span className="text-xs">IA configurada e pronta para ativação</span>
+
+                  <div className="pt-6 border-t border-white/5 relative z-10 flex items-center justify-center sm:justify-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                      <Check className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-zinc-200">Pronto para Lançamento</span>
+                      <span className="text-[10px] text-zinc-500">IA assumirá este perfil imediatamente</span>
                     </div>
                   </div>
                 </div>
@@ -357,7 +374,7 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
                 variant="ghost"
                 onClick={prevStep}
                 disabled={isLoading}
-                className="flex-1 rounded-2xl h-16 border border-white/5 hover:bg-white/5 text-zinc-500 font-black uppercase tracking-widest text-[10px]"
+                className="flex-1 rounded-2xl h-14 sm:h-16 border border-white/5 hover:bg-white/5 text-zinc-500 font-black uppercase tracking-widest text-[10px]"
               >
                 Voltar
               </Button>
@@ -366,7 +383,7 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
               onClick={step === 4 ? () => onOpenChange(false) : nextStep}
               disabled={isLoading || (step === 1 && !nome) || (step === 2 && !prompt)}
               className={cn(
-                "flex-[3] h-16 rounded-[1.5rem] text-white font-black tracking-[0.1em] text-lg transition-all duration-500 shadow-[0_15px_35px_rgba(168,85,247,0.4)] hover:shadow-[0_20px_45px_rgba(168,85,247,0.6)]",
+                "flex-[3] h-14 sm:h-16 rounded-[1.2rem] sm:rounded-[1.5rem] text-white font-black tracking-[0.1em] text-base sm:text-lg transition-all duration-500 shadow-[0_15px_35px_rgba(168,85,247,0.4)] hover:shadow-[0_20px_45px_rgba(168,85,247,0.6)]",
                 step === 3 ? "bg-green-600 hover:bg-green-700 shadow-green-500/20" : "bg-primary hover:bg-primary/90",
                 step === 4 && connectStatus !== "connected" && "bg-zinc-800 hover:bg-zinc-700 shadow-none border border-white/5"
               )}
