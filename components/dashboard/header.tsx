@@ -29,6 +29,7 @@ export function Header({ user, onMenuToggle }: HeaderProps) {
             onClick={onMenuToggle}
             className="md:hidden p-2"
             aria-label="Toggle menu"
+            data-tour="mobile-menu-button"
           >
             <Menu className="w-5 h-5" />
           </Button>
