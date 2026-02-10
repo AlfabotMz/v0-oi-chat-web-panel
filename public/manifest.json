@@ -1,0 +1,23 @@
+{
+    "name": "OiChat - Assistente de Vendas IA",
+    "short_name": "OiChat",
+    "description": "Seu assistente de vendas inteligente no WhatsApp",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#0F0F12",
+    "theme_color": "#a855f7",
+    "icons": [
+        {
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

@@ -70,7 +70,7 @@ export function AgentsList({ agents }: AgentsListProps) {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-bold text-foreground">Your Agents</h2>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2 sm:w-auto w-full sm:self-auto">
+        <Button onClick={() => setIsCreateOpen(true)} className="gap-2 sm:w-auto w-full sm:self-auto" data-tour="create-agent-button">
           <Plus className="w-4 h-4" />
           New Agent
         </Button>
@@ -81,7 +81,7 @@ export function AgentsList({ agents }: AgentsListProps) {
           <Card className="col-span-full border-border/50">
             <CardContent className="p-6 text-center sm:p-8">
               <p className="text-muted-foreground mb-4">No agents yet</p>
-              <Button onClick={() => setIsCreateOpen(true)} variant="outline" className="w-full sm:w-auto">
+              <Button onClick={() => setIsCreateOpen(true)} variant="outline" className="w-full sm:w-auto" data-tour="create-agent-button">
                 Create Your First Agent
               </Button>
             </CardContent>

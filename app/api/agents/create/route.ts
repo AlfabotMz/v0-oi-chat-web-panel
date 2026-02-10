@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Ler dados do corpo da requisição
     const body = await request.json()
-    const { nome, prompt, phone_number } = body
+    const { nome, prompt, phone_number, product, amount } = body
 
     // Validação 1: Limite de Agentes Ativos para Free/Trial
     // Se o usuário for free ou trial, só pode ter 1 agente ATIVO.
@@ -119,6 +119,8 @@ export async function POST(request: NextRequest) {
           user_id: user.id,
           nome,
           prompt,
+          product,
+          amount,
           phone_number,
           action: "create_agent"
         }),
@@ -207,6 +209,9 @@ export async function POST(request: NextRequest) {
           user_id: user.id,
           name: nome,
           welcome_message: prompt, // Usando prompt como welcome message ou description
+          prompt: prompt,
+          product: product,
+          amount: amount,
           status: initialStatus,
           phone_number: phone_number || null
         })

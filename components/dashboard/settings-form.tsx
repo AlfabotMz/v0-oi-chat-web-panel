@@ -59,6 +59,25 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
   const planLabel = planLabels[plan] || plan
   const planColor = planColors[plan] || "bg-gray-500"
 
+  const [isPortalLoading, setIsPortalLoading] = useState(false)
+
+  const handleGoToPortal = async () => {
+    setIsPortalLoading(true)
+    try {
+      const response = await fetch("/api/stripe/portal", { method: "POST" })
+      const data = await response.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error(data.error || "Erro ao acessar o portal.")
+      }
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message || "Erro ao conectar com a Stripe." })
+    } finally {
+      setIsPortalLoading(false)
+    }
+  }
+
   const handleUpdateProfile = async () => {
     setIsSaving(true)
     setMessage(null)
@@ -269,10 +288,16 @@ export function SettingsForm({ user, profile }: SettingsFormProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 h-10 px-4"
-                    onClick={() => setCancelDialogOpen(true)}
+                    className="border-zinc-200 hover:bg-zinc-50 h-10 px-4 flex items-center gap-2 text-zinc-700 dark:text-zinc-300 dark:border-zinc-800"
+                    onClick={handleGoToPortal}
+                    disabled={isPortalLoading}
                   >
-                    Cancelar Plano
+                    {isPortalLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Crown className="w-4 h-4 text-primary" />
+                    )}
+                    Gerenciar Assinatura
                   </Button>
                 ) : (
                   <Button

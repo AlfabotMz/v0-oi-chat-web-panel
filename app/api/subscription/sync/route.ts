@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
         // 2. Inicializar Clients
         const stripe = new Stripe(stripeKey, {
-            apiVersion: "2025-12-15.clover" as any,
+            apiVersion: "2024-11-20.acacia" as any,
         })
 
         const supabaseAdmin = createAdminClient(supabaseUrl, supabaseServiceKey, {
@@ -88,7 +88,27 @@ export async function POST(request: Request) {
 
         const subscription = subscriptions.data[0]
         const status = subscription.status
-        const planEndDate = new Date((subscription as any).current_period_end * 1000)
+
+        // Safety check for current_period_end
+        const periodEnd = (subscription as any).current_period_end
+
+        console.log(`[Sync] Detalhes da assinatura: id=${subscription.id}, status=${status}, current_period_end=${periodEnd}`)
+
+        if (!periodEnd || isNaN(periodEnd) || periodEnd <= 0) {
+            console.error("[Sync] Erro: current_period_end inválido:", periodEnd)
+            return NextResponse.json({
+                success: false,
+                error: "Dados de tempo da assinatura inválidos recebidos do Stripe. Por favor, entre em contato com o suporte."
+            }, { status: 500 })
+        }
+
+        const planEndDate = new Date(periodEnd * 1000)
+
+        // Verifica se o Date é válido antes de chamar toISOString()
+        if (isNaN(planEndDate.getTime())) {
+            console.error("[Sync] Erro: Falha ao converter data:", periodEnd)
+            return NextResponse.json({ success: false, error: "Erro na conversão de data da assinatura." }, { status: 500 })
+        }
 
         console.log(`[Sync] Assinatura: ${subscription.id} | Status: ${status}`)
 

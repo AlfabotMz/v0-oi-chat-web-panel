@@ -52,6 +52,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           supportWhatsAppLink={supportWhatsAppLink}
           isCollapsed={isCollapsed}
           onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+          user={user}
         />
       </aside>
 
@@ -68,6 +69,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
             onNavigate={() => setIsMenuOpen(false)}
             communityLink={communityLink}
             supportWhatsAppLink={supportWhatsAppLink}
+            user={user}
           />
         </div>
 
@@ -90,6 +92,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
             onNavigate={() => { }}
             communityLink={communityLink}
             supportWhatsAppLink={supportWhatsAppLink}
+            user={user}
           />
         </div>
       </main>

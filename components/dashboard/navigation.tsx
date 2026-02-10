@@ -2,11 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MessageCircle, BarChart3, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react"
+import { MessageCircle, BarChart3, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight, UserIcon, LogOut, Smartphone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { signOut } from "@/lib/supabase/auth-actions"
+import type { User } from "@supabase/supabase-js"
+import { useRouter } from "next/navigation"
 
 interface NavigationProps {
   variant?: "sidebar" | "mobile"
@@ -15,41 +18,63 @@ interface NavigationProps {
   supportWhatsAppLink?: string
   isCollapsed?: boolean
   onToggleCollapse?: () => void
+  user: User
 }
 
 const navItems = [
   { href: "/dashboard", label: "Agentes", icon: MessageCircle },
-  { href: "/dashboard/conversations", label: "Conversas", icon: MessageSquare },
+  { href: "/dashboard/remarketing", label: "Remarketing", icon: MessageSquare, isSoon: true },
   { href: "/dashboard/performance", label: "Performance", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
 ]
 
-export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = false, onToggleCollapse }: NavigationProps) {
+export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = false, onToggleCollapse, user }: NavigationProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [plan, setPlan] = useState<string>("free")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchPlan = async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("plan, subscription_status")
+        .eq("id", user.id)
+        .single()
 
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("plan, subscription_status")
-          .eq("id", user.id)
-          .single()
-
-        if (profile) {
-          setPlan(profile.plan || "free")
-        }
+      if (profile) {
+        setPlan(profile.plan || "free")
       }
       setLoading(false)
     }
 
     fetchPlan()
-  }, [])
+  }, [user.id])
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      const installBtn = document.getElementById('install-pwa');
+      if (installBtn) {
+        installBtn.classList.remove('hidden');
+        installBtn.onclick = async () => {
+          e.prompt();
+          const { outcome } = await e.userChoice;
+          console.log(`User response to the install prompt: ${outcome}`);
+          installBtn.classList.add('hidden');
+        };
+      }
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push("/login")
+  }
 
   const getPlanName = (planCode: string) => {
     switch (planCode) {
@@ -93,7 +118,6 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
             </Link>
           )
         })}
-
       </nav>
     )
   }
@@ -140,6 +164,11 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
                     ? "bg-white/5 text-white"
                     : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
                 )}
+                data-tour={
+                  item.label === "Agentes" ? "nav-agents" :
+                    item.label === "Remarketing" ? "nav-remarketing" :
+                      item.label === "Performance" ? "nav-performance" : undefined
+                }
               >
                 {isActive && (
                   <div className={cn(
@@ -150,9 +179,9 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
                 <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-primary" : "group-hover:text-zinc-300")} />
                 {!isCollapsed && <span className="font-medium">{item.label}</span>}
 
-                {!isCollapsed && item.label === "Performance" && (
-                  <span className="ml-auto text-[10px] font-bold bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">
-                    NEW
+                {!isCollapsed && (item as any).isSoon && (
+                  <span className="ml-auto text-[10px] opacity-20 group-hover:opacity-100 transition-opacity">
+                    ...
                   </span>
                 )}
               </div>
@@ -161,12 +190,6 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
         })}
       </div>
 
-      {/* Botão de Toggle para estado colapsado (aparece embaixo quando colapsado) */}
-      {isCollapsed && (
-        <div className="mt-4 flex justify-center md:hidden">
-          {/* Mobile doesn't collapse this way, so this is just safe keeping or for desktop if we want a bottom toggle */}
-        </div>
-      )}
       {isCollapsed && (
         <Button
           variant="ghost"
@@ -178,32 +201,18 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
         </Button>
       )}
 
-
-      {/* Botão de Suporte */}
-      <div className="mt-auto space-y-4">
-        {/* Plan Usage Card */}
-        {!isCollapsed ? (
-          <div className="bg-gradient-to-br from-primary/20 to-purple-900/20 rounded-2xl p-4 border border-white/5 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative z-10">
-              <div className="flex justify-between items-start mb-2">
-                <div className="p-2 bg-primary/20 rounded-lg">
-                  <BarChart3 className="w-4 h-4 text-primary" />
-                </div>
-                <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                  {loading ? "..." : getPlanBadge(plan)}
-                </span>
-              </div>
-              <h4 className="font-bold text-sm mb-1">{loading ? "Carregando..." : getPlanName(plan)}</h4>
-            </div>
-          </div>
-        ) : (
-          <div className="flex justify-center">
-            <div className="p-2 bg-primary/20 rounded-lg" title={getPlanName(plan)}>
-              <BarChart3 className="w-4 h-4 text-primary" />
-            </div>
-          </div>
-        )}
+      <div className="mt-auto space-y-2">
+        <Button
+          id="install-pwa"
+          variant="ghost"
+          className={cn(
+            "w-full text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl h-12 hidden",
+            isCollapsed ? "justify-center px-0" : "justify-start gap-3"
+          )}
+        >
+          <Smartphone className="w-5 h-5" />
+          {!isCollapsed && <span className="font-medium">Instalar App</span>}
+        </Button>
 
         <Link href="/dashboard/support" onClick={onNavigate}>
           <Button
@@ -218,6 +227,40 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
             {!isCollapsed && <span className="font-medium">Suporte</span>}
           </Button>
         </Link>
+      </div>
+
+      <div className={cn(
+        "pt-4 border-t border-white/5",
+        isCollapsed ? "flex flex-col items-center gap-4" : "space-y-4"
+      )}>
+        {!isCollapsed ? (
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+              <UserIcon className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{user.email}</p>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{loading ? "Carregando..." : getPlanName(plan)}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400" title={user.email}>
+            <UserIcon className="w-4 h-4" />
+          </div>
+        )}
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleSignOut}
+          className={cn(
+            "w-full text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl h-10",
+            isCollapsed ? "justify-center px-0" : "justify-start gap-3"
+          )}
+        >
+          <LogOut className="w-4 h-4" />
+          {!isCollapsed && <span className="font-medium">Sair</span>}
+        </Button>
       </div>
     </nav>
   )

@@ -15,6 +15,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { FadeIn } from "@/components/animations/fade-in"
+import { WhatsAppSupport } from "@/components/ui/whatsapp-support"
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -396,6 +397,7 @@ export default function LandingPage() {
           </div>
         </footer>
       </main>
+      <WhatsAppSupport />
     </div>
   )
 }
