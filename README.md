@@ -1,204 +1,38 @@
-# OiChat web panel
+# OiChat - Automação Inteligente para WhatsApp
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+OiChat é uma plataforma premium de automação de atendimento via WhatsApp, projetada para transformar a comunicação entre empresas e clientes através da Inteligência Artificial. Com o OiChat, você pode criar agentes inteligentes que operam 24 horas por dia, 7 dias por semana, garantindo que nenhum lead seja perdido.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/alfabotmz-gmailcoms-projects/v0-oi-chat-web-panel)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/gfJCwMszoPy)
+## 🚀 O que é o OiChat?
 
-## Overview
+O OiChat é mais do que um simples chatbot. É um painel administrativo completo (Web Panel) que permite gerenciar agentes virtuais equipados com modelos de linguagem de ponta. A plataforma foca em **conversas naturais**, **qualificação de leads** e **agendamentos automáticos**, tudo dentro do ambiente do WhatsApp.
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## 🛠️ Principais Funções
 
-## Deployment
+O OiChat oferece um ecossistema robusto para a sua operação:
 
-Your project is live at:
+*   **Agentes de IA Personalizados:** Crie agentes com personalidades e conhecimentos específicos para o seu negócio.
+*   **Integração Nativa com WhatsApp:** Conexão simples e rápida via QR Code.
+*   **Atendimento 24/7:** Respostas instantâneas a qualquer hora do dia ou da noite.
+*   **Qualificação de Leads:** Seus agentes podem fazer perguntas estratégicas para filtrar os melhores clientes antes mesmo de você intervir.
+*   **Dashboards de Desempenho:** Acompanhe métricas em tempo real sobre o volume de mensagens, leads gerados e eficiência dos agentes.
+*   **Gestão de Assinaturas Integrada:** Pagamentos facilitados via M-Pesa, e-Mola (PayMoz) e Stripe.
+*   **Onboarding Simples:** Fluxo guiado para configurar sua empresa e seus primeiros agentes em minutos.
+*   **Integração com n8n:** Poderosas automações de fluxo de trabalho (webhooks) para conectar o OiChat com suas ferramentas favoritas.
 
-**[https://vercel.com/alfabotmz-gmailcoms-projects/v0-oi-chat-web-panel](https://vercel.com/alfabotmz-gmailcoms-projects/v0-oi-chat-web-panel)**
+## 📂 Organização do Projeto
 
-## Build your app
+Este repositório contém a interface web e a lógica de integração do OiChat:
 
-Continue building your app on:
-
-**[https://v0.app/chat/gfJCwMszoPy](https://v0.app/chat/gfJCwMszoPy)**
-
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
-
-## API Documentation
-
-This section documents the backend endpoints consumed by the frontend.
-
-### Business Form
-
-**Endpoint:** `/api/business-form`
-**Method:** `POST`
-**Description:** Submits the business plan interest form. Forwards data to an n8n webhook.
-
-**Request Body:**
-\`\`\`json
-{
-  "name": "string",
-  "businessName": "string",
-  "employees": "string",
-  "budget": "string"
-}
-\`\`\`
-
-**Response:**
-- Success: `{ "success": true }`
-- Error: `{ "error": "Internal Server Error" }` (Status 500)
+*   **`app/`**: Rotas e páginas da aplicação Next.js.
+*   **`components/`**: Componentes de interface (UI) modernos e responsivos.
+*   **`api/`**: Endpoints para processamento de pagamentos, gestão de perfis e controle de agentes.
+*   **`scripts/`**: Utilitários para manutenção do banco de dados e sincronização de assinaturas.
 
 ---
 
-### Payments
-
-**Endpoint:** `/api/payments/process`
-**Method:** `POST`
-**Description:** Processes payments via PayMoz, updates Supabase records, and sends a confirmation email.
-
-**Request Body:**
-\`\`\`json
-{
-  "metodo": "mpesa" | "emola",
-  "numero_celular": "string"
-}
-\`\`\`
-
-**Response:**
-- Success:
-\`\`\`json
-{
-  "success": true,
-  "message": "string",
-  "plan_end_date": "ISO8601 Date String"
-}
-\`\`\`
-- Error: `{ "success": false, "error": "string" }` (Status 400/500)
+> [!NOTE]
+> Este arquivo foi atualizado para descrever a plataforma OiChat. A documentação técnica original (incluindo especificações de API) foi movida para [README_init.md](file:///c:/Users/Rapeizee/Documents/proects/oichat/v0-oi-chat-web-panel/README_init.md).
 
 ---
 
-### Profile
-
-**Endpoint:** `/api/profile/update`
-**Method:** `POST`
-**Description:** Updates the user's profile information in Supabase.
-
-**Request Body:**
-\`\`\`json
-{
-  "businessName": "string",
-  "whatsapp": "string",
-  "companySize": "string",
-  "goal": "string",
-  "source": "string"
-}
-\`\`\`
-
-**Response:**
-- Success: `{ "success": true }`
-- Error: `{ "success": false, "error": "string" }` (Status 401/500)
-
----
-
-### Onboarding
-
-**Endpoint:** `/api/onboarding/n8n`
-**Method:** `POST`
-**Description:** Forwards onboarding survey data to an n8n webhook, appending user ID and email.
-
-**Request Body:**
-\`\`\`json
-{
-  // Any data from the onboarding survey
-  ...
-}
-\`\`\`
-
-**Response:**
-- Success: `{ "success": true }`
-- Error: `{ "success": false, "error": "string" }` (Status 401/500)
-
----
-
-### Agents
-
-#### Create Agent
-**Endpoint:** `/api/agents/create`
-**Method:** `POST`
-**Description:** Creates a new agent. Attempts to create via n8n webhook first; falls back to local Supabase creation if n8n fails.
-
-**Request Body:**
-\`\`\`json
-{
-  "nome": "string",
-  "prompt": "string",
-  "phone_number": "string" | null
-}
-\`\`\`
-
-**Response:**
-- Success:
-\`\`\`json
-{
-  "success": true,
-  "message": "string",
-  "agent": { ... },
-  "warning": "string" // Optional
-}
-\`\`\`
-- Error: `{ "success": false, "error": "string" }` (Status 400/403/500)
-
-#### Connect WhatsApp
-**Endpoint:** `/api/agents/connect-whatsapp`
-**Method:** `POST`
-**Description:** Requests a QR code from n8n to connect an agent to WhatsApp.
-
-**Request Body:**
-\`\`\`json
-{
-  "agent_id": "string"
-}
-\`\`\`
-
-**Response:**
-- Success:
-\`\`\`json
-{
-  "success": true,
-  "qr": "string", // Base64 image or data string
-  "status": "string",
-  "message": "string"
-}
-\`\`\`
-- Error: `{ "success": false, "error": "string" }` (Status 400/401/404/500)
-
-#### Check Agent Status
-**Endpoint:** `/api/agents/[id]/status`
-**Method:** `GET`
-**Description:** Checks the connection status of an agent via n8n.
-
-**Response:**
-- Success:
-\`\`\`json
-{
-  "success": true,
-  "status": "connected" | "disconnected" | "pending",
-  "connected": boolean,
-  "message": "string"
-}
-\`\`\`
-- Error: `{ "success": false, "status": "disconnected", "connected": false, "error": "string" }` (Status 400/401/404/500)
-
-#### Delete Agent
-**Endpoint:** `/api/agents/[id]/delete`
-**Method:** `DELETE`
-**Description:** Deletes an agent via n8n and removes it from Supabase.
-
-**Response:**
-- Success: `{ "success": true, "message": "string" }`
-- Error: `{ "success": false, "error": "string" }` (Status 400/401/404/500)
+© 2024 **OiChat**. Transformando conversas em resultados.
