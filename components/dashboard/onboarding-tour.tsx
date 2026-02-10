@@ -17,38 +17,62 @@ const tourSteps: TourStep[] = [
     {
         target: '[data-tour="nav-agents"]',
         title: "Agentes de IA",
-        content: "Este é o seu centro de comando. Aqui você cria e configura seus agentes de IA personalizados para atender seus clientes.",
+        content: "Este é o seu centro de comando. Aqui você cria e gerencia seus assistentes virtuais.",
         position: "right"
     },
     {
         target: '[data-tour="nav-remarketing"]',
         title: "Remarketing Automático",
-        content: "Nossa poderosa ferramenta de retorno para clientes que não concluíram a compra. Em breve disponível para você!",
+        content: "Recupere carrinhos abandonados automaticamente. Em breve para sua conta!",
         position: "right"
     },
     {
         target: '[data-tour="nav-performance"]',
-        title: "Análise de Performance",
-        content: "Acompanhe seus resultados em tempo real! Veja exatamente quantos leads cada agente está gerando.",
+        title: "Performance",
+        content: "Veja quantos leads e vendas cada agente está gerando para seu negócio.",
         position: "right"
     },
     {
         target: '[data-tour="header-support"]',
-        title: "Suporte 24/7",
-        content: "Qualquer dúvida, nossa equipe está a um clique de distância. Clique aqui para falar conosco pelo WhatsApp a qualquer momento.",
+        title: "Ajuda & Suporte",
+        content: "Dúvidas? Fale conosco no WhatsApp a qualquer momento por aqui.",
         position: "bottom"
     },
     {
         target: '[data-tour="dashboard-stats"]',
-        title: "Métricas Rápidas",
-        content: "Visão geral do volume de mensagens e conversões da sua conta nos últimos dias.",
+        title: "Seus Resultados",
+        content: "Acompanhe o volume de mensagens e conversões nos últimos dias.",
         position: "bottom"
     },
     {
-        target: '[data-tour="dashboard-agents"]',
-        title: "Seus Agentes",
-        content: "Gerencie todos os seus robôs ativos. Ative, desative ou edite as configurações de cada um aqui.",
-        position: "top"
+        target: '[data-tour="create-agent-button"]',
+        title: "Vamos Começar?",
+        content: "Clique aqui para criar seu primeiro agente e ver a mágica acontecer!",
+        position: "bottom"
+    },
+    {
+        target: '[data-tour="agent-dialog-step-1"]',
+        title: "Identidade",
+        content: "Defina o nome do agente e o que ele vai vender. Importante para as notificações!",
+        position: "right"
+    },
+    {
+        target: '[data-tour="agent-dialog-step-2"]',
+        title: "A Alma do Agente",
+        content: "Diga à IA como ela deve agir. Seja específico nas instruções!",
+        position: "right"
+    },
+    {
+        target: '[data-tour="agent-dialog-step-3"]',
+        title: "Revisão Final",
+        content: "Revise tudo antes de ativar seu novo consultor digital.",
+        position: "right"
+    },
+    {
+        target: '[data-tour="agent-dialog-step-4"]',
+        title: "Conexão WhatsApp",
+        content: "Agora é só escanear o QR Code para colocar seu agente para trabalhar imediatamente!",
+        position: "right"
     }
 ]
 
@@ -59,34 +83,46 @@ export function OnboardingTour() {
     const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, height: 0 })
     const [isVisible, setIsVisible] = useState(false)
 
+    const onboardingValue = searchParams.get("onboarding")
+
     useEffect(() => {
-        if (searchParams.get("onboarding") === "true") {
-            setTimeout(() => setCurrentStep(0), 1000) // Delay to ensure layout is ready
+        // Init tour if param is present
+        if (onboardingValue === "true" && currentStep === -1) {
+            const timer = setTimeout(() => setCurrentStep(0), 1000)
             setIsVisible(true)
+            return () => clearTimeout(timer)
         }
-    }, [searchParams])
 
-    useEffect(() => {
-        if (currentStep >= 0 && currentStep < tourSteps.length) {
-            const step = tourSteps[currentStep]
-            const element = document.querySelector(step.target) as HTMLElement
+        // Monitoring logic (only runs if tour is visible)
+        if (!isVisible || currentStep === -1) return
 
-            if (element) {
-                const rect = element.getBoundingClientRect()
-                setCoords({
-                    top: rect.top + window.scrollY,
-                    left: rect.left + window.scrollX,
-                    width: rect.width,
-                    height: rect.height
-                })
+        const checkElement = () => {
+            if (currentStep >= 0 && currentStep < tourSteps.length) {
+                const step = tourSteps[currentStep]
+                const element = document.querySelector(step.target) as HTMLElement
 
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-            } else {
-                // Skip step if element not found
-                handleNext()
+                if (element) {
+                    const rect = element.getBoundingClientRect()
+                    setCoords({
+                        top: rect.top + window.scrollY,
+                        left: rect.left + window.scrollX,
+                        width: rect.width,
+                        height: rect.height
+                    })
+
+                    // Scroll only if it's the first time we see this element or step changed
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                } else if (currentStep <= 5) {
+                    // Skip steps that are not in the current view (except dialog steps which we wait for)
+                    handleNext()
+                }
             }
         }
-    }, [currentStep])
+
+        checkElement()
+        const interval = setInterval(checkElement, 500)
+        return () => clearInterval(interval)
+    }, [onboardingValue, currentStep, isVisible])
 
     const handleNext = () => {
         if (currentStep < tourSteps.length - 1) {
@@ -138,7 +174,7 @@ export function OnboardingTour() {
             {/* Tooltip */}
             <div
                 className={cn(
-                    "absolute pointer-events-auto w-[300px] bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl transition-all duration-500 animate-in fade-in zoom-in-95",
+                    "absolute pointer-events-auto w-[320px] bg-zinc-950/90 border border-white/10 rounded-[2rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 animate-in fade-in zoom-in-95 backdrop-blur-2xl",
                     step.position === "right" && "ml-4",
                     step.position === "left" && "mr-4",
                     step.position === "bottom" && "mt-4",

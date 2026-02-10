@@ -34,10 +34,6 @@ export function Header({ user, onMenuToggle }: HeaderProps) {
           </Button>
           <h1 className="text-xl font-semibold text-foreground sm:text-2xl">OiChat Dashboard</h1>
         </div>
-        <div className="flex items-center gap-2 truncate">
-          <UserIcon className="w-4 h-4 shrink-0" />
-          <span className="truncate max-w-[12rem] sm:max-w-xs">{user.email}</span>
-        </div>
         <div className="flex items-center gap-2">
           <a href="https://wa.me/258856428686" target="_blank" rel="noopener noreferrer" data-tour="header-support">
             <Button variant="outline" size="sm" className="gap-2 border-primary/30 hover:bg-primary/10 hover:text-primary transition-colors">

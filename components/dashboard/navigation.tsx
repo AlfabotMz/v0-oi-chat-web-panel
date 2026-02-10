@@ -2,11 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MessageCircle, BarChart3, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react"
+import { MessageCircle, BarChart3, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight, UserIcon, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { signOut } from "@/lib/supabase/auth-actions"
+import type { User } from "@supabase/supabase-js"
+import { useRouter } from "next/navigation"
 
 interface NavigationProps {
   variant?: "sidebar" | "mobile"
@@ -15,6 +18,7 @@ interface NavigationProps {
   supportWhatsAppLink?: string
   isCollapsed?: boolean
   onToggleCollapse?: () => void
+  user: User
 }
 
 const navItems = [
@@ -24,32 +28,34 @@ const navItems = [
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
 ]
 
-export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = false, onToggleCollapse }: NavigationProps) {
+export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = false, onToggleCollapse, user }: NavigationProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [plan, setPlan] = useState<string>("free")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchPlan = async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("plan, subscription_status")
+        .eq("id", user.id)
+        .single()
 
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("plan, subscription_status")
-          .eq("id", user.id)
-          .single()
-
-        if (profile) {
-          setPlan(profile.plan || "free")
-        }
+      if (profile) {
+        setPlan(profile.plan || "free")
       }
       setLoading(false)
     }
 
     fetchPlan()
-  }, [])
+  }, [user.id])
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push("/login")
+  }
 
   const getPlanName = (planCode: string) => {
     switch (planCode) {
@@ -229,6 +235,41 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
             {!isCollapsed && <span className="font-medium">Suporte</span>}
           </Button>
         </Link>
+
+        {/* User Profile & Logout */}
+        <div className={cn(
+          "pt-4 border-t border-white/5",
+          isCollapsed ? "flex flex-col items-center gap-4" : "space-y-4"
+        )}>
+          {!isCollapsed ? (
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+                <UserIcon className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{user.email}</p>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-wider">{loading ? "Carregando..." : getPlanName(plan)}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400" title={user.email}>
+              <UserIcon className="w-4 h-4" />
+            </div>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className={cn(
+              "w-full text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl h-10",
+              isCollapsed ? "justify-center px-0" : "justify-start gap-3"
+            )}
+          >
+            <LogOut className="w-4 h-4" />
+            {!isCollapsed && <span className="font-medium">Sair</span>}
+          </Button>
+        </div>
       </div>
     </nav>
   )
