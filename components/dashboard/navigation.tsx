@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MessageCircle, BarChart3, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight, UserIcon, LogOut, Smartphone } from "lucide-react"
+import { MessageCircle, BarChart3, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight, UserIcon, LogOut, Smartphone, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
@@ -52,24 +52,25 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
     fetchPlan()
   }, [user.id])
 
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
-      const installBtn = document.getElementById('install-pwa');
-      if (installBtn) {
-        installBtn.classList.remove('hidden');
-        installBtn.onclick = async () => {
-          e.prompt();
-          const { outcome } = await e.userChoice;
-          console.log(`User response to the install prompt: ${outcome}`);
-          installBtn.classList.add('hidden');
-        };
-      }
+      setDeferredPrompt(e);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    setDeferredPrompt(null);
+  };
 
   const handleSignOut = async () => {
     await signOut()
@@ -112,12 +113,27 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
                   : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground",
               )}
               onClick={onNavigate}
+              data-tour={
+                item.label === "Agentes" ? "nav-agents" :
+                  item.label === "Remarketing" ? "nav-remarketing" :
+                    item.label === "Performance" ? "nav-performance" :
+                      item.label === "Configurações" ? "nav-settings" : undefined
+              }
             >
               <Icon className={cn("h-5 w-5", isActive ? "text-primary" : "text-muted-foreground")} />
               <span>{item.label}</span>
             </Link>
           )
         })}
+        {deferredPrompt && (
+          <button
+            onClick={handleInstallClick}
+            className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md px-3 py-2 text-xs text-primary animate-pulse"
+          >
+            <Smartphone className="h-5 w-5" />
+            <span>Instalar</span>
+          </button>
+        )}
       </nav>
     )
   }
@@ -139,14 +155,26 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
           )}
         </div>
         {!isCollapsed && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleCollapse}
-            className="hidden md:flex p-2 text-zinc-400 hover:text-white"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleCollapse}
+              className="hidden md:flex p-2 text-zinc-400 hover:text-white"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            {/* Botão de fechar exclusivo para mobile side menu */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onNavigate}
+              className="md:hidden p-2 text-zinc-400 hover:text-white"
+              data-tour="mobile-menu-close"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
         )}
       </div>
 
@@ -167,7 +195,8 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
                 data-tour={
                   item.label === "Agentes" ? "nav-agents" :
                     item.label === "Remarketing" ? "nav-remarketing" :
-                      item.label === "Performance" ? "nav-performance" : undefined
+                      item.label === "Performance" ? "nav-performance" :
+                        item.label === "Configurações" ? "nav-settings" : undefined
                 }
               >
                 {isActive && (
@@ -202,17 +231,19 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
       )}
 
       <div className="mt-auto space-y-2">
-        <Button
-          id="install-pwa"
-          variant="ghost"
-          className={cn(
-            "w-full text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl h-12 hidden",
-            isCollapsed ? "justify-center px-0" : "justify-start gap-3"
-          )}
-        >
-          <Smartphone className="w-5 h-5" />
-          {!isCollapsed && <span className="font-medium">Instalar App</span>}
-        </Button>
+        {deferredPrompt && (
+          <Button
+            onClick={handleInstallClick}
+            variant="ghost"
+            className={cn(
+              "w-full text-primary hover:text-primary hover:bg-primary/10 rounded-xl h-12 border border-primary/20 bg-primary/5 shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all duration-300",
+              isCollapsed ? "justify-center px-0" : "justify-start gap-3 px-4"
+            )}
+          >
+            <Smartphone className="w-5 h-5" />
+            {!isCollapsed && <span className="font-bold">Instalar Aplicativo</span>}
+          </Button>
+        )}
 
         <Link href="/dashboard/support" onClick={onNavigate}>
           <Button

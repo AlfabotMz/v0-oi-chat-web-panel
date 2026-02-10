@@ -14,6 +14,7 @@ import { WhatsAppConnect } from "./whatsapp-connect"
 import { Badge } from "@/components/ui/badge"
 import { BackButton } from "@/components/ui/back-button"
 import { PromptEditor } from "./prompt-editor"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
 interface AgentConfigFormProps {
@@ -37,6 +38,11 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
   )
   const [messageDelay, setMessageDelay] = useState(agent.message_delay || 0)
   const [isLoading, setIsLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const isActive = status === "active"
 
@@ -139,12 +145,21 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
             </div>
             <div className="flex items-center gap-3">
               <Badge
-                variant={isActive ? "default" : "secondary"}
-                className={isActive ? "bg-green-500 hover:bg-green-600" : ""}
+                variant={isActive ? "default" : "destructive"}
+                className={cn(
+                  "font-bold px-3 py-1",
+                  isActive ? "bg-green-500 hover:bg-green-600" : "bg-red-600 text-white hover:bg-red-700 border-none shadow-lg"
+                )}
               >
                 {isActive ? "Ativo" : "Inativo"}
               </Badge>
-              <Switch checked={isActive} onCheckedChange={handleToggleStatus} />
+              <Switch
+                checked={isActive}
+                onCheckedChange={handleToggleStatus}
+                className={cn(
+                  !isActive && "data-[state=unchecked]:bg-zinc-800 border border-white/5"
+                )}
+              />
             </div>
           </div>
         </CardHeader>
@@ -315,12 +330,12 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
                         .replace(/{{valor}}|{{amount}}/g, amount || "960 MT")
                         .replace(/{{numero}}|{{number}}/g, "+258 84 123 4567")
                         .replace(/{{localizacao}}|{{location}}/g, "Maputo, Moçambique")
-                        .replace(/{{date}}/g, new Date().toLocaleDateString("pt-PT", { day: 'numeric', month: 'long' }))}
+                        .replace(/{{date}}/g, mounted ? new Date().toLocaleDateString("pt-PT", { day: 'numeric', month: 'long' }) : "Data")}
                     </div>
 
                     <div className="flex justify-end mt-1 gap-1">
                       <span className="text-[10px] text-muted-foreground/70">
-                        {new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                        {mounted ? new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) : "--:--"}
                       </span>
                       <div className="flex">
                         <svg width="16" height="11" viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-400">
