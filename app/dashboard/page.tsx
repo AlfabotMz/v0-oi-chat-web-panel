@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard/layout"
 import { AgentsList } from "@/components/dashboard/agents-list"
 import { DashboardStats } from "@/components/dashboard/stats"
+import { OnboardingTour } from "@/components/dashboard/onboarding-tour"
+import { Suspense } from "react"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -76,9 +78,16 @@ export default async function DashboardPage() {
   return (
     <DashboardLayout user={user}>
       <div className="space-y-8">
-        <DashboardStats agents={agents || []} analytics={analytics} />
-        <AgentsList agents={agents || []} />
+        <div data-tour="dashboard-stats">
+          <DashboardStats agents={agents || []} analytics={analytics} />
+        </div>
+        <div data-tour="dashboard-agents">
+          <AgentsList agents={agents || []} />
+        </div>
       </div>
+      <Suspense fallback={null}>
+        <OnboardingTour />
+      </Suspense>
     </DashboardLayout>
   )
 }

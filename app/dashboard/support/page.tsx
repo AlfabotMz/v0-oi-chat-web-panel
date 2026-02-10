@@ -8,8 +8,8 @@ export default async function SupportPage() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    let communityLink = "https://chat.whatsapp.com/your-invite-code"
-    let supportWhatsAppLink = "https://wa.me/258841234567"
+    let communityLink = "https://chat.whatsapp.com/CdoA3A5HUWDE6I5WdMnnWm"
+    let supportWhatsAppLink = "https://wa.me/258856428686"
 
     if (user) {
         const { data: profile } = await supabase

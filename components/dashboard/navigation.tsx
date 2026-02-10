@@ -19,7 +19,7 @@ interface NavigationProps {
 
 const navItems = [
   { href: "/dashboard", label: "Agentes", icon: MessageCircle },
-  { href: "/dashboard/conversations", label: "Conversas", icon: MessageSquare },
+  { href: "/dashboard/remarketing", label: "Remarketing", icon: MessageSquare, isSoon: true },
   { href: "/dashboard/performance", label: "Performance", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
 ]
@@ -140,6 +140,11 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
                     ? "bg-white/5 text-white"
                     : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
                 )}
+                data-tour={
+                  item.label === "Agentes" ? "nav-agents" :
+                    item.label === "Remarketing" ? "nav-remarketing" :
+                      item.label === "Performance" ? "nav-performance" : undefined
+                }
               >
                 {isActive && (
                   <div className={cn(
@@ -149,6 +154,12 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
                 )}
                 <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-primary" : "group-hover:text-zinc-300")} />
                 {!isCollapsed && <span className="font-medium">{item.label}</span>}
+
+                {!isCollapsed && (item as any).isSoon && (
+                  <span className="ml-auto text-[10px] font-bold bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded-full border border-white/5">
+                    BREVEMENTE
+                  </span>
+                )}
 
                 {!isCollapsed && item.label === "Performance" && (
                   <span className="ml-auto text-[10px] font-bold bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">

@@ -106,7 +106,7 @@ export default function OnboardingPage() {
                 .single()
 
               if (profile?.onboarding_completed) {
-                router.push("/dashboard")
+                router.push("/dashboard?onboarding=true")
                 return
               }
             }
