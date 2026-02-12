@@ -1,22 +1,20 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-// Função helper para obter a URL completa do webhook n8n
-function getN8nWebhookUrl(): string {
-  const envUrl = process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
-  
-  // Se a URL já contém o caminho do webhook, usar como está
-  if (envUrl.includes("/webhook/")) {
-    return envUrl
-  }
-  
-  // Se é apenas a URL base, adicionar o caminho do webhook
-  // Remove barras no final se existirem
-  const baseUrl = envUrl.replace(/\/$/, "")
-  return `${baseUrl}/webhook/connect-whatsapp`
-}
+// Função helper para obter a URL completa do backend
+function getBackendUrl(path: string): string {
+  const envUrl = process.env.API_URL || process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
 
-const N8N_WEBHOOK_URL = getN8nWebhookUrl()
+  // Se a URL contém /webhook/, extrair apenas a base
+  let baseUrl = envUrl
+  if (envUrl.includes("/webhook/")) {
+    baseUrl = envUrl.split("/webhook/")[0]
+  }
+
+  // Remove barras no final se existirem
+  baseUrl = baseUrl.replace(/\/$/, "")
+  return `${baseUrl}/${path}`
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,11 +51,12 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log("Chamando webhook n8n:", N8N_WEBHOOK_URL)
+      const webhookUrl = getBackendUrl("api/agents/connect-whatsapp")
+      console.log("Chamando backend:", webhookUrl)
       console.log("Dados enviados:", { agent_id })
-      
-      // Fazer requisição para o webhook n8n
-      const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+
+      // Fazer requisição para o backend
+      const n8nResponse = await fetch(webhookUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,11 +67,11 @@ export async function POST(request: NextRequest) {
       })
 
       console.log("Status da resposta n8n:", n8nResponse.status)
-      
+
       // Verificar se a resposta é JSON
       const contentType = n8nResponse.headers.get("content-type")
       let n8nData
-      
+
       if (contentType && contentType.includes("application/json")) {
         n8nData = await n8nResponse.json()
       } else {
@@ -81,7 +80,7 @@ export async function POST(request: NextRequest) {
         console.error("Resposta do n8n não é JSON:", text)
         throw new Error(`Resposta inválida do webhook n8n: ${text.substring(0, 100)}`)
       }
-      
+
       console.log("Dados recebidos do n8n:", n8nData)
 
       if (!n8nResponse.ok || !n8nData.success) {

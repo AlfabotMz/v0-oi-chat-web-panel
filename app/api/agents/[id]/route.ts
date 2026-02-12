@@ -1,6 +1,21 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
+// Função helper para obter a URL do backend
+function getBackendUrl(path: string): string {
+    const envUrl = process.env.API_URL || process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
+
+    // Se a URL contém /webhook/, extrair apenas a base
+    let baseUrl = envUrl
+    if (envUrl.includes("/webhook/")) {
+        baseUrl = envUrl.split("/webhook/")[0]
+    }
+    // Remove barras no final
+    baseUrl = baseUrl.replace(/\/$/, "")
+
+    return `${baseUrl}/${path}`
+}
+
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> | { id: string } }
@@ -112,6 +127,34 @@ export async function PATCH(
 
         if (updateError) {
             throw updateError
+        }
+
+        // 7. Sincronização com o Backend (Awaited)
+        // Notificar o backend sobre a atualização do prompt se ele foi alterado
+        if (body.prompt !== undefined) {
+            try {
+                const syncUrl = getBackendUrl("api/agents/update-prompt")
+                console.log("Iniciando sincronização de prompt:", syncUrl)
+
+                const syncResponse = await fetch(syncUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        agent_id: agentId,
+                        prompt: body.prompt,
+                        action: "update_prompt"
+                    }),
+                })
+
+                if (!syncResponse.ok) {
+                    console.warn(`Sincronização backend (${agentId}) falhou com status: ${syncResponse.status}`)
+                } else {
+                    console.log(`Sincronização backend (${agentId}) concluída com sucesso`)
+                }
+            } catch (err) {
+                console.error("Erro na sincronização backend:", err)
+                // Não bloqueamos o sucesso do Supabase, mas logamos o erro
+            }
         }
 
         return NextResponse.json({

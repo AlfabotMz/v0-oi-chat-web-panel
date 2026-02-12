@@ -1,17 +1,19 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-// Função helper para obter a URL base do n8n
-function getN8nBaseUrl(): string {
-  const envUrl = process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
-  
+// Função helper para obter a URL do backend
+function getBackendUrl(endpoint: string): string {
+  const envUrl = process.env.API_URL || process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
+
   // Se a URL contém /webhook/, extrair apenas a base
+  let baseUrl = envUrl
   if (envUrl.includes("/webhook/")) {
-    return envUrl.split("/webhook/")[0]
+    baseUrl = envUrl.split("/webhook/")[0]
   }
-  
+
   // Remove barras no final se existirem
-  return envUrl.replace(/\/$/, "")
+  baseUrl = baseUrl.replace(/\/$/, "")
+  return `${baseUrl}/${endpoint}`
 }
 
 export async function DELETE(
@@ -70,12 +72,11 @@ export async function DELETE(
     }
 
     try {
-      const n8nBaseUrl = getN8nBaseUrl()
-      const n8nWebhookUrl = `${n8nBaseUrl}/webhook/delete-agent`
-      
+      const n8nWebhookUrl = getBackendUrl("api/agents/delete-agent")
+
       console.log("Chamando webhook n8n para deletar agente:", n8nWebhookUrl)
       console.log("Dados enviados:", { agent_id: agentId })
-      
+
       // Fazer requisição para o webhook n8n
       const n8nResponse = await fetch(n8nWebhookUrl, {
         method: "POST",
@@ -88,11 +89,11 @@ export async function DELETE(
       })
 
       console.log("Status da resposta n8n:", n8nResponse.status)
-      
+
       // Verificar se a resposta é JSON
       const contentType = n8nResponse.headers.get("content-type")
       let n8nData
-      
+
       if (contentType && contentType.includes("application/json")) {
         n8nData = await n8nResponse.json()
       } else {
@@ -100,7 +101,7 @@ export async function DELETE(
         console.error("Resposta do n8n não é JSON:", text)
         // Mesmo se não for JSON, continuar com a deleção no Supabase
       }
-      
+
       console.log("Dados recebidos do n8n:", n8nData)
 
       // A resposta do n8n pode vir em dois formatos (similar ao create)
@@ -110,15 +111,15 @@ export async function DELETE(
       }
 
       // Verificar sucesso (similar ao create)
-      const hasPositiveMessage = responseData?.message && 
-        (responseData.message.toLowerCase().includes("sucesso") || 
-         responseData.message.toLowerCase().includes("success") ||
-         responseData.message.toLowerCase().includes("deletado") ||
-         responseData.message.toLowerCase().includes("removido"))
-      
-      const isSuccess = responseData?.success === true || 
-                       (n8nResponse.ok && hasPositiveMessage) ||
-                       (n8nResponse.ok && !responseData?.error)
+      const hasPositiveMessage = responseData?.message &&
+        (responseData.message.toLowerCase().includes("sucesso") ||
+          responseData.message.toLowerCase().includes("success") ||
+          responseData.message.toLowerCase().includes("deletado") ||
+          responseData.message.toLowerCase().includes("removido"))
+
+      const isSuccess = responseData?.success === true ||
+        (n8nResponse.ok && hasPositiveMessage) ||
+        (n8nResponse.ok && !responseData?.error)
 
       // Mesmo se o n8n falhar, tentar deletar no Supabase
       // (pode ser que o agente não exista no n8n mas exista no Supabase)

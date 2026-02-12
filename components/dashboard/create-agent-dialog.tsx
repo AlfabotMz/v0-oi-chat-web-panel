@@ -8,9 +8,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ChevronRight, ChevronLeft, Bot, Sparkles, Zap, Check, QrCode, Loader2, AlertCircle, Smartphone } from "lucide-react"
+import { ChevronRight, ChevronLeft, Bot, Sparkles, Zap, Check, QrCode, Loader2, AlertCircle, Smartphone, Info, Shield, Laugh, MoveRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { generatePrompt, PromptType, PromptVariables } from "@/lib/prompt-templates"
 
 interface CreateAgentDialogProps {
   open: boolean
@@ -29,6 +32,15 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
   const [createdAgentId, setCreatedAgentId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Structured Prompt State
+  const [promptType, setPromptType] = useState<PromptType>("dropshipper")
+  const [audience, setAudience] = useState("Ambos")
+  const [tone, setTone] = useState("Direto")
+  const [productDescription, setProductDescription] = useState("")
+  const [contactOwner, setContactOwner] = useState("") // Source for contact_owner
+  const [contactDelivery, setContactDelivery] = useState("") // Source for contact_delivery
+  const [promptGenerated, setPromptGenerated] = useState("")
 
   // WhatsApp Connection State
   const [qrCode, setQrCode] = useState<string | null>(null)
@@ -138,7 +150,20 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
       const response = await fetch("/api/agents/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, prompt, product, amount }),
+        body: JSON.stringify({
+          name: nome,
+          prompt: promptGenerated || prompt,
+          product,
+          amount,
+          contact_owner: contactOwner || null,
+          contact_delivery: contactDelivery || null,
+          // Structured metadata
+          prompt_type: promptType,
+          audience,
+          tone,
+          product_description: productDescription,
+          prompt_generated: promptGenerated || prompt
+        }),
       })
 
       const data = await response.json()
@@ -155,9 +180,27 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
     }
   }
 
+  const handleGeneratePrompt = () => {
+    const vars: PromptVariables = {
+      product_name: product || nome,
+      product_price: amount,
+      audience: audience,
+      tone: tone,
+      product_description: productDescription
+    }
+
+    const newPrompt = generatePrompt(promptType, vars, prompt)
+    setPromptGenerated(newPrompt)
+  }
+
   const nextStep = () => {
     if (step === 1 && !nome) return
-    if (step === 2 && !prompt) return
+    if (step === 2) {
+      if (promptType !== 'personalizado' && !promptGenerated) {
+        handleGeneratePrompt()
+      }
+      if (promptType === 'personalizado' && !prompt) return
+    }
     if (step < 3) setStep(step + 1)
     else handleCreate()
   }
@@ -179,6 +222,13 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
           setCreatedAgentId(null)
           setQrCode(null)
           setConnectStatus("disconnected")
+          setPromptType("dropshipper")
+          setAudience("Ambos")
+          setTone("Direto")
+          setProductDescription("")
+          setContactOwner("")
+          setContactDelivery("")
+          setPromptGenerated("")
           stopPolling()
         }, 300)
       }
@@ -252,16 +302,116 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
 
             {step === 2 && (
               <div className="space-y-5 animate-in fade-in slide-in-from-right-10 duration-700" data-tour="agent-dialog-step-2">
-                <div className="space-y-3">
-                  <Label htmlFor="prompt" className="text-[11px] font-black text-zinc-500 uppercase tracking-widest ml-1">Prompt de Instrução</Label>
-                  <Textarea
-                    id="prompt"
-                    placeholder="Descreva como o agente deve agir..."
-                    className="bg-white/5 border-white/10 text-white focus:ring-primary min-h-[160px] sm:min-h-[220px] rounded-3xl backdrop-blur-md text-base leading-relaxed p-6 placeholder:text-zinc-700 shadow-inner"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                  />
-                </div>
+                <Tabs value={promptType} onValueChange={(v) => setPromptType(v as PromptType)} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 bg-white/5 border border-white/10 rounded-xl p-1 mb-6">
+                    <TabsTrigger value="dropshipper" className="rounded-lg data-[state=active]:bg-primary">Vendas</TabsTrigger>
+                    <TabsTrigger value="support" className="rounded-lg data-[state=active]:bg-primary">Suporte</TabsTrigger>
+                    <TabsTrigger value="personalizado" className="rounded-lg data-[state=active]:bg-primary">Custom</TabsTrigger>
+                  </TabsList>
+
+                  {(promptType === "dropshipper" || promptType === "support") && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] uppercase font-bold text-zinc-500">Público</Label>
+                          <Select value={audience} onValueChange={setAudience}>
+                            <SelectTrigger className="h-10 bg-white/5 border-white/10 rounded-xl text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                              <SelectItem value="Ambos">Ambos</SelectItem>
+                              <SelectItem value="Feminino">Feminino</SelectItem>
+                              <SelectItem value="Masculino">Masculino</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] uppercase font-bold text-zinc-500">Tom</Label>
+                          <Select value={tone} onValueChange={setTone}>
+                            <SelectTrigger className="h-10 bg-white/5 border-white/10 rounded-xl text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                              <SelectItem value="Sério">
+                                <div className="flex items-center gap-2">
+                                  <Shield className="w-3.5 h-3.5 text-blue-400" />
+                                  <span>Sério</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="Engraçado">
+                                <div className="flex items-center gap-2">
+                                  <Laugh className="w-3.5 h-3.5 text-yellow-400" />
+                                  <span>Engraçado</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="Direto">
+                                <div className="flex items-center gap-2">
+                                  <MoveRight className="w-3.5 h-3.5 text-green-400" />
+                                  <span>Direto</span>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] uppercase font-bold text-zinc-500">Descrição Detalhada (Dores, Benefícios, Garantias)</Label>
+                        <Textarea
+                          placeholder="Ex: O Gel Redutor de Medidas é ideal para quem busca eliminar gordura localizada. Benefícios: Queima de gordura rápida, melhora a elasticidade da pele e resultado em 3 semanas. Garantia de 30 dias."
+                          className="bg-white/5 border-white/10 min-h-[90px] rounded-xl text-sm p-3"
+                          value={productDescription}
+                          onChange={(e) => setProductDescription(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] uppercase font-bold text-zinc-500">WhatsApp Suporte (DDD)</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-[10px] font-bold">+258</span>
+                            <Input
+                              value={contactOwner}
+                              onChange={(e) => setContactOwner(e.target.value)}
+                              className="h-10 pl-11 bg-white/5 border-white/10 rounded-xl text-xs"
+                              placeholder="841234567"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] uppercase font-bold text-zinc-500">Número Delivery (DDD)</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-[10px] font-bold">+258</span>
+                            <Input
+                              value={contactDelivery}
+                              onChange={(e) => setContactDelivery(e.target.value)}
+                              className="h-10 pl-11 bg-white/5 border-white/10 rounded-xl text-xs"
+                              placeholder="847654321"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                        <Info className="w-3.5 h-3.5 text-blue-400" />
+                        <p className="text-[10px] text-zinc-400 leading-tight lowercase">Estes números são <span className="text-zinc-200 font-bold underline">opcionais</span>. Servem para envio de formulário de entrega.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {promptType === "personalizado" && (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <Label htmlFor="prompt" className="text-[11px] font-black text-zinc-500 uppercase tracking-widest ml-1">Prompt Livre</Label>
+                      <Textarea
+                        id="prompt"
+                        placeholder="Escreva livremente as instruções do seu agente..."
+                        className="bg-white/5 border-white/10 text-white focus:ring-primary min-h-[160px] sm:min-h-[200px] rounded-2xl backdrop-blur-md text-sm leading-relaxed p-4 shadow-inner"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </Tabs>
               </div>
             )}
 
@@ -381,7 +531,7 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
             )}
             <Button
               onClick={step === 4 ? () => onOpenChange(false) : nextStep}
-              disabled={isLoading || (step === 1 && !nome) || (step === 2 && !prompt)}
+              disabled={isLoading || (step === 1 && !nome) || (step === 2 && promptType === 'personalizado' && !prompt)}
               className={cn(
                 "flex-[3] h-14 sm:h-16 rounded-[1.2rem] sm:rounded-[1.5rem] text-white font-black tracking-[0.1em] text-base sm:text-lg transition-all duration-500 shadow-[0_15px_35px_rgba(168,85,247,0.4)] hover:shadow-[0_20px_45px_rgba(168,85,247,0.6)]",
                 step === 3 ? "bg-green-600 hover:bg-green-700 shadow-green-500/20" : "bg-primary hover:bg-primary/90",

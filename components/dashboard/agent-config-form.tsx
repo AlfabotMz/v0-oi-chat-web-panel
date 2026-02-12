@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { ChevronRight, Bot, Sparkles, Zap, Check, AlertCircle, Smartphone, Info, Shield, Laugh, MoveRight, Save, Wand2, Settings2 } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +18,15 @@ import { BackButton } from "@/components/ui/back-button"
 import { PromptEditor } from "./prompt-editor"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { generatePrompt, PromptType, PromptVariables } from "@/lib/prompt-templates"
 
 interface AgentConfigFormProps {
   agent: any
@@ -37,6 +48,15 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
     "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{produto}}\n\n💸 Quantidade: {{quantidade}}\n\n💸 Valor: {{valor}}\n\n💸 Número: {{numero}}\n\n💸 Local: {{localizacao}}"
   )
   const [messageDelay, setMessageDelay] = useState(agent.message_delay || 0)
+
+  // Structured fields (metadata for generation)
+  const [promptType, setPromptType] = useState<PromptType>(agent.prompt_type || "dropshipper")
+  const [audience, setAudience] = useState(agent.audience || "Ambos")
+  const [tone, setTone] = useState(agent.tone || "Direto")
+  const [productDescription, setProductDescription] = useState(agent.product_description || "")
+  const [promptGenerated, setPromptGenerated] = useState(agent.prompt_generated || "")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
   const [isLoading, setIsLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -55,6 +75,22 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
       setPrompt(agent.prompt)
     }
   }, [agent])
+
+  const hasChanges =
+    name !== agent.name ||
+    prompt !== agent.prompt ||
+    status !== agent.status ||
+    webhookUrl !== (agent.n8n_webhook_url || "") ||
+    product !== (agent.product || "") ||
+    amount !== (agent.amount || "") ||
+    contactOwner !== (agent.contact_owner || "") ||
+    contactDelivery !== (agent.contact_delivery || "") ||
+    customMessage !== agent.custom_message ||
+    messageDelay !== agent.message_delay ||
+    promptType !== (agent.prompt_type || "dropshipper") ||
+    audience !== (agent.audience || "Ambos") ||
+    tone !== (agent.tone || "Direto") ||
+    productDescription !== (agent.product_description || "")
 
   const handleToggleStatus = async (checked: boolean) => {
     const newStatus = checked ? "active" : "inactive"
@@ -87,6 +123,22 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
     }
   }
 
+  const handleGeneratePrompt = () => {
+    const vars: PromptVariables = {
+      product_name: product,
+      product_price: amount,
+      audience: audience,
+      tone: tone,
+      product_description: productDescription
+    }
+
+    const newPrompt = generatePrompt(promptType, vars, prompt)
+    setPromptGenerated(newPrompt)
+    setPrompt(newPrompt)
+    setIsDialogOpen(false)
+    toast.success("Prompt mesclado com sucesso!")
+  }
+
   const handleSave = async () => {
     setIsLoading(true)
 
@@ -100,14 +152,20 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           name,
           prompt,
           status,
-          product,
-          amount,
+          product: product,
+          amount: amount,
           n8n_webhook_url: webhookUrl,
           anexos: attachments,
           contact_owner: contactOwner || null,
           contact_delivery: contactDelivery || null,
           custom_message: customMessage,
           message_delay: messageDelay,
+          // New structured data
+          prompt_type: promptType,
+          audience: audience,
+          tone: tone,
+          product_description: productDescription,
+          prompt_generated: promptGenerated
         }),
       })
 
@@ -133,7 +191,22 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
           <h1 className="text-3xl font-bold">Configurar Agente</h1>
           <p className="text-muted-foreground mt-1">Gerencie as configurações do seu agente</p>
         </div>
-        <BackButton href="/dashboard" />
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleSave}
+            disabled={isLoading || !hasChanges}
+            size="icon"
+            className={cn(
+              "rounded-full w-12 h-12 transition-all duration-500",
+              hasChanges
+                ? "bg-purple-600 hover:bg-purple-700 shadow-[0_0_20px_rgba(168,85,247,0.4)] animate-pulse"
+                : "bg-zinc-800 text-zinc-500 opacity-50 cursor-not-allowed"
+            )}
+          >
+            <Save className="w-5 h-5" />
+          </Button>
+          <BackButton href="/dashboard" />
+        </div>
       </div>
 
       <Card className="border-border/50">
@@ -165,54 +238,244 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
         </CardHeader>
       </Card>
 
+      <Card className="border-border/50 overflow-hidden relative group">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                <Sparkles className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Prompt Inteligente</CardTitle>
+                <CardDescription>Geração automática baseada em dados</CardDescription>
+              </div>
+            </div>
+            {promptType !== "personalizado" && (
+              <Badge className="bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border-purple-500/20 px-3">
+                Ativo: {promptType === 'dropshipper' ? 'Vendas' : 'Suporte'}
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex-1 h-12 border-purple-500/20 hover:bg-purple-500/5 hover:border-purple-500/40 text-sm font-semibold rounded-xl">
+                  <Settings2 className="w-4 h-4 mr-2" />
+                  Configurar Geração
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] bg-zinc-950 border-white/10 text-white">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                    <Wand2 className="w-6 h-6 text-purple-400" />
+                    Gerador de Prompt
+                  </DialogTitle>
+                  <DialogDescription className="text-zinc-400">
+                    Preencha os dados e o sistema criará o prompt ideal para sua IA.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-6 pt-4">
+                  <Tabs value={promptType} onValueChange={(v: string) => setPromptType(v as PromptType)} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 bg-zinc-900">
+                      <TabsTrigger value="dropshipper">Vendas</TabsTrigger>
+                      <TabsTrigger value="support">Suporte</TabsTrigger>
+                      <TabsTrigger value="personalizado">Custom</TabsTrigger>
+                    </TabsList>
+
+                    <div className="mt-6 space-y-4">
+                      {promptType !== "personalizado" ? (
+                        <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase font-bold text-zinc-500">PRODUTO</Label>
+                              <Input
+                                value={product}
+                                onChange={(e) => setProduct(e.target.value)}
+                                placeholder="Nome do produto"
+                                className="h-11 bg-zinc-900 border-zinc-800"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase font-bold text-zinc-500">PREÇO</Label>
+                              <Input
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="Ex: 990 MT"
+                                className="h-11 bg-zinc-900 border-zinc-800"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase font-bold text-zinc-500">PÚBLICO</Label>
+                              <Select value={audience} onValueChange={setAudience}>
+                                <SelectTrigger className="h-11 bg-zinc-900 border-zinc-800">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-zinc-900 border-zinc-800">
+                                  <SelectItem value="Ambos">Ambos</SelectItem>
+                                  <SelectItem value="Feminino">Feminino</SelectItem>
+                                  <SelectItem value="Masculino">Masculino</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase font-bold text-zinc-500">TOM</Label>
+                              <Select value={tone} onValueChange={setTone}>
+                                <SelectTrigger className="h-11 bg-zinc-900 border-zinc-800">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-zinc-900 border-zinc-800">
+                                  <SelectItem value="Sério">
+                                    <div className="flex items-center gap-2">
+                                      <Shield className="w-4 h-4 text-blue-400" />
+                                      <span>Sério</span>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="Engraçado">
+                                    <div className="flex items-center gap-2">
+                                      <Laugh className="w-4 h-4 text-yellow-400" />
+                                      <span>Engraçado</span>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="Direto">
+                                    <div className="flex items-center gap-2">
+                                      <MoveRight className="w-4 h-4 text-green-400" />
+                                      <span>Direto</span>
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs uppercase font-bold text-zinc-500">DESCRIÇÃO DETALHADA</Label>
+                            <Textarea
+                              value={productDescription}
+                              onChange={(e) => setProductDescription(e.target.value)}
+                              placeholder="Fale sobre dores, benefícios e garantias..."
+                              className="min-h-[120px] bg-zinc-900 border-zinc-800"
+                            />
+                            <p className="text-[10px] text-zinc-500 italic">Dica: Use um exemplo real para melhores resultados.</p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase font-bold text-zinc-500">WHATSAPP SUPORTE (DDD)</Label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-xs font-bold">+258</span>
+                                <Input
+                                  value={contactOwner}
+                                  onChange={(e) => setContactOwner(e.target.value.replace(/\D/g, "").slice(0, 9))}
+                                  className="h-11 pl-12 bg-zinc-900 border-zinc-800"
+                                  placeholder="841234567"
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-xs uppercase font-bold text-zinc-500">NÚMERO DELIVERY (DDD)</Label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-xs font-bold">+258</span>
+                                <Input
+                                  value={contactDelivery}
+                                  onChange={(e) => setContactDelivery(e.target.value.replace(/\D/g, "").slice(0, 9))}
+                                  className="h-11 pl-12 bg-zinc-900 border-zinc-800"
+                                  placeholder="847654321"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                            <Info className="w-3.5 h-3.5 text-blue-400" />
+                            <p className="text-[10px] text-zinc-400 leading-tight">Estes números são usados para as notificações automáticas e formulários.</p>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="py-10 text-center space-y-3">
+                          <Bot className="w-12 h-12 text-zinc-700 mx-auto" />
+                          <p className="text-sm text-zinc-400">No modo customizado, você edita o prompt diretamente na tela principal.</p>
+                        </div>
+                      )}
+                    </div>
+                  </Tabs>
+                </div>
+
+                <DialogFooter className="mt-8">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="hover:bg-zinc-900"
+                  >
+                    Cancelar
+                  </Button>
+                  {promptType !== 'personalizado' && (
+                    <Button
+                      onClick={handleGeneratePrompt}
+                      className="bg-purple-600 hover:bg-purple-700 shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+                    >
+                      Fundir e Gerar Prompt
+                    </Button>
+                  )}
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {promptType !== "personalizado" && (
+              <Button
+                onClick={handleGeneratePrompt}
+                className="flex-1 h-12 bg-purple-600 hover:bg-purple-700 shadow-lg text-white font-bold rounded-xl transition-all active:scale-95"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Regerar Prompt
+              </Button>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-3 text-center">
+            {promptType === 'personalizado'
+              ? "Você está operando no modo manual."
+              : "As informações de suporte e entrega são gerenciadas separadamente na aba de notificações."}
+          </p>
+        </CardContent>
+      </Card>
+
       <Card className="border-border/50">
         <CardHeader>
-          <CardTitle>Configurações do Agente</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Prompt Final</CardTitle>
+            {promptType !== "personalizado" && (
+              <Badge variant="outline" className="text-purple-400 border-purple-400 capitalize">
+                Gerado: {promptType}
+              </Badge>
+            )}
+          </div>
+          <CardDescription>
+            {promptType === "personalizado"
+              ? "Edite manualmente as instruções do seu agente"
+              : "Este é o prompt que será usado pelo agente (gerado automaticamente)"}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Nome do Agente</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="product">Produto</Label>
-              <Input
-                id="product"
-                value={product}
-                onChange={(e) => setProduct(e.target.value)}
-                placeholder="Ex: Consultoria"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="amount">Valor (Amount)</Label>
-              <Input
-                id="amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Ex: 960 MT"
-              />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Configure o produto e o valor que aparecerão nas notificações.
-          </p>
-
-
-
-          <div className="space-y-2">
-            <Label htmlFor="prompt">Prompt do Agente</Label>
             <PromptEditor
               value={prompt}
               onChange={setPrompt}
               placeholder="Digite as instruções para o agente de IA... Use / para ver funções disponíveis."
-              className="min-h-[200px] bg-background/50"
+              className="min-h-[300px] bg-background/50"
             />
             <p className="text-xs text-muted-foreground">
               Instruções que definem como o agente deve se comportar e responder
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="name">Nome Interno do Agente</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
 
           <div className="space-y-4">
@@ -237,11 +500,8 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
             </p>
           </div>
 
-
-
-
-          <Button onClick={handleSave} disabled={isLoading} className="w-full">
-            {isLoading ? "Salvando..." : "Salvar Alterações"}
+          <Button onClick={handleSave} disabled={isLoading} className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+            {isLoading ? "Salvando..." : "Salvar Configurações"}
           </Button>
         </CardContent>
       </Card>
