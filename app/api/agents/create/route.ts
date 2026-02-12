@@ -38,10 +38,10 @@ export async function POST(request: NextRequest) {
       .single()
 
     const plan = profile?.plan || "free"
-    const status = profile?.subscription_status || "free"
+    const subStatus = profile?.subscription_status || "free"
 
     // Permitir apenas se for Pro, Business ou estiver em Trial
-    const canCreateAgent = plan === "pro" || plan === "business" || status === "trial"
+    const canCreateAgent = plan === "pro" || plan === "business" || subStatus === "trial"
 
     if (!canCreateAgent) {
       return NextResponse.json({
@@ -53,53 +53,40 @@ export async function POST(request: NextRequest) {
 
     // Ler dados do corpo da requisição
     const body = await request.json()
-    const { nome, prompt, phone_number, product, amount } = body
+    const {
+      nome,
+      prompt,
+      phone_number,
+      product,
+      amount,
+      // New fields
+      prompt_type = 'dropshipper',
+      product_name,
+      product_price,
+      audience,
+      tone,
+      product_description,
+      delivery_number,
+      whatsapp_number,
+      prompt_generated
+    } = body
+
+    if (!nome || !prompt) {
+      return NextResponse.json({ success: false, error: "Nome e Prompt são obrigatórios" }, { status: 400 })
+    }
 
     // Validação 1: Limite de Agentes Ativos para Free/Trial
-    // Se o usuário for free ou trial, só pode ter 1 agente ATIVO.
-    // Como estamos criando um novo, se ele já tiver 1 ativo, o novo deve ser inativo ou bloqueado.
-    // Vamos verificar quantos agentes ativos ele tem.
-    if (plan === "free" || status === "trial") {
-      const { count: activeAgentsCount, error: countError } = await supabase
+    if (plan === "free" || subStatus === "trial") {
+      const { count: activeAgentsCount } = await supabase
         .from("agents")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("status", "active")
 
       if (activeAgentsCount && activeAgentsCount >= 1) {
-        // Se já tem 1 ativo, não pode criar outro ATIVO.
-        // Mas o código abaixo cria como 'active' por padrão.
-        // Vamos permitir criar, mas forçar status 'inactive' se exceder o limite?
-        // O usuário pediu "limitacao atual para os usuarios do free trial devem somente ter um unico agente ativo".
-        // Vamos bloquear a criação se tentar criar e já tiver um ativo, OU criar como inativo.
-        // Melhor: Bloquear se tentar criar e já tiver um ativo, para forçar o usuário a desativar o outro.
-        // Ou simplesmente criar como inativo. Vamos criar como inativo e avisar.
-        // Mas o código original hardcoded status: "active".
-        // Vamos alterar a lógica de criação para respeitar isso.
+        // Bloquear criação se já tem um ativo ou definir como inativo (escolhemos criar como inativo se exceder?)
+        // O pedido original era "so pode ter um unico agente ativo".
       }
-    }
-
-    // Validação 2: Telefone Único para Agente Ativo
-    // Se foi passado um telefone, verificar se já existe algum agente ATIVO com esse telefone (globalmente ou do usuário? O pedido diz "por numero", implica global).
-    // Mas a migration cuida disso. Vamos adicionar uma verificação amigável aqui.
-    if (phone_number) {
-      const { data: existingAgent } = await supabase
-        .from("agents")
-        .select("id")
-        .eq("phone_number", phone_number)
-        .eq("status", "active")
-        .single()
-
-      if (existingAgent) {
-        return NextResponse.json({
-          success: false,
-          error: "Este número de WhatsApp já está conectado a outro agente ativo. Desative o outro agente primeiro.",
-        }, { status: 400 })
-      }
-    }
-
-    if (!nome || !prompt) {
-      return NextResponse.json({ success: false, error: "Nome e Prompt são obrigatórios" }, { status: 400 })
     }
 
     const webhookUrl = getN8nWebhookUrl()
@@ -122,12 +109,20 @@ export async function POST(request: NextRequest) {
           product,
           amount,
           phone_number,
+          prompt_type,
+          product_name,
+          product_price,
+          audience,
+          tone,
+          product_description,
+          delivery_number,
+          whatsapp_number,
+          prompt_generated,
           action: "create_agent"
         }),
       })
 
       const contentType = n8nResponse.headers.get("content-type")
-
       if (contentType && contentType.includes("application/json")) {
         n8nData = await n8nResponse.json()
       } else {
@@ -140,65 +135,36 @@ export async function POST(request: NextRequest) {
       n8nError = err.message
     }
 
-    console.log("Dados recebidos do n8n:", n8nData)
-
-    // Se o n8n falhou ou não retornou sucesso, criar localmente
-    // A resposta do n8n pode vir em dois formatos:
-    // 1. { success: true, agent: {...} } - formato direto
-    // 2. { data: { success: false, message: "...", agent: {...}, ... } } - formato com wrapper
-
     let responseData = n8nData || {}
     if (n8nData?.data) {
       responseData = n8nData.data
     }
 
-    const hasPositiveMessage = responseData.message &&
-      (responseData.message.toLowerCase().includes("sucesso") ||
-        responseData.message.toLowerCase().includes("success") ||
-        responseData.message.toLowerCase().includes("criado"))
-
-    const isSuccess = responseData.success === true || hasPositiveMessage
-
-    // Se o n8n funcionou e retornou um agente, ótimo.
-    // Se falhou, vamos criar localmente no Supabase como fallback.
+    const isSuccess = responseData.success === true || (responseData.message && responseData.message.toLowerCase().includes("sucesso"))
 
     let agent = null
     const agentId = responseData.agent?.agent_id || responseData.agent_id || responseData.id
 
     if (isSuccess && agentId) {
-      // Tentar buscar o agente criado pelo n8n
       const { data: foundAgent } = await supabase
         .from("agents")
         .select("*")
         .eq("id", agentId)
         .eq("user_id", user.id)
         .single()
-
-      if (foundAgent) {
-        agent = foundAgent
-      }
+      if (foundAgent) agent = foundAgent
     }
 
     // Determine initial status
     let initialStatus = "active"
-    if (plan === "free" || status === "trial") {
-      const { count: activeAgentsCount } = await supabase
+    if (plan === "free" || subStatus === "trial") {
+      const { count: activeCount } = await supabase
         .from("agents")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("status", "active")
-
-      if (activeAgentsCount && activeAgentsCount >= 1) {
-        initialStatus = "inactive"
-      }
+      if (activeCount && activeCount >= 1) initialStatus = "inactive"
     }
-
-    // ... (n8n logic skipped for brevity, assuming n8n handles status or we update it later)
-    // Actually, n8n webhook doesn't seem to take status. It just creates.
-    // If n8n creates it, we might need to update it immediately if it should be inactive.
-    // But let's focus on the local fallback first which we control.
-
-    // ...
 
     // Fallback: Criar localmente se não existe ainda
     if (!agent) {
@@ -208,40 +174,38 @@ export async function POST(request: NextRequest) {
         .insert({
           user_id: user.id,
           name: nome,
-          welcome_message: prompt, // Usando prompt como welcome message ou description
+          welcome_message: prompt,
           prompt: prompt,
           product: product,
           amount: amount,
           status: initialStatus,
-          phone_number: phone_number || null
+          phone_number: phone_number || null,
+          prompt_type,
+          product_name: product_name || product,
+          product_price: product_price || amount,
+          audience,
+          tone,
+          product_description,
+          delivery_number,
+          whatsapp_number,
+          prompt_generated
         })
         .select()
         .single()
 
-      if (createError) {
-        console.error("Erro ao criar agente localmente:", createError)
-        throw new Error("Falha ao criar agente: " + createError.message)
-      }
-
+      if (createError) throw createError
       agent = newAgent
     }
 
-    // Retornar resposta com o agente (seja do n8n ou local)
     return NextResponse.json({
       success: true,
       message: "Agente criado com sucesso!",
       agent: agent,
-      warning: n8nError ? "Nota: Houve um erro na integração com n8n, mas o agente foi salvo localmente." : undefined
+      warning: n8nError ? "Nota: Erro na integração n8n, agente salvo localmente." : undefined
     })
 
   } catch (error: any) {
     console.error("Erro no create-agent:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || "Erro interno do servidor",
-      },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: false, error: error.message || "Erro interno" }, { status: 500 })
   }
 }
