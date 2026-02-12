@@ -151,7 +151,7 @@ export function CreateAgentDialog({ open, onOpenChange }: CreateAgentDialogProps
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nome,
+          name: nome,
           prompt: promptGenerated || prompt,
           product,
           amount,

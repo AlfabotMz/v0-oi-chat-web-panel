@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-// Função helper para obter a URL do webhook n8n
-function getN8nWebhookUrl(): string {
-  const envUrl = process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
+// Função helper para obter a URL do backend
+function getBackendUrl(path: string): string {
+  const envUrl = process.env.API_URL || process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
 
   // Se a URL contém /webhook/, extrair apenas a base
   let baseUrl = envUrl
@@ -13,7 +13,7 @@ function getN8nWebhookUrl(): string {
   // Remove barras no final
   baseUrl = baseUrl.replace(/\/$/, "")
 
-  return `${baseUrl}/webhook/create-agent`
+  return `${baseUrl}/${path}`
 }
 
 export async function POST(request: NextRequest) {
@@ -54,25 +54,23 @@ export async function POST(request: NextRequest) {
     // Ler dados do corpo da requisição
     const body = await request.json()
     const {
-      nome,
+      name,
       prompt,
       phone_number,
       product,
       amount,
-      // New fields
+      // Structured prompt fields
       prompt_type = 'dropshipper',
-      product_name,
-      product_price,
       audience,
       tone,
       product_description,
-      delivery_number,
-      whatsapp_number,
+      contact_owner,
+      contact_delivery,
       prompt_generated
     } = body
 
-    if (!nome || !prompt) {
-      return NextResponse.json({ success: false, error: "Nome e Prompt são obrigatórios" }, { status: 400 })
+    if (!name || !prompt) {
+      return NextResponse.json({ success: false, error: "Name e Prompt são obrigatórios" }, { status: 400 })
     }
 
     // Validação 1: Limite de Agentes Ativos para Free/Trial
@@ -89,7 +87,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const webhookUrl = getN8nWebhookUrl()
+    const webhookUrl = getBackendUrl("api/agents/create-agent")
     console.log("Chamando webhook n8n:", webhookUrl)
 
     // Fazer requisição para o webhook n8n
@@ -104,19 +102,17 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           user_id: user.id,
-          nome,
+          name,
           prompt,
           product,
           amount,
           phone_number,
           prompt_type,
-          product_name,
-          product_price,
           audience,
           tone,
           product_description,
-          delivery_number,
-          whatsapp_number,
+          contact_owner,
+          contact_delivery,
           prompt_generated,
           action: "create_agent"
         }),
@@ -173,21 +169,18 @@ export async function POST(request: NextRequest) {
         .from("agents")
         .insert({
           user_id: user.id,
-          name: nome,
-          welcome_message: prompt,
+          name: name,
           prompt: prompt,
           product: product,
           amount: amount,
           status: initialStatus,
           phone_number: phone_number || null,
           prompt_type,
-          product_name: product_name || product,
-          product_price: product_price || amount,
           audience,
           tone,
           product_description,
-          delivery_number,
-          whatsapp_number,
+          contact_owner: contact_owner || null,
+          contact_delivery: contact_delivery || null,
           prompt_generated
         })
         .select()

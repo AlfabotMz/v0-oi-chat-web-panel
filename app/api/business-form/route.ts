@@ -4,19 +4,20 @@ export async function POST(req: Request) {
     try {
         const body = await req.json()
 
-        // Forward to n8n
-        const n8nUrl = process.env.N8N_WEBHOOK_URL ? `${process.env.N8N_WEBHOOK_URL}/business-form` : null
+        // Forward to backend
+        const baseUrl = process.env.API_URL || process.env.N8N_WEBHOOK_URL || ""
+        const backendUrl = baseUrl ? `${baseUrl.replace(/\/$/, "")}/business-form` : null
 
-        if (n8nUrl) {
+        if (backendUrl) {
             try {
-                await fetch(n8nUrl, {
+                await fetch(backendUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(body),
                 })
             } catch (error) {
-                console.error("Failed to send to n8n:", error)
-                // Don't fail the request if n8n fails, just log it
+                console.error("Failed to send to backend:", error)
+                // Don't fail the request if it fails, just log it
             }
         }
 
