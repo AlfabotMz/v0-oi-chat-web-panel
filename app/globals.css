@@ -159,6 +159,23 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  --color-violet-50: var(--color-violet-50);
+  --color-violet-100: var(--color-violet-100);
+  --color-violet-200: var(--color-violet-200);
+  --color-violet-300: var(--color-violet-300);
+  --color-violet-400: var(--color-violet-400);
+  --color-violet-500: var(--color-violet-500);
+  --color-violet-600: var(--color-violet-600);
+  --color-violet-700: var(--color-violet-700);
+  --color-violet-800: var(--color-violet-800);
+  --color-violet-900: var(--color-violet-900);
+  --color-violet-950: var(--color-violet-950);
+
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
@@ -176,6 +193,25 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+
+  /* Electric Violet Scale */
+  --color-violet-50: #faf4ff;
+  --color-violet-100: #f2e5ff;
+  --color-violet-200: #e8d0ff;
+  --color-violet-300: #d6acff;
+  --color-violet-400: #bd76ff;
+  --color-violet-500: #a442ff;
+  --color-violet-600: #8a14ff;
+  --color-violet-700: #7a0ee2;
+  --color-violet-800: #6812b7;
+  --color-violet-900: #561093;
+  --color-violet-950: #3a006f;
+
+  /* Semantic Colors OKLCH */
+  --success: oklch(0.6469 0.1834 145);
+  --error: oklch(0.6469 0.1834 25);
+  --warning: oklch(0.6469 0.1834 80);
+  --info: oklch(0.6469 0.1834 260);
 }
 
 @layer base {
@@ -196,7 +232,7 @@
   .glass {
     @apply bg-background/40 backdrop-blur-md border border-white/10 dark:border-white/5 shadow-lg;
   }
-  
+
   .glass-hover {
     @apply hover:bg-background/60 hover:border-white/20 transition-all duration-300;
   }
