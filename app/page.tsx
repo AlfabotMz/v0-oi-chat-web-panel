@@ -33,10 +33,18 @@ export default function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary/20 selection:text-primary">
+      {/* Migration Notice */}
+      <div className="w-full bg-primary py-2 px-4 text-center text-white text-sm font-medium z-[60] relative">
+        Esta página será substituída brevemente.{" "}
+        <Link href="https://myoichat.online" target="_blank" className="underline hover:text-white/80 transition-colors font-bold">
+          Visite myoichat.online
+        </Link>
+      </div>
+
       {/* Navbar */}
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
+          "fixed top-9 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent",
           isScrolled ? "bg-background/80 backdrop-blur-md border-border/50 py-3 shadow-sm" : "bg-transparent py-5"
         )}
       >
