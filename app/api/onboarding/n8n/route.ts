@@ -1,20 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-// Função helper para obter a URL do backend
-function getBackendUrl(endpoint: string): string {
-    const envUrl = process.env.API_URL || process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
-
-    // Se a URL contém /webhook/, extrair apenas a base
-    let baseUrl = envUrl
-    if (envUrl.includes("/webhook/")) {
-        baseUrl = envUrl.split("/webhook/")[0]
-    }
-    // Remove barras no final
-    baseUrl = baseUrl.replace(/\/$/, "")
-
-    return `${baseUrl}/${endpoint}`
-}
+import { getWebhookUrl } from "@/lib/webhook-utils"
 
 export async function POST(request: NextRequest) {
     try {
@@ -42,7 +29,7 @@ export async function POST(request: NextRequest) {
         // Modificar o profile/update parece mais robusto, mas o usuário pediu "enviar para n8n no endpoint /onboarding".
         // Vou criar este endpoint dedicado para o n8n e chamar no frontend.
 
-        const webhookUrl = getBackendUrl("onboarding")
+        const webhookUrl = getWebhookUrl("onboarding")
         console.log("Chamando webhook n8n onboarding:", webhookUrl)
 
         // Fazer requisição para o webhook n8n
