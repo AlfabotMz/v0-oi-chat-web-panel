@@ -1,20 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-// Função helper para obter a URL do backend
-function getBackendUrl(path: string): string {
-    const envUrl = process.env.API_URL || process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
-
-    // Se a URL contém /webhook/, extrair apenas a base
-    let baseUrl = envUrl
-    if (envUrl.includes("/webhook/")) {
-        baseUrl = envUrl.split("/webhook/")[0]
-    }
-    // Remove barras no final
-    baseUrl = baseUrl.replace(/\/$/, "")
-
-    return `${baseUrl}/${path}`
-}
+import { getWebhookUrl } from "@/lib/webhook-utils"
 
 export async function PATCH(
     request: NextRequest,
@@ -133,7 +120,7 @@ export async function PATCH(
         // Notificar o backend sobre a atualização do prompt se ele foi alterado
         if (body.prompt !== undefined) {
             try {
-                const syncUrl = getBackendUrl("api/agents/update-prompt")
+                const syncUrl = getWebhookUrl("api/agents/update-prompt")
                 console.log("Iniciando sincronização de prompt:", syncUrl)
 
                 const syncResponse = await fetch(syncUrl, {

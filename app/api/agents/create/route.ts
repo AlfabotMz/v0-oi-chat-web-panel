@@ -1,20 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
-// Função helper para obter a URL do backend
-function getBackendUrl(path: string): string {
-  const envUrl = process.env.API_URL || process.env.N8N_WEBHOOK_URL || process.env.N8N_URL || "https://n8n.myoichat.online"
-
-  // Se a URL contém /webhook/, extrair apenas a base
-  let baseUrl = envUrl
-  if (envUrl.includes("/webhook/")) {
-    baseUrl = envUrl.split("/webhook/")[0]
-  }
-  // Remove barras no final
-  baseUrl = baseUrl.replace(/\/$/, "")
-
-  return `${baseUrl}/${path}`
-}
+import { getWebhookUrl } from "@/lib/webhook-utils"
 
 export async function POST(request: NextRequest) {
   try {
@@ -87,7 +74,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const webhookUrl = getBackendUrl("api/agents/create-agent")
+    const webhookUrl = getWebhookUrl("api/agents/create-agent")
     console.log("Chamando webhook n8n:", webhookUrl)
 
     // Fazer requisição para o webhook n8n
