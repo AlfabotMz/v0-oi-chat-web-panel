@@ -25,24 +25,24 @@ export default async function DashboardPage() {
     .single()
 
   if (profile) {
-    // 1. Forçar Onboarding primeiro (apenas se não tiver assinatura ativa)
+    // 1. Forçar Onboarding primeiro
     const hasActiveSubscription = !!profile.stripe_subscription_id
     if (!profile.onboarding_completed && profile.role !== 'admin' && !hasActiveSubscription) {
       redirect("/onboarding")
     }
 
-    // 2. Bloquear trial sem cartão (apenas se onboarding concluído)
-    // Se o usuário tiver stripe_subscription_id, ele TEM acesso.
+    // 2. Bloquear apenas se o plano expirou ou não é trial/premium
+    const isTrial = profile.subscription_status === 'trial'
+    const isExpired = profile.plan_end_date && new Date(profile.plan_end_date) < new Date()
     const hasSubscription = !!profile.stripe_subscription_id
 
-    const isTrialWithoutCard =
-      profile.subscription_status === 'trial' &&
-      profile.access_type === 'subscription' &&
-      !hasSubscription
+    // Se o trial expirou e não tem assinatura, manda pro checkout/pagamento
+    if (profile.role === 'user' && !hasSubscription && isExpired) {
+      redirect("/checkout")
+    }
 
-    const isUser = profile.role === 'user' || profile.role === 'moderator'
-
-    if (isUser && isTrialWithoutCard) {
+    // Se não for nem trial nem pro/premium, e não for admin, também manda pro checkout
+    if (profile.role === 'user' && !isTrial && !hasSubscription && profile.plan === 'free') {
       redirect("/checkout")
     }
   }
