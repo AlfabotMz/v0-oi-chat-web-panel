@@ -63,7 +63,7 @@ export function TrialChecker() {
     }, [])
 
     const handleUpgrade = () => {
-        router.push("/checkout")
+        window.open("https://wa.me/258856428686", "_blank")
     }
 
     return (
@@ -75,15 +75,15 @@ export function TrialChecker() {
                     </div>
                     <AlertDialogTitle className="text-center text-xl">Seu período de teste acabou</AlertDialogTitle>
                     <AlertDialogDescription className="text-center pt-2">
-                        Esperamos que você tenha gostado do OiChat! Para continuar criando agentes e atendendo seus clientes, assine o plano Premium.
+                        Esperamos que você tenha gostado do OiChat! Para continuar criando agentes e atendendo seus clientes, realize o pagamento via WhatsApp para ativar sua conta.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="sm:justify-center">
                     <AlertDialogAction
                         onClick={handleUpgrade}
-                        className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        className="w-full sm:w-auto bg-[#25D366] hover:bg-[#20ba5a] text-white"
                     >
-                        Assinar Agora
+                        Pagar via WhatsApp
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
