@@ -168,7 +168,8 @@ export async function POST(request: NextRequest) {
           product_description,
           contact_owner: contact_owner || null,
           contact_delivery: contact_delivery || null,
-          prompt_generated
+          prompt_generated,
+          message_delay: 5 // Default delay to 5 seconds
         })
         .select()
         .single()

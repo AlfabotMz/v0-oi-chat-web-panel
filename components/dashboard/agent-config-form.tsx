@@ -47,7 +47,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
     agent.custom_message ||
     "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{produto}}\n\n💸 Quantidade: {{quantidade}}\n\n💸 Valor: {{valor}}\n\n💸 Número: {{numero}}\n\n💸 Local: {{localizacao}}"
   )
-  const [messageDelay, setMessageDelay] = useState(agent.message_delay || 0)
+  const [messageDelay, setMessageDelay] = useState(agent.message_delay ?? 5)
 
   // Structured fields (metadata for generation)
   const [promptType, setPromptType] = useState<PromptType>(agent.prompt_type || "dropshipper")
