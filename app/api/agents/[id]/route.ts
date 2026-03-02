@@ -49,20 +49,25 @@ export async function PATCH(
 
         // 5. Se estiver tentando ativar o agente (status = 'active')
         if (status === "active") {
-            // 5.1 Verificar limite de agentes ativos para Free/Trial
-            if (plan === "free" || subStatus === "trial") {
+            // 5.1 Verificar limite de agentes ativos para Free/Trial/Premium
+            if (plan === "free" || subStatus === "trial" || plan === "premium") {
+                const limit = plan === "premium" ? 2 : 1
                 // Contar agentes ativos (excluindo o atual)
                 const { count: activeCount } = await supabase
                     .from("agents")
                     .select("*", { count: "exact", head: true })
                     .eq("user_id", user.id)
                     .eq("status", "active")
-                    .neq("id", agentId) // Excluir o próprio agente se ele já estiver ativo (embora se estiver ativo, não mudaria nada, mas por segurança)
+                    .neq("id", agentId) // Excluir o próprio agente se ele já estiver ativo
 
-                if (activeCount && activeCount >= 1) {
+                if (activeCount && activeCount >= limit) {
+                    const errorMsg = plan === "premium"
+                        ? "Limite atingido: Usuários Premium podem ter apenas 2 agentes ativos."
+                        : "Limite atingido: Usuários Free/Trial podem ter apenas 1 agente ativo."
+
                     return NextResponse.json({
                         success: false,
-                        error: "Limite atingido: Usuários Free/Trial podem ter apenas 1 agente ativo.",
+                        error: errorMsg,
                         requires_upgrade: true
                     }, { status: 403 })
                 }

@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
     const plan = profile?.plan || "free"
     const subStatus = profile?.subscription_status || "free"
 
-    // Permitir apenas se for Pro, Business ou estiver em Trial
-    const canCreateAgent = plan === "pro" || plan === "business" || subStatus === "trial"
+    // Permitir apenas se for Pro, Business, Premium ou estiver em Trial
+    const canCreateAgent = plan === "pro" || plan === "business" || plan === "premium" || subStatus === "trial"
 
     if (!canCreateAgent) {
       return NextResponse.json({
@@ -60,17 +60,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Name e Prompt são obrigatórios" }, { status: 400 })
     }
 
-    // Validação 1: Limite de Agentes Ativos para Free/Trial
-    if (plan === "free" || subStatus === "trial") {
+    // Validação 1: Limite de Agentes Ativos para Free/Trial/Premium
+    const limit = plan === "premium" ? 2 : 1
+    if (plan === "free" || subStatus === "trial" || plan === "premium") {
       const { count: activeAgentsCount } = await supabase
         .from("agents")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("status", "active")
 
-      if (activeAgentsCount && activeAgentsCount >= 1) {
-        // Bloquear criação se já tem um ativo ou definir como inativo (escolhemos criar como inativo se exceder?)
-        // O pedido original era "so pode ter um unico agente ativo".
+      if (activeAgentsCount && activeAgentsCount >= limit) {
+        // Bloquear criação se já excedeu o limite ou definir como inativo
       }
     }
 
@@ -138,15 +138,17 @@ export async function POST(request: NextRequest) {
       if (foundAgent) agent = foundAgent
     }
 
-    // Determine initial status
+    // Determine initial status based on plan limits
     let initialStatus = "active"
-    if (plan === "free" || subStatus === "trial") {
+    if (plan === "free" || subStatus === "trial" || plan === "premium") {
       const { count: activeCount } = await supabase
         .from("agents")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("status", "active")
-      if (activeCount && activeCount >= 1) initialStatus = "inactive"
+
+      const activeLimit = plan === "premium" ? 2 : 1
+      if (activeCount && activeCount >= activeLimit) initialStatus = "inactive"
     }
 
     // Fallback: Criar localmente se não existe ainda
