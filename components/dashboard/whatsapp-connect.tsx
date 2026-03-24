@@ -6,6 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { QrCode, Loader2, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react"
 import Image from "next/image"
+import Script from "next/script"
+
+declare global {
+  interface Window {
+    FB: any;
+  }
+}
 
 interface WhatsAppConnectProps {
   agentId: string
@@ -20,6 +27,7 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
   const [message, setMessage] = useState<string | null>(null)
   const [status, setStatus] = useState<ConnectionStatus>("disconnected")
   const [isCheckingStatus, setIsCheckingStatus] = useState(false)
+  const [isFbLoading, setIsFbLoading] = useState(false)
 
   // Refs para controle do polling
   const pollingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -161,138 +169,109 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
     await checkStatus(false)
   }
 
+  const handleFacebookLogin = () => {
+    if (typeof window === "undefined" || !window.FB) {
+      setError("Facebook SDK não carregado. Tente novamente em alguns segundos.")
+      return
+    }
+
+    setIsFbLoading(true)
+    setError(null)
+
+    const configId = process.env.NEXT_PUBLIC_FACEBOOK_CONFIG_ID
+    if (!configId) {
+      setIsFbLoading(false)
+      setError("A variável de ambiente NEXT_PUBLIC_FACEBOOK_CONFIG_ID não está configurada.")
+      return
+    }
+
+    window.FB.login((response: any) => {
+      if (response.authResponse && response.authResponse.code) {
+        const code = response.authResponse.code;
+
+        fetch('/api/agents/waba-callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ agent_id: agentId, code: code })
+        })
+          .then(res => res.json())
+          .then(data => {
+            setIsFbLoading(false)
+            if (data.success) {
+              setMessage("Conta Oficial WABA conectada com sucesso!")
+              setStatus("connected")
+            } else {
+              setError(data.error || "Erro ao conectar conta WABA no servidor")
+              setStatus("disconnected")
+            }
+          })
+          .catch(err => {
+            setIsFbLoading(false)
+            setError("Erro na requisição. Verifique o console ou tente novamente.")
+          })
+      } else {
+        setIsFbLoading(false)
+        setError('Login com Facebook incompleto ou cancelado pelo usuário.')
+      }
+    }, {
+      config_id: configId,
+      response_type: 'code',
+      override_default_response_type: true
+    });
+  }
+
   return (
-    <Card className="border-border/50">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Conexão WhatsApp</CardTitle>
-            <CardDescription>Conecte seu número do WhatsApp para começar a receber mensagens</CardDescription>
-          </div>
-          {status === "connected" && (
-            <Badge className="bg-green-500 hover:bg-green-600">
-              <CheckCircle2 className="w-3 h-3 mr-1" />
-              Conectado
-            </Badge>
-          )}
-          {status === "pending" && (
-            <Badge variant="secondary">
-              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-              Aguardando
-            </Badge>
-          )}
-          {status === "disconnected" && (
-            <Badge variant="outline">
-              Desconectado
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {status === "connected" ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-              <CheckCircle2 className="w-5 h-5" />
-              <p className="text-sm font-medium">WhatsApp está conectado</p>
+    <>
+      <Script
+        strategy="lazyOnload"
+        src="https://connect.facebook.net/pt_BR/sdk.js"
+        onLoad={() => {
+          if (window.FB) {
+            window.FB.init({
+              appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
+              cookie: true,
+              xfbml: true,
+              version: 'v19.0'
+            });
+          }
+        }}
+      />
+      <Card className="border-border/50">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Conexão WhatsApp</CardTitle>
+              <CardDescription>Conecte seu número do WhatsApp para começar a receber mensagens</CardDescription>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Seu número do WhatsApp está conectado e pronto para receber mensagens.
-            </p>
-            <Button onClick={handleTestConnection} variant="outline" className="w-full" disabled={isCheckingStatus}>
-              {isCheckingStatus ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Verificando...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Testar Conexão
-                </>
-              )}
-            </Button>
+            {status === "connected" && (
+              <Badge className="bg-green-500 hover:bg-green-600">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Conectado
+              </Badge>
+            )}
+            {status === "pending" && (
+              <Badge variant="secondary">
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                Aguardando
+              </Badge>
+            )}
+            {status === "disconnected" && (
+              <Badge variant="outline">
+                Desconectado
+              </Badge>
+            )}
           </div>
-        ) : (
-          <>
-            {!qrCode && !error && (
-              <Button onClick={connectWhatsApp} disabled={isLoading} className="w-full">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Conectando...
-                  </>
-                ) : (
-                  <>
-                    <QrCode className="w-4 h-4 mr-2" />
-                    Conectar WhatsApp
-                  </>
-                )}
-              </Button>
-            )}
-
-            {qrCode && status === "pending" && (
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground text-center">{message}</p>
-                <div className="flex justify-center">
-                  <div className="border-2 border-border rounded-lg p-4 bg-black">
-                    <Image src={qrCode} alt="QR Code WhatsApp" width={256} height={256} className="rounded" />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs text-muted-foreground text-center">
-                    O sistema verificará automaticamente a cada 30 segundos.
-                  </p>
-                  <Button onClick={handleTestConnection} variant="secondary" size="sm" className="w-full" disabled={isCheckingStatus}>
-                    {isCheckingStatus ? (
-                      <>
-                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                        Verificando...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="w-3 h-3 mr-2" />
-                        Verificar Agora
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <Button onClick={connectWhatsApp} variant="outline" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Gerando...
-                    </>
-                  ) : (
-                    <>
-                      <QrCode className="w-4 h-4 mr-2" />
-                      Gerar Novo QR Code
-                    </>
-                  )}
-                </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {status === "connected" ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="w-5 h-5" />
+                <p className="text-sm font-medium">WhatsApp está conectado</p>
               </div>
-            )}
-
-            {error && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-red-500">
-                  <AlertCircle className="w-4 h-4" />
-                  <p className="text-sm font-medium">Erro</p>
-                </div>
-                <p className="text-sm text-muted-foreground">{error}</p>
-                <Button onClick={connectWhatsApp} variant="outline" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Tentando...
-                    </>
-                  ) : (
-                    "Tentar Novamente"
-                  )}
-                </Button>
-              </div>
-            )}
-
-            {status === "disconnected" && !qrCode && !error && (
+              <p className="text-sm text-muted-foreground">
+                Seu número do WhatsApp está conectado e pronto para receber mensagens.
+              </p>
               <Button onClick={handleTestConnection} variant="outline" className="w-full" disabled={isCheckingStatus}>
                 {isCheckingStatus ? (
                   <>
@@ -306,10 +285,131 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
                   </>
                 )}
               </Button>
-            )}
-          </>
-        )}
-      </CardContent>
-    </Card>
+            </div>
+          ) : (
+            <>
+              {!qrCode && !error && (
+                <div className="flex flex-col gap-3">
+                  <Button onClick={connectWhatsApp} disabled={isLoading} className="w-full">
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Conectando...
+                      </>
+                    ) : (
+                      <>
+                        <QrCode className="w-4 h-4 mr-2" />
+                        Conectar WhatsApp (QR Code / N8N)
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="relative my-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-border/50" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">Ou com API Oficial</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleFacebookLogin}
+                    disabled={isLoading || isFbLoading}
+                    variant="outline"
+                    className="w-full bg-[#1877F2] text-white hover:bg-[#1877F2]/90 border-transparent hover:text-white"
+                  >
+                    {isFbLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd"></path></svg>
+                    )}
+                    Conectar com Facebook
+                  </Button>
+                </div>
+              )}
+
+              {qrCode && status === "pending" && (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground text-center">{message}</p>
+                  <div className="flex justify-center">
+                    <div className="border-2 border-border rounded-lg p-4 bg-black">
+                      <Image src={qrCode} alt="QR Code WhatsApp" width={256} height={256} className="rounded" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-muted-foreground text-center">
+                      O sistema verificará automaticamente a cada 30 segundos.
+                    </p>
+                    <Button onClick={handleTestConnection} variant="secondary" size="sm" className="w-full" disabled={isCheckingStatus}>
+                      {isCheckingStatus ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                          Verificando...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-3 h-3 mr-2" />
+                          Verificar Agora
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <Button onClick={connectWhatsApp} variant="outline" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Gerando...
+                      </>
+                    ) : (
+                      <>
+                        <QrCode className="w-4 h-4 mr-2" />
+                        Gerar Novo QR Code
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {error && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-red-500">
+                    <AlertCircle className="w-4 h-4" />
+                    <p className="text-sm font-medium">Erro</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{error}</p>
+                  <Button onClick={connectWhatsApp} variant="outline" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Tentando...
+                      </>
+                    ) : (
+                      "Tentar Novamente"
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {status === "disconnected" && !qrCode && !error && (
+                <Button onClick={handleTestConnection} variant="outline" className="w-full" disabled={isCheckingStatus}>
+                  {isCheckingStatus ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Verificando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Testar Conexão
+                    </>
+                  )}
+                </Button>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </>
   )
 }

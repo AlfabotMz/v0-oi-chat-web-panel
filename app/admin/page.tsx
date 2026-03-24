@@ -449,6 +449,7 @@ export default function AdminPage() {
                       <SelectContent>
                         <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="free">Grátis</SelectItem>
+                        <SelectItem value="premium">Premium</SelectItem>
                         <SelectItem value="pro">Pro</SelectItem>
                       </SelectContent>
                     </Select>
@@ -478,7 +479,10 @@ export default function AdminPage() {
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${user.plan === 'pro' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${user.plan === 'pro' ? 'bg-blue-100 text-blue-700' :
+                                user.plan === 'premium' ? 'bg-purple-100 text-purple-700' :
+                                  'bg-gray-100 text-gray-700'
+                              }`}>
                               {user.plan}
                             </span>
                           </td>
@@ -730,6 +734,7 @@ export default function AdminPage() {
                     <SelectTrigger><SelectValue placeholder="Selecione o plano" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="free">Grátis</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
                       <SelectItem value="pro">Pro</SelectItem>
                     </SelectContent>
                   </Select>
