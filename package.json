@@ -7,7 +7,11 @@
     "dev": "next dev",
     "dev:https": "next dev --experimental-https",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start",
+    "static": "next build",
+    "cap:sync": "cap sync",
+    "cap:open": "cap open android",
+    "cap:add": "cap add android"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.0",
