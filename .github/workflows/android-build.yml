@@ -23,31 +23,11 @@ jobs:
         with:
           version: 9
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build Next.js Static Export
-        run: |
-          mv middleware.ts middleware.ts.bak || true
-          pnpm static
-          mv middleware.ts.bak middleware.ts || true
-        env:
-          NEXT_OUTPUT: export
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      - name: Create Placeholder Web Directory
+        run: mkdir -p out && touch out/index.html
 
       - name: Setup Java
         uses: actions/setup-java@v4

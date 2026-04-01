@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
     appName: 'OiChat',
     webDir: 'out',
     server: {
-        androidScheme: 'https'
+        url: 'https://myoichat.online',
+        cleartext: true
     }
 };
 
