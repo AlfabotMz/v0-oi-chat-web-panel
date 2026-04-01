@@ -17,8 +17,6 @@ export const metadata: Metadata = {
   title: "OiChat - Automação de Atendimento com IA",
   description: "Crie agentes de IA inteligentes para WhatsApp em minutos. Automatize seu suporte, vendas e atendimento com a OiChat.",
   manifest: "/manifest.json",
-  themeColor: "#0F0F12",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -37,7 +35,15 @@ export const metadata: Metadata = {
     ],
     apple: "/oichat-icon.jpg",
   },
-  generator: 'v0.app'
+}
+
+export const viewport = {
+  themeColor: "#0F0F12",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 }
 
 import { PWARegistration } from "@/components/pwa-registration"
