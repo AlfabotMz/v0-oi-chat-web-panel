@@ -12,11 +12,19 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { Loader2, RefreshCw, Plus, Phone, Layout, Building, Settings, CheckCircle2, Clock, AlertCircle } from "lucide-react"
+import Script from "next/script"
+
+declare global {
+    interface Window {
+        FB: any;
+    }
+}
 
 export default function WabaTestPage() {
     const [agents, setAgents] = useState<any[]>([])
     const [selectedAgentId, setSelectedAgentId] = useState<string>("")
     const [loading, setLoading] = useState(false)
+    const [isFbLoading, setIsFbLoading] = useState(false)
     const [data, setData] = useState<any>({
         numbers: null,
         templates: null,
@@ -33,9 +41,9 @@ export default function WabaTestPage() {
         try {
             const list = await getAgents()
             setAgents(list)
-            if (list.length > 0) setSelectedAgentId(list[0].id)
+            if (list.length > 0 && !selectedAgentId) setSelectedAgentId(list[0].id)
         } catch (error: any) {
-            toast.error("Erro ao carregar agentes: " + error.message)
+            toast.error("Error loading agents: " + error.message)
         }
     }
 
@@ -61,12 +69,12 @@ export default function WabaTestPage() {
 
             if (res.success) {
                 setData((prev: any) => ({ ...prev, [type]: res.data }))
-                toast.success(`Dados de ${type} carregados com sucesso`)
+                toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} data loaded successfully`)
             } else {
-                toast.error(`Erro ao carregar ${type}: ` + (res.error?.message || "Erro desconhecido"))
+                toast.error(`Error loading ${type}: ` + (res.error?.message || "Unknown error"))
             }
         } catch (error: any) {
-            toast.error("Erro: " + error.message)
+            toast.error("Error: " + error.message)
         } finally {
             setLoading(false)
         }
@@ -75,7 +83,7 @@ export default function WabaTestPage() {
     async function handleCreateTemplate() {
         if (!selectedAgentId) return
         if (!newTemplate.name || !newTemplate.text) {
-            toast.error("Preencha o nome e o texto do template")
+            toast.error("Fill in the template name and text")
             return
         }
 
@@ -83,23 +91,96 @@ export default function WabaTestPage() {
         try {
             const res = await createWabaTemplate(selectedAgentId, newTemplate)
             if (res.success) {
-                toast.success("Template enviado para aprovação!")
+                toast.success("Template sent for approval!")
                 handleFetch("templates")
                 setNewTemplate({ name: "", text: "", category: "UTILITY" })
             } else {
-                toast.error("Erro ao criar template: " + (res.error?.message || "Erro desconhecido"))
+                toast.error("Error creating template: " + (res.error?.message || "Unknown error"))
             }
         } catch (error: any) {
-            toast.error("Erro: " + error.message)
+            toast.error("Error: " + error.message)
         } finally {
             setLoading(false)
         }
+    }
+
+    function handleFacebookLogin() {
+        if (!selectedAgentId) {
+            toast.error("Please select an agent first")
+            return
+        }
+
+        if (typeof window === "undefined" || !window.FB) {
+            toast.error("Facebook SDK not loaded. Try again in a few seconds.")
+            return
+        }
+
+        setIsFbLoading(true)
+
+        const configId = process.env.NEXT_PUBLIC_FACEBOOK_CONFIG_ID
+        if (!configId) {
+            setIsFbLoading(false)
+            toast.error("Missing NEXT_PUBLIC_FACEBOOK_CONFIG_ID environment variable.")
+            return
+        }
+
+        window.FB.login((response: any) => {
+            if (response.authResponse && response.authResponse.code) {
+                const code = response.authResponse.code;
+
+                fetch('/api/agents/waba-callback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agent_id: selectedAgentId, code: code })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        setIsFbLoading(false)
+                        if (data.success) {
+                            toast.success("Meta Account connected successfully!")
+                            loadAgents() // Refresh agents to get the new waba status
+                        } else {
+                            toast.error(data.error || "Error connecting WABA account on server")
+                        }
+                    })
+                    .catch(err => {
+                        setIsFbLoading(false)
+                        toast.error("Request error. Check console or try again.")
+                    })
+            } else {
+                setIsFbLoading(false)
+                toast.error("Facebook login incomplete or cancelled by the user.")
+            }
+        }, {
+            config_id: configId,
+            response_type: 'code',
+            override_default_response_type: true,
+            extras: {
+                featureType: 'whatsapp_business_app_onboarding',
+                sessionInfoVersion: '3'
+            }
+        });
     }
 
     const agent = agents.find(a => a.id === selectedAgentId)
 
     return (
         <div className="min-h-screen bg-[#0F0F12] text-white p-4 md:p-8">
+            <Script
+                strategy="lazyOnload"
+                src="https://connect.facebook.net/en_US/sdk.js"
+                onLoad={() => {
+                    if (window.FB) {
+                        window.FB.init({
+                            appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
+                            cookie: true,
+                            xfbml: true,
+                            version: 'v19.0'
+                        });
+                    }
+                }}
+            />
+
             <div className="max-w-6xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
@@ -107,14 +188,14 @@ export default function WabaTestPage() {
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                             WABA Management Test Panel
                         </h1>
-                        <p className="text-gray-400 mt-1">Verifique e gerencie sua infraestrutura do WhatsApp Business API</p>
+                        <p className="text-gray-400 mt-1">Verify and manage your WhatsApp Business API infrastructure</p>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Label htmlFor="agent-select" className="hidden md:block">Agente:</Label>
+                        <Label htmlFor="agent-select" className="hidden md:block">Agent:</Label>
                         <Select value={selectedAgentId} onValueChange={setSelectedAgentId}>
                             <SelectTrigger className="w-[250px] bg-white/5 border-white/10">
-                                <SelectValue placeholder="Selecione um agente" />
+                                <SelectValue placeholder="Select an agent" />
                             </SelectTrigger>
                             <SelectContent>
                                 {agents.map(a => (
@@ -128,58 +209,76 @@ export default function WabaTestPage() {
                     </div>
                 </div>
 
+                {/* Agent Status */}
                 {agent && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card className="bg-white/5 border-white/10 text-white">
-                            <CardHeader className="pb-2">
-                                <CardDescription className="text-gray-400">WABA ID</CardDescription>
-                                <CardTitle className="text-lg font-mono">{agent.waba_id || agent.waba_business_account_id || "Não configurado"}</CardTitle>
-                            </CardHeader>
-                        </Card>
-                        <Card className="bg-white/5 border-white/10 text-white">
-                            <CardHeader className="pb-2">
-                                <CardDescription className="text-gray-400">Phone Number ID</CardDescription>
-                                <CardTitle className="text-lg font-mono">{agent.waba_phone_number_id || "Não configurado"}</CardTitle>
-                            </CardHeader>
-                        </Card>
-                        <Card className="bg-white/5 border-white/10 text-white">
-                            <CardHeader className="pb-2">
-                                <CardDescription className="text-gray-400">Token Status</CardDescription>
-                                <CardTitle className="flex items-center gap-2">
-                                    {agent.waba_access_token ? (
-                                        <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">Configurado</Badge>
-                                    ) : (
-                                        <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">Ausente</Badge>
-                                    )}
-                                </CardTitle>
-                            </CardHeader>
-                        </Card>
+                    <div className="space-y-4">
+                        <div className="flex justify-start text-sm sm:items-center">
+                            <Button
+                                onClick={handleFacebookLogin}
+                                disabled={isFbLoading}
+                                className="bg-[#1877F2] text-white hover:bg-[#1877F2]/90 border-transparent gap-2 font-medium"
+                            >
+                                {isFbLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd"></path></svg>
+                                )}
+                                Connect with Meta
+                            </Button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Card className="bg-white/5 border-white/10 text-white">
+                                <CardHeader className="pb-2">
+                                    <CardDescription className="text-gray-400">WABA ID</CardDescription>
+                                    <CardTitle className="text-lg font-mono">{agent.waba_id || agent.waba_business_account_id || "Not configured"}</CardTitle>
+                                </CardHeader>
+                            </Card>
+                            <Card className="bg-white/5 border-white/10 text-white">
+                                <CardHeader className="pb-2">
+                                    <CardDescription className="text-gray-400">Phone Number ID</CardDescription>
+                                    <CardTitle className="text-lg font-mono">{agent.waba_phone_number_id || "Not configured"}</CardTitle>
+                                </CardHeader>
+                            </Card>
+                            <Card className="bg-white/5 border-white/10 text-white">
+                                <CardHeader className="pb-2">
+                                    <CardDescription className="text-gray-400">Token Status</CardDescription>
+                                    <CardTitle className="flex items-center gap-2">
+                                        {agent.waba_access_token ? (
+                                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">Configured</Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">Missing</Badge>
+                                        )}
+                                    </CardTitle>
+                                </CardHeader>
+                            </Card>
+                        </div>
                     </div>
                 )}
 
                 <Tabs defaultValue="numbers" className="w-full">
                     <TabsList className="bg-white/5 border border-white/10 p-1 mb-8">
                         <TabsTrigger value="numbers" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2">
-                            <Phone className="h-4 w-4" /> Números
+                            <Phone className="h-4 w-4" /> Numbers
                         </TabsTrigger>
                         <TabsTrigger value="templates" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2">
                             <Layout className="h-4 w-4" /> Templates
                         </TabsTrigger>
                         <TabsTrigger value="accounts" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2">
-                            <Building className="h-4 w-4" /> Contas
+                            <Building className="h-4 w-4" /> Accounts
                         </TabsTrigger>
                         <TabsTrigger value="settings" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white gap-2">
-                            <Settings className="h-4 w-4" /> Config
+                            <Settings className="h-4 w-4" /> Settings
                         </TabsTrigger>
                     </TabsList>
 
                     {/* Numbers Tab */}
                     <TabsContent value="numbers" className="space-y-4">
                         <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-semibold">Listar números do WhatsApp Business</h2>
+                            <h2 className="text-xl font-semibold">List WhatsApp Business Numbers</h2>
                             <Button onClick={() => handleFetch("numbers")} disabled={loading} className="bg-blue-600 hover:bg-blue-700">
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Atualizar Lista
+                                Refresh List
                             </Button>
                         </div>
 
@@ -210,7 +309,7 @@ export default function WabaTestPage() {
                             </div>
                         ) : (
                             <div className="text-center py-12 bg-white/5 rounded-xl border border-dashed border-white/10">
-                                <p className="text-gray-500 italic">Clique em 'Atualizar Lista' para buscar os números.</p>
+                                <p className="text-gray-500 italic">Click 'Refresh List' to fetch the numbers.</p>
                             </div>
                         )}
                     </TabsContent>
@@ -222,48 +321,48 @@ export default function WabaTestPage() {
                             <Card className="bg-white/5 border-white/10 text-white lg:col-span-1">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
-                                        <Plus className="h-5 w-5 text-blue-500" /> Criar Template
+                                        <Plus className="h-5 w-5 text-blue-500" /> Create Template
                                     </CardTitle>
-                                    <CardDescription>Crie um novo template de utilidade básico.</CardDescription>
+                                    <CardDescription>Create a new basic utility template.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="t-name">Nome do Template</Label>
+                                        <Label htmlFor="t-name">Template Name</Label>
                                         <Input
                                             id="t-name"
-                                            placeholder="ex: boas_vindas"
+                                            placeholder="ex: welcome_message"
                                             className="bg-white/5 border-white/10"
                                             value={newTemplate.name}
                                             onChange={e => setNewTemplate({ ...newTemplate, name: e.target.value })}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="t-text">Mensagem (Corpo)</Label>
+                                        <Label htmlFor="t-text">Message (Body)</Label>
                                         <Textarea
                                             id="t-text"
-                                            placeholder="Olá {{1}}, bem-vindo!"
+                                            placeholder="Hello {{1}}, welcome!"
                                             className="bg-white/5 border-white/10 min-h-[100px]"
                                             value={newTemplate.text}
                                             onChange={e => setNewTemplate({ ...newTemplate, text: e.target.value })}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Categoria</Label>
+                                        <Label>Category</Label>
                                         <Select value={newTemplate.category} onValueChange={val => setNewTemplate({ ...newTemplate, category: val })}>
                                             <SelectTrigger className="bg-white/5 border-white/10">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="UTILITY">UTILITY (Utilitário)</SelectItem>
-                                                <SelectItem value="MARKETING">MARKETING (Marketing)</SelectItem>
-                                                <SelectItem value="AUTHENTICATION">AUTHENTICATION (Autenticação)</SelectItem>
+                                                <SelectItem value="UTILITY">UTILITY</SelectItem>
+                                                <SelectItem value="MARKETING">MARKETING</SelectItem>
+                                                <SelectItem value="AUTHENTICATION">AUTHENTICATION</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                 </CardContent>
                                 <CardFooter>
                                     <Button onClick={handleCreateTemplate} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700">
-                                        Criar Template
+                                        Create Template
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -271,9 +370,9 @@ export default function WabaTestPage() {
                             {/* List Templates */}
                             <div className="lg:col-span-2 space-y-4">
                                 <div className="flex justify-between items-center">
-                                    <h3 className="text-lg font-medium">Modelos Existentes</h3>
+                                    <h3 className="text-lg font-medium">Existing Templates</h3>
                                     <Button size="sm" variant="outline" onClick={() => handleFetch("templates")} disabled={loading} className="border-white/10">
-                                        Recarregar
+                                        Reload
                                     </Button>
                                 </div>
 
@@ -310,7 +409,7 @@ export default function WabaTestPage() {
                                     </div>
                                 ) : (
                                     <div className="text-center py-20 bg-white/5 rounded-xl border border-dashed border-white/10">
-                                        <p className="text-gray-500">Nenhum template carregado.</p>
+                                        <p className="text-gray-500">No templates loaded.</p>
                                     </div>
                                 )}
                             </div>
@@ -320,9 +419,9 @@ export default function WabaTestPage() {
                     {/* WABA Accounts Tab */}
                     <TabsContent value="accounts" className="space-y-4">
                         <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-semibold">Suas Contas WhatsApp Business</h2>
+                            <h2 className="text-xl font-semibold">Your WhatsApp Business Accounts</h2>
                             <Button onClick={() => handleFetch("accounts")} disabled={loading} className="bg-blue-600">
-                                Listar Contas
+                                List Accounts
                             </Button>
                         </div>
 
@@ -362,7 +461,7 @@ export default function WabaTestPage() {
                         ) : (
                             <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-xl border border-dashed border-white/10 space-y-4">
                                 <Building className="h-12 w-12 text-gray-700" />
-                                <p className="text-gray-500">Clique para buscar as contas vinculadas a este token.</p>
+                                <p className="text-gray-500">Click to fetch the accounts linked to this token.</p>
                             </div>
                         )}
                     </TabsContent>
@@ -370,9 +469,9 @@ export default function WabaTestPage() {
                     {/* Settings Tab */}
                     <TabsContent value="settings" className="space-y-4">
                         <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-semibold">Configurações do WABA</h2>
+                            <h2 className="text-xl font-semibold">WABA Settings</h2>
                             <Button onClick={() => handleFetch("settings")} disabled={loading} variant="outline" className="border-white/10">
-                                Buscar Configurações
+                                Fetch Settings
                             </Button>
                         </div>
 
@@ -380,7 +479,7 @@ export default function WabaTestPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Card className="bg-white/5 border-white/10 text-white">
                                     <CardHeader>
-                                        <CardTitle className="text-lg">Informações Gerais</CardTitle>
+                                        <CardTitle className="text-lg">General Information</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <pre className="text-xs bg-black/30 p-4 rounded-lg overflow-x-auto custom-scrollbar border border-white/5">
@@ -393,22 +492,22 @@ export default function WabaTestPage() {
                                     <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 flex gap-4">
                                         <AlertCircle className="h-6 w-6 text-orange-500 shrink-0" />
                                         <div>
-                                            <h4 className="font-medium text-orange-400">Verificação de Scope</h4>
+                                            <h4 className="font-medium text-orange-400">Scope Verification</h4>
                                             <p className="text-sm text-gray-400 mt-1">
-                                                Estas informações são acessíveis apenas com o scope `whatsapp_business_management`.
-                                                Se você vê esses dados, seu token está configurado corretamente.
+                                                This information is only accessible with the `whatsapp_business_management` scope.
+                                                If you see these details, your token is properly configured.
                                             </p>
                                         </div>
                                     </div>
 
                                     <Card className="bg-white/5 border-white/10 text-white">
                                         <CardHeader>
-                                            <CardTitle className="text-sm uppercase text-gray-500 tracking-wider">Próximos Passos</CardTitle>
+                                            <CardTitle className="text-sm uppercase text-gray-500 tracking-wider">Next Steps</CardTitle>
                                         </CardHeader>
                                         <CardContent className="text-sm text-gray-300 space-y-2">
-                                            <p>✔️ Gerenciar Números: Concluído</p>
-                                            <p>✔️ Gerenciar Templates: Concluído</p>
-                                            <p>✔️ Gerenciar WABA: Concluído</p>
+                                            <p>✔️ Manage Numbers: Completed</p>
+                                            <p>✔️ Manage Templates: Completed</p>
+                                            <p>✔️ Manage WABA: Completed</p>
                                         </CardContent>
                                     </Card>
                                 </div>
@@ -416,7 +515,7 @@ export default function WabaTestPage() {
                         ) : (
                             <div className="text-center py-20 bg-white/5 rounded-xl border border-dashed border-white/10">
                                 <Settings className="h-12 w-12 text-gray-700 mx-auto mb-4" />
-                                <p className="text-gray-500 italic">Carregue as configurações para validar o scope de management.</p>
+                                <p className="text-gray-500 italic">Load settings to validate the management scope.</p>
                             </div>
                         )}
                     </TabsContent>
