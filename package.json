@@ -11,7 +11,8 @@
     "static": "next build",
     "cap:sync": "cap sync",
     "cap:open": "cap open android",
-    "cap:add": "cap add android"
+    "cap:add": "cap add android",
+    "test:webhook": "tsx scripts/test-conversion-webhook.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.0",
@@ -62,6 +63,7 @@
     "next": "16.0.10",
     "next-themes": "latest",
     "path": "latest",
+    "radix-ui": "^1.4.3",
     "react": "19.2.0",
     "react-day-picker": "9.8.0",
     "react-dom": "19.2.0",

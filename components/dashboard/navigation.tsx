@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MessageCircle, BarChart3, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight, UserIcon, LogOut, Smartphone, X } from "lucide-react"
+import { MessageCircle, BarChart3, Settings, HelpCircle, MessageSquare, ChevronLeft, ChevronRight, UserIcon, LogOut, Smartphone, X, Inbox } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
@@ -23,6 +23,7 @@ interface NavigationProps {
 
 const navItems = [
   { href: "/dashboard", label: "Agentes", icon: MessageCircle },
+  { href: "/dashboard/leads", label: "Encomendas", icon: Inbox },
   { href: "/dashboard/remarketing", label: "Remarketing", icon: MessageSquare, isSoon: true },
   { href: "/dashboard/performance", label: "Performance", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
@@ -33,10 +34,13 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
   const router = useRouter()
   const [plan, setPlan] = useState<string>("free")
   const [loading, setLoading] = useState(true)
+  const [unreadLeads, setUnreadLeads] = useState(0)
 
   useEffect(() => {
-    const fetchPlan = async () => {
+    const fetchData = async () => {
       const supabase = createClient()
+
+      // Fetch plan
       const { data: profile } = await supabase
         .from("profiles")
         .select("plan, subscription_status")
@@ -46,10 +50,40 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
       if (profile) {
         setPlan(profile.plan || "free")
       }
+
+      // Fetch unread leads count
+      const { count } = await supabase
+        .from("leads")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false)
+
+      if (count !== null) setUnreadLeads(count)
+
       setLoading(false)
     }
 
-    fetchPlan()
+    fetchData()
+
+    // Realtime subscription for unread updates
+    const supabase = createClient()
+    const channel = supabase
+      .channel('nav-unread-leads')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads', filter: `user_id=eq.${user.id}` }, (payload) => {
+        if (!payload.new.is_read) setUnreadLeads(prev => prev + 1)
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'leads', filter: `user_id=eq.${user.id}` }, (payload) => {
+        if (payload.old.is_read === false && payload.new.is_read === true) setUnreadLeads(prev => Math.max(0, prev - 1))
+        if (payload.old.is_read === true && payload.new.is_read === false) setUnreadLeads(prev => prev + 1)
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'leads', filter: `user_id=eq.${user.id}` }, (payload) => {
+        if (payload.old.is_read === false) setUnreadLeads(prev => Math.max(0, prev - 1))
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [user.id])
 
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
@@ -120,7 +154,12 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
                       item.label === "Configurações" ? "nav-settings" : undefined
               }
             >
-              <Icon className={cn("h-5 w-5", isActive ? "text-primary" : "text-muted-foreground")} />
+              <div className="relative">
+                <Icon className={cn("h-5 w-5", isActive ? "text-primary" : "text-muted-foreground")} />
+                {item.label === "Encomendas" && unreadLeads > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 ring-2 ring-[#0F0F12]" />
+                )}
+              </div>
               <span>{item.label}</span>
             </Link>
           )
@@ -205,7 +244,17 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
                     isCollapsed ? "left-0 top-1/2 -translate-y-1/2 w-1 h-4" : "left-0 top-1/2 -translate-y-1/2 w-1 h-6"
                   )} />
                 )}
-                <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-primary" : "group-hover:text-zinc-300")} />
+                <div className="relative flex items-center justify-center">
+                  <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-primary" : "group-hover:text-zinc-300")} />
+                  {item.label === "Encomendas" && unreadLeads > 0 && (
+                    <span className={cn(
+                      "absolute bg-red-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-[0_0_10px_rgba(239,68,68,0.5)] ring-2 ring-[#0F0F12]",
+                      isCollapsed ? "-top-1 -right-1 w-2.5 h-2.5" : "-top-1 -right-2 w-4 h-4"
+                    )}>
+                      {!isCollapsed && (unreadLeads > 99 ? '99+' : unreadLeads)}
+                    </span>
+                  )}
+                </div>
                 {!isCollapsed && <span className="font-medium">{item.label}</span>}
 
                 {!isCollapsed && (item as any).isSoon && (

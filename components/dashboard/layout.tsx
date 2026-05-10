@@ -8,6 +8,7 @@ import { Header } from "./header"
 import { CommunityInviteDialog } from "./community-invite-dialog"
 import { createClient } from "@/lib/supabase/client"
 import { TrialChecker } from "./trial-checker"
+import { RealtimeLeads } from "./realtime-leads"
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -102,6 +103,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         whatsappLink={supportWhatsAppLink}
       />
       <TrialChecker />
+      <RealtimeLeads user={user} />
     </div>
   )
 }
