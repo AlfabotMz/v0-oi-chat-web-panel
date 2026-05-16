@@ -45,7 +45,7 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
   const [contactDelivery, setContactDelivery] = useState(agent.contact_delivery || "")
   const [customMessage, setCustomMessage] = useState(
     agent.custom_message ||
-    "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{produto}}\n\n💸 Quantidade: {{quantidade}}\n\n💸 Valor: {{valor}}\n\n💸 Número: {{numero}}\n\n💸 Local: {{localizacao}}"
+    "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{product}}\n\n💸 Quantidade: {{quantity}}\n\n💸 Valor: {{price}}\n\n💸 Número: {{phone}}\n\n💸 Local: {{location}}\n\n💸 Data: {{date}}"
   )
   const [messageDelay, setMessageDelay] = useState(agent.message_delay ?? 5)
 
@@ -564,11 +564,11 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
               className="min-h-[150px] bg-background/50"
               mode="variables-only"
               variables={[
-                { label: "produto", value: "{{produto}}", description: "Nome do produto" },
-                { label: "quantidade", value: "{{quantidade}}", description: "Quantidade de itens" },
-                { label: "valor", value: "{{valor}}", description: "Valor total/unidade" },
-                { label: "numero", value: "{{numero}}", description: "Número do cliente" },
-                { label: "localizacao", value: "{{localizacao}}", description: "Localização do cliente" },
+                { label: "product", value: "{{product}}", description: "Nome do produto" },
+                { label: "quantity", value: "{{quantity}}", description: "Quantidade de itens" },
+                { label: "price", value: "{{price}}", description: "Valor total/unidade" },
+                { label: "phone", value: "{{phone}}", description: "Número do cliente" },
+                { label: "location", value: "{{location}}", description: "Localização do cliente" },
                 { label: "date", value: "{{date}}", description: "Data da conversão" },
               ]}
             />
@@ -587,8 +587,8 @@ export function AgentConfigForm({ agent }: AgentConfigFormProps) {
                       {customMessage
                         .replace(/{{produto}}|{{product}}/g, product || "Consultoria de IA")
                         .replace(/{{quantidade}}|{{quantity}}/g, "1")
-                        .replace(/{{valor}}|{{amount}}/g, amount || "960 MT")
-                        .replace(/{{numero}}|{{number}}/g, "+258 84 123 4567")
+                        .replace(/{{valor}}|{{price}}|{{amount}}/g, amount || "960 MT")
+                        .replace(/{{numero}}|{{phone}}|{{number}}/g, "+258 84 123 4567")
                         .replace(/{{localizacao}}|{{location}}/g, "Maputo, Moçambique")
                         .replace(/{{date}}/g, mounted ? new Date().toLocaleDateString("pt-PT", { day: 'numeric', month: 'long' }) : "Data")}
                     </div>

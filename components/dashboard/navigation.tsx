@@ -26,6 +26,7 @@ const navItems = [
   { href: "/dashboard/leads", label: "Encomendas", icon: Inbox },
   { href: "/dashboard/remarketing", label: "Remarketing", icon: MessageSquare, isSoon: true },
   { href: "/dashboard/performance", label: "Performance", icon: BarChart3 },
+  { href: "/dashboard/integrations", label: "Integrações", icon: Smartphone },
   { href: "/dashboard/settings", label: "Configurações", icon: Settings },
 ]
 

@@ -171,7 +171,8 @@ export async function POST(request: NextRequest) {
           contact_owner: contact_owner || null,
           contact_delivery: contact_delivery || null,
           prompt_generated,
-          message_delay: 5 // Default delay to 5 seconds
+          message_delay: 5, // Default delay to 5 seconds
+          custom_message: "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{product}}\n\n💸 Quantidade: {{quantity}}\n\n💸 Valor: {{price}}\n\n💸 Número: {{phone}}\n\n💸 Local: {{location}}\n\n💸 Data: {{date}}"
         })
         .select()
         .single()
