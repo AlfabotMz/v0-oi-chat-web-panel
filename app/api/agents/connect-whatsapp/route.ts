@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Agente não encontrado" }, { status: 404 })
     }
 
+    /* n8n integration deprecated
     try {
       const webhookUrl = getWebhookUrl("api/agents/connect-whatsapp")
       console.log("Chamando backend:", webhookUrl)
@@ -97,6 +98,12 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+    */
+
+    return NextResponse.json({
+      success: false,
+      error: "A conexão via QR Code/n8n foi desativada. Por favor, utilize a Conexão Oficial via Facebook.",
+    }, { status: 410 }) // 410 Gone
   } catch (error: any) {
     console.error("Erro no connect-whatsapp:", error)
     return NextResponse.json(

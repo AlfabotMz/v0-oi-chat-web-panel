@@ -144,7 +144,7 @@ export function AgentsList({ agents }: AgentsListProps) {
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja deletar este agente? Esta ação não pode ser desfeita.
-              O agente será removido do n8n e do banco de dados.
+              O agente será removido do banco de dados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

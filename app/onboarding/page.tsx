@@ -145,7 +145,7 @@ export default function OnboardingPage() {
         console.warn("Failed to update profile survey data")
       }
 
-      // 2. Send to n8n
+      /* n8n integration deprecated
       const n8nResponse = await fetch("/api/onboarding/n8n", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -154,6 +154,7 @@ export default function OnboardingPage() {
       if (!n8nResponse.ok) {
         console.warn("Failed to send data to n8n")
       }
+      */
 
       router.push("/checkout?onboarding=complete")
     } catch (err) {

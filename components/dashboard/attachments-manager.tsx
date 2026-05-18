@@ -54,7 +54,7 @@ export function AttachmentsManager({ attachments, onAttachmentsChange, onSave, i
 
     try {
       const supabase = createClient()
-      
+
       // Verificar se o usuário está autenticado
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       if (authError || !user) {
@@ -134,93 +134,102 @@ export function AttachmentsManager({ attachments, onAttachmentsChange, onSave, i
     }
     return <File className="w-4 h-4" />
   }
-
   return (
-    <Card className="border-border/50">
-      <CardHeader>
-        <CardTitle>Anexos</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Adicione anexos que o agente pode enviar (imagens, vídeos, documentos)
+    <Card className="glass border-border/40 shadow-lg">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+            <Plus className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Conteúdo & Anexos</CardTitle>
+          </div>
+        </div>
+        <p className="text-[10px] text-muted-foreground/70 italic mt-1 pl-1">
+          Arquivos que o agente pode enviar automaticamente durante o atendimento.
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {/* Lista de anexos */}
-        {attachmentsList.map((attachment, index) => (
-          <div key={index} className="border border-border/50 rounded-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Label className="font-medium">{attachment.name}</Label>
-                <Badge variant="secondary">{attachment.urls.length} arquivo(s)</Badge>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleRemoveAttachment(index)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Upload de arquivo */}
-            <div className="flex gap-2">
-              <label className="flex-1">
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*,video/*,application/pdf"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFileUpload(index, file)
-                  }}
-                  disabled={uploading !== null}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={uploading !== null}
-                  asChild
-                >
-                  <span>
-                    <Upload className="w-4 h-4 mr-2" />
-                    {uploading?.startsWith(`${index}-`) ? "Enviando..." : "Adicionar Arquivo"}
-                  </span>
-                </Button>
-              </label>
-            </div>
-
-            {/* Lista de URLs */}
-            {attachment.urls.length > 0 && (
-              <div className="grid grid-cols-2 gap-2">
-                {attachment.urls.map((url, urlIndex) => (
-                  <div
-                    key={urlIndex}
-                    className="flex items-center gap-2 p-2 border border-border/50 rounded text-sm"
-                  >
-                    {getFileIcon(url)}
-                    <span className="flex-1 truncate text-xs">{url.split("/").pop()}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveUrl(index, urlIndex)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
+        <div className="space-y-3">
+          {attachmentsList.map((attachment, index) => (
+            <div key={index} className="bg-zinc-950/20 border border-white/5 rounded-2xl p-4 space-y-4 hover:border-primary/20 transition-colors group">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center text-[10px] font-bold text-zinc-500">
+                    {index + 1}
                   </div>
-                ))}
+                  <Label className="text-xs font-bold uppercase tracking-tight text-zinc-300">{attachment.name}</Label>
+                  <Badge variant="secondary" className="text-[9px] h-4 bg-zinc-800 text-zinc-400 capitalize">{attachment.urls.length} files</Badge>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemoveAttachment(index)}
+                  className="h-7 w-7 p-0 rounded-full hover:bg-red-500/10 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
               </div>
-            )}
-          </div>
-        ))}
+
+              {/* Upload de arquivo */}
+              <div className="flex gap-2">
+                <label className="flex-1 cursor-pointer group/up">
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*,video/*,application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleFileUpload(index, file)
+                    }}
+                    disabled={uploading !== null}
+                  />
+                  <div className={cn(
+                    "w-full h-10 border-border/40 border-[1px] border-dashed rounded-xl flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all",
+                    uploading?.startsWith(`${index}-`) ? "bg-zinc-900/50 text-zinc-500 animate-pulse" : "bg-zinc-900/20 hover:bg-primary/5 hover:border-primary/40 hover:text-primary"
+                  )}>
+                    <Upload className="w-3.5 h-3.5" />
+                    {uploading?.startsWith(`${index}-`) ? "Subindo..." : "Anexar Arquivo"}
+                  </div>
+                </label>
+              </div>
+
+              {/* Lista de URLs */}
+              {attachment.urls.length > 0 && (
+                <div className="grid grid-cols-1 gap-2">
+                  {attachment.urls.map((url, urlIndex) => (
+                    <div
+                      key={urlIndex}
+                      className="flex items-center gap-3 p-2 bg-zinc-950/40 border border-white/5 rounded-xl text-xs hover:border-white/10 transition-colors"
+                    >
+                      <div className="p-2 rounded-lg bg-zinc-900">
+                        {getFileIcon(url)}
+                      </div>
+                      <span className="flex-1 truncate text-[10px] font-medium text-zinc-400">{url.split("/").pop()}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveUrl(index, urlIndex)}
+                        className="h-6 w-6 p-0 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
         {/* Adicionar novo anexo */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 bg-zinc-950/40 p-1.5 rounded-2xl border border-white/5">
           <Input
-            placeholder="Nome do anexo (ex: Catálogo, Promoções)"
+            placeholder="Novo Pack (ex: Catálogo)"
             value={newAttachmentName}
             onChange={(e) => setNewAttachmentName(e.target.value)}
+            className="h-10 bg-transparent border-none focus-visible:ring-0 text-xs font-medium placeholder:text-zinc-600"
             onKeyPress={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault()
@@ -228,19 +237,15 @@ export function AttachmentsManager({ attachments, onAttachmentsChange, onSave, i
               }
             }}
           />
-          <Button onClick={handleAddAttachment} disabled={!newAttachmentName.trim()}>
+          <Button
+            onClick={handleAddAttachment}
+            disabled={!newAttachmentName.trim()}
+            size="sm"
+            className="h-10 w-10 p-0 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+          >
             <Plus className="w-4 h-4" />
           </Button>
         </div>
-
-        {/* Botão de salvar */}
-        {onSave && (
-          <div className="pt-4 border-t border-border/50">
-            <Button onClick={onSave} disabled={isSaving} className="w-full">
-              {isSaving ? "Salvando..." : "Salvar Anexos"}
-            </Button>
-          </div>
-        )}
       </CardContent>
     </Card>
   )

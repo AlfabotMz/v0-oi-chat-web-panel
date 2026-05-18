@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
         // Modificar o profile/update parece mais robusto, mas o usuário pediu "enviar para n8n no endpoint /onboarding".
         // Vou criar este endpoint dedicado para o n8n e chamar no frontend.
 
+        /* n8n integration deprecated
         const webhookUrl = getWebhookUrl("onboarding")
         console.log("Chamando webhook n8n onboarding:", webhookUrl)
 
@@ -49,8 +50,9 @@ export async function POST(request: NextRequest) {
             console.error("Erro ao enviar para n8n:", await n8nResponse.text())
             // Não falhar a requisição do usuário se o n8n falhar, apenas logar
         }
+        */
 
-        return NextResponse.json({ success: true })
+        return NextResponse.json({ success: true, message: "n8n integration deprecated" })
 
     } catch (error) {
         console.error("Erro no endpoint de onboarding:", error)

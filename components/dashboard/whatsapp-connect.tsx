@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { QrCode, Loader2, AlertCircle, CheckCircle2, RefreshCw } from "lucide-react"
+import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Smartphone } from "lucide-react"
 import Image from "next/image"
 import Script from "next/script"
+import { cn } from "@/lib/utils"
 
 declare global {
   interface Window {
@@ -21,7 +22,6 @@ interface WhatsAppConnectProps {
 type ConnectionStatus = "disconnected" | "pending" | "connected" | "checking"
 
 export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
-  const [qrCode, setQrCode] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -72,7 +72,6 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
 
       if (data.success && data.connected) {
         setStatus("connected")
-        setQrCode(null)
         setMessage("WhatsApp conectado com sucesso!")
         stopPolling()
       } else {
@@ -121,48 +120,9 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
   }, [checkStatus, stopPolling])
 
   const connectWhatsApp = async () => {
-    setIsLoading(true)
-    setError(null)
-    setMessage(null)
-    setQrCode(null)
-    setStatus("pending")
-    stopPolling()
-
-    try {
-      const response = await fetch("/api/agents/connect-whatsapp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ agent_id: agentId }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Erro ao conectar WhatsApp")
-      }
-
-      if (data.qr) {
-        setQrCode(data.qr)
-        setMessage(data.message || "Escaneie o QR code para conectar seu número de WhatsApp.")
-        setStatus("pending")
-        startPolling()
-      } else {
-        setError(data.error || "QR code não foi retornado pela API")
-        setStatus("disconnected")
-      }
-    } catch (err: any) {
-      console.error("Erro ao conectar WhatsApp:", err)
-      if (err.message.includes("fetch")) {
-        setError("Erro ao conectar com o servidor n8n. Verifique se a URL está configurada corretamente no arquivo .env")
-      } else {
-        setError(err.message || "Erro ao conectar WhatsApp. Verifique os logs do servidor.")
-      }
-      setStatus("disconnected")
-    } finally {
-      setIsLoading(false)
-    }
+    // Deprecated n8n connection
+    setError("A conexão via QR Code foi desativada. Use o Facebook Login.")
+    setStatus("disconnected")
   }
 
   const handleTestConnection = async () => {
@@ -223,7 +183,6 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
       }
     });
   }
-
   return (
     <>
       <Script
@@ -240,33 +199,38 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
           }
         }}
       />
-      <Card className="border-border/50">
-        <CardHeader>
+      <Card className="glass border-border/40 shadow-lg">
+        <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Conexão WhatsApp</CardTitle>
-              <CardDescription>Conecte seu número do WhatsApp para começar a receber mensagens</CardDescription>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                <Smartphone className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Status da Conexão</CardTitle>
+                <CardDescription className="text-[10px]">Gerencie a integração com o Meta Cloud API</CardDescription>
+              </div>
             </div>
             {status === "connected" && (
-              <Badge className="bg-green-500 hover:bg-green-600">
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Conectado
+              <Badge className="bg-green-500/10 text-green-500 border-green-500/20 px-3 py-1 font-bold text-[10px] uppercase tracking-wider">
+                <CheckCircle2 className="w-3 h-3 mr-1.5 fill-current" />
+                Online
               </Badge>
             )}
             {status === "pending" && (
-              <Badge variant="secondary">
-                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                Aguardando
+              <Badge variant="secondary" className="bg-zinc-800 text-zinc-400 border-white/5 px-3 py-1 font-bold text-[10px] uppercase tracking-wider animate-pulse">
+                <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                Sincronizando
               </Badge>
             )}
             {status === "disconnected" && (
-              <Badge variant="outline">
+              <Badge variant="outline" className="border-red-500/20 text-red-500 bg-red-500/5 px-3 py-1 font-bold text-[10px] uppercase tracking-wider">
                 Desconectado
               </Badge>
             )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {status === "connected" ? (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
@@ -292,31 +256,8 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
             </div>
           ) : (
             <>
-              {!qrCode && !error && (
+              {!error && (
                 <div className="flex flex-col gap-3">
-                  <Button onClick={connectWhatsApp} disabled={isLoading} className="w-full">
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Conectando...
-                      </>
-                    ) : (
-                      <>
-                        <QrCode className="w-4 h-4 mr-2" />
-                        Conectar WhatsApp (QR Code / N8N)
-                      </>
-                    )}
-                  </Button>
-
-                  <div className="relative my-2">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-border/50" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-card px-2 text-muted-foreground">Ou com API Oficial</span>
-                    </div>
-                  </div>
-
                   <Button
                     onClick={handleFacebookLogin}
                     disabled={isLoading || isFbLoading}
@@ -333,48 +274,6 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
                 </div>
               )}
 
-              {qrCode && status === "pending" && (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground text-center">{message}</p>
-                  <div className="flex justify-center">
-                    <div className="border-2 border-border rounded-lg p-4 bg-black">
-                      <Image src={qrCode} alt="QR Code WhatsApp" width={256} height={256} className="rounded" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs text-muted-foreground text-center">
-                      O sistema verificará automaticamente a cada 30 segundos.
-                    </p>
-                    <Button onClick={handleTestConnection} variant="secondary" size="sm" className="w-full" disabled={isCheckingStatus}>
-                      {isCheckingStatus ? (
-                        <>
-                          <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                          Verificando...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="w-3 h-3 mr-2" />
-                          Verificar Agora
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  <Button onClick={connectWhatsApp} variant="outline" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Gerando...
-                      </>
-                    ) : (
-                      <>
-                        <QrCode className="w-4 h-4 mr-2" />
-                        Gerar Novo QR Code
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-
               {error && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-red-500">
@@ -382,8 +281,8 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
                     <p className="text-sm font-medium">Erro</p>
                   </div>
                   <p className="text-sm text-muted-foreground">{error}</p>
-                  <Button onClick={connectWhatsApp} variant="outline" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
+                  <Button onClick={handleTestConnection} variant="outline" className="w-full" disabled={isCheckingStatus}>
+                    {isCheckingStatus ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Tentando...
@@ -395,7 +294,7 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
                 </div>
               )}
 
-              {status === "disconnected" && !qrCode && !error && (
+              {status === "disconnected" && !error && (
                 <Button onClick={handleTestConnection} variant="outline" className="w-full" disabled={isCheckingStatus}>
                   {isCheckingStatus ? (
                     <>

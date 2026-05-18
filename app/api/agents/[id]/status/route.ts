@@ -58,64 +58,76 @@ export async function GET(
       return NextResponse.json({ success: false, error: "Agente não encontrado" }, { status: 404 })
     }
 
-    try {
-      const n8nWebhookUrl = getWebhookUrl("api/agents/check-status")
+    // Verificação via Meta Graph API (oficial)
+    const token = agent.waba_access_token
+    const phoneId = agent.waba_phone_number_id
 
-      console.log("Chamando webhook n8n para verificar status:", n8nWebhookUrl)
-      console.log("Dados enviados:", { agent_id: agentId })
-
-      // Fazer requisição para o webhook n8n
-      const n8nResponse = await fetch(n8nWebhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          agent_id: agentId,
-        }),
-      })
-
-      console.log("Status da resposta n8n:", n8nResponse.status)
-
-      // Verificar se a resposta é JSON
-      const contentType = n8nResponse.headers.get("content-type")
-      let n8nData
-
-      if (contentType && contentType.includes("application/json")) {
-        n8nData = await n8nResponse.json()
-      } else {
-        const text = await n8nResponse.text()
-        console.error("Resposta do n8n não é JSON:", text)
-        throw new Error(`Resposta inválida do webhook n8n: ${text.substring(0, 100)}`)
-      }
-
-      console.log("Dados recebidos do n8n:", n8nData)
-
-      // A resposta do n8n pode vir em dois formatos (similar ao create)
-      let responseData = n8nData
-      if (n8nData?.data) {
-        responseData = n8nData.data
-      }
-
-      // Extrair status da resposta
-      const status = responseData?.status || responseData?.connection_status || "disconnected"
-      const isConnected = status === "connected" || status === "open" || status === "ready"
-
-      // Retornar resposta com status
+    if (!token || !phoneId) {
       return NextResponse.json({
         success: true,
-        status: status,
-        connected: isConnected,
-        message: responseData?.message || (isConnected ? "WhatsApp conectado" : "WhatsApp desconectado"),
-      })
-    } catch (n8nError: any) {
-      console.error("Erro no webhook n8n:", n8nError)
-      // Se o n8n não responder, retornar status desconectado
-      return NextResponse.json({
-        success: false,
         status: "disconnected",
         connected: false,
-        error: n8nError.message || "Erro ao verificar status",
+        message: "Credenciais da API Oficial não configuradas para este agente.",
+      })
+    }
+
+    try {
+      console.log(`Verificando status na Meta API para o Phone ID: ${phoneId} e WABA ID: ${agent.waba_id}`)
+
+      // Tentar primeiro pelo Phone ID
+      let metaResponse = await fetch(`https://graph.facebook.com/v19.0/${phoneId}?fields=status,quality_rating`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+
+      let metaData = await metaResponse.json()
+
+      // Se falhar pelo Phone ID, tentar pelo WABA ID (Fallback)
+      if (!metaResponse.ok && agent.waba_id) {
+        console.log(`Falha no Phone ID, tentando pelo WABA ID: ${agent.waba_id}`)
+        metaResponse = await fetch(`https://graph.facebook.com/v19.0/${agent.waba_id}?fields=name,status`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        })
+        metaData = await metaResponse.json()
+      }
+
+      if (metaResponse.ok) {
+        // Se qualquer uma das chamadas funcionou, o token é válido e a conta existe
+        const metaStatus = metaData.status || "connected"
+
+        return NextResponse.json({
+          success: true,
+          status: metaStatus.toLowerCase(),
+          connected: true,
+          message: `WhatsApp conectado (via ${metaData.id === phoneId ? 'Phone ID' : 'WABA ID'})`,
+          details: {
+            id: metaData.id,
+            status: metaStatus,
+            quality_rating: metaData.quality_rating,
+          }
+        })
+      } else {
+        console.error("Erro final na Meta API:", metaData)
+        return NextResponse.json({
+          success: true,
+          status: "disconnected",
+          connected: false,
+          message: "O número ou a conta WABA não foram encontrados ou o acesso foi revogado. Isso pode ocorrer se o usuário desconectou o número ou removeu as permissões do aplicativo.",
+          error: metaData.error,
+        })
+      }
+    } catch (metaError: any) {
+      console.error("Erro de rede com Meta API:", metaError)
+      return NextResponse.json({
+        success: false,
+        status: "error",
+        connected: false,
+        error: metaError.message || "Erro de rede ao verificar status na Meta",
       })
     }
   } catch (error: any) {
