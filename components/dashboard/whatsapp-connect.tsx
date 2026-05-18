@@ -199,57 +199,32 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
           }
         }}
       />
-      <Card className="glass border-border/40 shadow-lg">
+      <Card className="border-border">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
-                <Smartphone className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Status da Conexão</CardTitle>
-                <CardDescription className="text-[10px]">Gerencie a integração com o Meta Cloud API</CardDescription>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-md bg-secondary">
+              <Smartphone className="w-4 h-4" />
             </div>
-            {status === "connected" && (
-              <Badge className="bg-green-500/10 text-green-500 border-green-500/20 px-3 py-1 font-bold text-[10px] uppercase tracking-wider">
-                <CheckCircle2 className="w-3 h-3 mr-1.5 fill-current" />
-                Online
-              </Badge>
-            )}
-            {status === "pending" && (
-              <Badge variant="secondary" className="bg-zinc-800 text-zinc-400 border-white/5 px-3 py-1 font-bold text-[10px] uppercase tracking-wider animate-pulse">
-                <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
-                Sincronizando
-              </Badge>
-            )}
-            {status === "disconnected" && (
-              <Badge variant="outline" className="border-red-500/20 text-red-500 bg-red-500/5 px-3 py-1 font-bold text-[10px] uppercase tracking-wider">
-                Desconectado
-              </Badge>
-            )}
+            <div>
+              <CardTitle className="text-base">Status da Conexão</CardTitle>
+              <CardDescription className="text-xs">Gerencie a integração com o Meta Cloud API</CardDescription>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {status === "connected" ? (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                <CheckCircle2 className="w-5 h-5" />
-                <p className="text-sm font-medium">WhatsApp está conectado</p>
+              <div className="flex items-center gap-2 text-emerald-600">
+                <CheckCircle2 className="w-4 h-4" />
+                <p className="text-sm font-medium">WhatsApp conectado</p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Seu número do WhatsApp está conectado e pronto para receber mensagens.
-              </p>
               <Button onClick={handleTestConnection} variant="outline" className="w-full" disabled={isCheckingStatus}>
                 {isCheckingStatus ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Verificando...
-                  </>
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    Testar Conexão
+                    Verificar status
                   </>
                 )}
               </Button>
@@ -257,39 +232,28 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
           ) : (
             <>
               {!error && (
-                <div className="flex flex-col gap-3">
-                  <Button
-                    onClick={handleFacebookLogin}
-                    disabled={isLoading || isFbLoading}
-                    variant="outline"
-                    className="w-full bg-[#1877F2] text-white hover:bg-[#1877F2]/90 border-transparent hover:text-white"
-                  >
-                    {isFbLoading ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd"></path></svg>
-                    )}
-                    Conectar com Facebook
-                  </Button>
-                </div>
+                <Button
+                  onClick={handleFacebookLogin}
+                  disabled={isLoading || isFbLoading}
+                  className="w-full"
+                >
+                  {isFbLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    "Conectar com Facebook"
+                  )}
+                </Button>
               )}
 
               {error && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-red-500">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-destructive">
                     <AlertCircle className="w-4 h-4" />
-                    <p className="text-sm font-medium">Erro</p>
+                    <p className="text-sm font-medium">Erro na conexão</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">{error}</p>
+                  <p className="text-xs text-muted-foreground">{error}</p>
                   <Button onClick={handleTestConnection} variant="outline" className="w-full" disabled={isCheckingStatus}>
-                    {isCheckingStatus ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Tentando...
-                      </>
-                    ) : (
-                      "Tentar Novamente"
-                    )}
+                    {isCheckingStatus ? "Verificando..." : "Tentar novamente"}
                   </Button>
                 </div>
               )}
@@ -297,10 +261,7 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
               {status === "disconnected" && !error && (
                 <Button onClick={handleTestConnection} variant="outline" className="w-full" disabled={isCheckingStatus}>
                   {isCheckingStatus ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Verificando...
-                    </>
+                    "Verificando..."
                   ) : (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2" />
