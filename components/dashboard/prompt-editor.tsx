@@ -111,7 +111,7 @@ export function PromptEditor({
 
     return (
         <div className={cn("relative font-mono text-sm", className)}>
-            <div className="relative min-h-[150px] w-full border rounded-md bg-zinc-950 overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <div className="relative h-full w-full min-h-[inherit] border rounded-md bg-zinc-950 overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                 {/* Backdrop for highlighting */}
                 <div
                     ref={backdropRef}

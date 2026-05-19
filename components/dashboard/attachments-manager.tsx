@@ -1,245 +1,222 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
+import { FolderOpen, Plus, Trash2, X, Upload, File, FileText, ImageIcon, Music, Video, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Plus, X, Upload, Image as ImageIcon, Video, File } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
-
-interface Attachment {
-  name: string
-  urls: string[]
-}
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface AttachmentsManagerProps {
   attachments: Record<string, string[]>
   onAttachmentsChange: (attachments: Record<string, string[]>) => void
-  onSave?: () => void
-  isSaving?: boolean
+  onSave: () => Promise<void>
+  isSaving: boolean
 }
 
-export function AttachmentsManager({ attachments, onAttachmentsChange, onSave, isSaving }: AttachmentsManagerProps) {
-  const [newAttachmentName, setNewAttachmentName] = useState("")
-  const [uploading, setUploading] = useState<string | null>(null)
-  const [attachmentsList, setAttachmentsList] = useState<Attachment[]>(
-    Object.entries(attachments || {}).map(([name, urls]) => ({ name, urls }))
-  )
+export function AttachmentsManager({
+  attachments,
+  onAttachmentsChange,
+  onSave,
+  isSaving,
+}: AttachmentsManagerProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [newPackName, setNewPackName] = useState("")
+  const [dragActivePack, setDragActivePack] = useState<string | null>(null)
 
-  const handleAddAttachment = () => {
-    if (!newAttachmentName.trim()) return
-
-    const newAttachment: Attachment = {
-      name: newAttachmentName.trim(),
-      urls: [],
+  const handleAddPack = () => {
+    if (!newPackName) return
+    if (attachments[newPackName]) {
+      toast.error("Este pacote já existe")
+      return
     }
 
-    const updated = [...attachmentsList, newAttachment]
-    setAttachmentsList(updated)
-    updateParent(updated)
-    setNewAttachmentName("")
-  }
-
-  const handleRemoveAttachment = (index: number) => {
-    const updated = attachmentsList.filter((_, i) => i !== index)
-    setAttachmentsList(updated)
-    updateParent(updated)
-  }
-
-  const handleFileUpload = async (attachmentIndex: number, file: File) => {
-    const attachment = attachmentsList[attachmentIndex]
-    setUploading(`${attachmentIndex}-${file.name}`)
-
-    try {
-      const supabase = createClient()
-
-      // Verificar se o usuário está autenticado
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
-        throw new Error("Você precisa estar autenticado para fazer upload de arquivos. Por favor, faça login novamente.")
-      }
-
-      const fileExt = file.name.split(".").pop()
-      const fileName = `${attachment.name}_${Date.now()}.${fileExt}`
-      const filePath = `attachments/${fileName}`
-
-      // Upload para Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("agent-attachments")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        })
-
-      if (uploadError) {
-        // Se o bucket não existir, criar uma mensagem de erro mais clara
-        if (uploadError.message.includes("Bucket") || uploadError.message.includes("bucket")) {
-          throw new Error(
-            "Bucket 'agent-attachments' não encontrado. Por favor, crie o bucket no Supabase Dashboard (Storage > Buckets). Veja docs/STORAGE_SETUP.md para mais informações."
-          )
-        }
-        // Se for erro de RLS, dar mensagem mais clara
-        if (uploadError.message.includes("row-level security") || uploadError.message.includes("RLS")) {
-          throw new Error(
-            "Erro de permissão. Por favor, execute o script scripts/012_fix_storage_policies.sql no Supabase SQL Editor para corrigir as políticas de acesso."
-          )
-        }
-        throw uploadError
-      }
-
-      // Obter URL pública
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("agent-attachments").getPublicUrl(filePath)
-
-      // Adicionar URL ao anexo
-      const updated = [...attachmentsList]
-      updated[attachmentIndex].urls.push(publicUrl)
-      setAttachmentsList(updated)
-      updateParent(updated)
-    } catch (error: any) {
-      console.error("Erro ao fazer upload:", error)
-      alert(`Erro ao fazer upload: ${error.message}`)
-    } finally {
-      setUploading(null)
-    }
-  }
-
-  const handleRemoveUrl = (attachmentIndex: number, urlIndex: number) => {
-    const updated = [...attachmentsList]
-    updated[attachmentIndex].urls.splice(urlIndex, 1)
-    setAttachmentsList(updated)
-    updateParent(updated)
-  }
-
-  const updateParent = (updated: Attachment[]) => {
-    const attachmentsObj: Record<string, string[]> = {}
-    updated.forEach((att) => {
-      if (att.urls.length > 0) {
-        attachmentsObj[att.name] = att.urls
-      }
+    onAttachmentsChange({
+      ...attachments,
+      [newPackName]: [],
     })
-    onAttachmentsChange(attachmentsObj)
+    setNewPackName("")
+    setIsDialogOpen(false)
+  }
+
+  const handleRemovePack = (packName: string) => {
+    const newAttachments = { ...attachments }
+    delete newAttachments[packName]
+    onAttachmentsChange(newAttachments)
+  }
+
+  const handleRemoveFile = (packName: string, fileIndex: number) => {
+    const newFiles = [...attachments[packName]]
+    newFiles.splice(fileIndex, 1)
+    onAttachmentsChange({
+      ...attachments,
+      [packName]: newFiles,
+    })
+  }
+
+  const handleFiles = async (files: FileList, packName: string) => {
+    // Simulated upload for now
+    const newUrls = Array.from(files).map((f) => `https://example.com/simulated-storage/${f.name}`)
+
+    onAttachmentsChange({
+      ...attachments,
+      [packName]: [...attachments[packName], ...newUrls],
+    })
+    toast.success(`${files.length} arquivo(s) adicionados`)
+  }
+
+  const handleDrag = (e: React.DragEvent, packName: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActivePack(packName)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActivePack(null)
+  }
+
+  const handleDrop = (e: React.DragEvent, packName: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActivePack(null)
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files, packName)
+    }
   }
 
   const getFileIcon = (url: string) => {
-    const ext = url.split(".").pop()?.toLowerCase()
-    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext || "")) {
-      return <ImageIcon className="w-4 h-4" />
-    }
-    if (["mp4", "webm", "mov"].includes(ext || "")) {
-      return <Video className="w-4 h-4" />
-    }
+    const ext = url.split('.').pop()?.toLowerCase()
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '')) return <ImageIcon className="w-4 h-4" />
+    if (['mp4', 'mov', 'webm'].includes(ext || '')) return <Video className="w-4 h-4" />
+    if (['mp3', 'wav', 'ogg'].includes(ext || '')) return <Music className="w-4 h-4" />
+    if (['pdf', 'doc', 'docx'].includes(ext || '')) return <FileText className="w-4 h-4" />
     return <File className="w-4 h-4" />
   }
+
   return (
-    <Card className="glass border-border/50">
-      <CardHeader className="pb-4">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <File className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Conteúdo e Anexos</CardTitle>
+          <Badge variant="outline" className="font-bold border-primary/20 text-primary text-[10px] md:text-xs">
+            {Object.keys(attachments).length} Pacotes
+          </Badge>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          Arquivos que o agente pode enviar automaticamente durante o atendimento.
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Lista de anexos */}
-        <div className="space-y-4">
-          {attachmentsList.map((attachment, index) => (
-            <div key={index} className="bg-secondary/10 border border-border/50 rounded-xl p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Label className="font-bold text-sm tracking-tight">{attachment.name}</Label>
-                  <Badge variant="secondary" className="text-[10px] bg-secondary/50">{attachment.urls.length} arquivos</Badge>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveAttachment(index)}
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-red-500"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
 
-              {/* Upload de arquivo */}
-              <div className="flex gap-2">
-                <label className="flex-1 cursor-pointer">
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*,video/*,application/pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) handleFileUpload(index, file)
-                    }}
-                    disabled={uploading !== null}
-                  />
-                  <div className={cn(
-                    "w-full h-10 border-border/50 border-[1px] border-dashed rounded-lg flex items-center justify-center gap-2 text-xs font-medium transition-all",
-                    uploading?.startsWith(`${index}-`) ? "bg-secondary/30 text-muted-foreground animate-pulse" : "bg-secondary/10 hover:bg-secondary/20"
-                  )}>
-                    <Upload className="w-4 h-4" />
-                    {uploading?.startsWith(`${index}-`) ? "Enviando..." : "Adicionar Arquivo"}
-                  </div>
-                </label>
-              </div>
-
-              {/* Lista de URLs */}
-              {attachment.urls.length > 0 && (
-                <div className="space-y-2">
-                  {attachment.urls.map((url, urlIndex) => (
-                    <div
-                      key={urlIndex}
-                      className="flex items-center gap-3 p-2 bg-background/50 border border-border/50 rounded-lg text-xs"
-                    >
-                      <div className="text-primary opacity-70">
-                        {getFileIcon(url)}
-                      </div>
-                      <span className="flex-1 truncate text-xs text-muted-foreground">{url.split("/").pop()}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveUrl(index, urlIndex)}
-                        className="h-7 w-7 p-0 hover:text-red-500"
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-2 w-full sm:w-auto h-8 md:h-9 text-xs">
+              <Plus className="w-3.5 h-3.5" />
+              Novo Pacote
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] w-[90vw] rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-base md:text-lg">Novo Pacote de Treinamento</DialogTitle>
+              <DialogDescription className="text-xs">
+                Categorize seus manuais para organizar o conhecimento do agente.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Label htmlFor="packName" className="text-xs">Nome do Pacote</Label>
+              <Input
+                id="packName"
+                placeholder="Ex: Tabela de Preços 2024"
+                value={newPackName}
+                onChange={(e) => setNewPackName(e.target.value)}
+                className="mt-2 h-9 md:h-10 text-xs md:text-sm"
+              />
             </div>
-          ))}
-        </div>
+            <DialogFooter className="flex-row gap-2">
+              <Button variant="ghost" className="flex-1 text-xs" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+              <Button className="flex-1 text-xs" onClick={handleAddPack} disabled={!newPackName}>Criar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-        {/* Adicionar novo anexo */}
-        <div className="flex gap-2 pt-2">
-          <Input
-            placeholder="Nome do pack (ex: Catálogo)"
-            value={newAttachmentName}
-            onChange={(e) => setNewAttachmentName(e.target.value)}
-            className="h-10"
-            onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                handleAddAttachment()
-              }
-            }}
-          />
-          <Button
-            onClick={handleAddAttachment}
-            disabled={!newAttachmentName.trim()}
-            className="h-10 px-4"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {Object.entries(attachments).map(([packName, files]) => (
+          <div
+            key={packName}
+            className={cn(
+              "rounded-xl border border-border/50 bg-background/50 overflow-hidden transition-all",
+              dragActivePack === packName && "ring-2 ring-primary border-primary bg-primary/5"
+            )}
+            onDragOver={(e) => handleDrag(e, packName)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, packName)}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Criar
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            <div className="flex items-center justify-between p-3 md:p-4 bg-secondary/30 border-b border-border/50">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 text-muted-foreground shrink-0" />
+                <span className="text-xs md:text-sm font-bold truncate">{packName}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 md:h-7 md:w-7 text-muted-foreground hover:text-destructive shrink-0"
+                onClick={() => handleRemovePack(packName)}
+              >
+                <Trash2 className="w-3 md:w-3.5 h-3 md:h-3.5" />
+              </Button>
+            </div>
+
+            <div className="p-3 md:p-4 space-y-3 md:space-y-4">
+              {/* Upload Field */}
+              <div
+                className="border-2 border-dashed border-border/40 rounded-lg p-4 md:p-6 flex flex-col items-center justify-center gap-1.5 md:gap-2 cursor-pointer hover:bg-secondary/20 hover:border-primary/20 transition-all"
+                onClick={() => document.getElementById(`file-${packName}`)?.click()}
+              >
+                <input
+                  id={`file-${packName}`}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => e.target.files && handleFiles(e.target.files, packName)}
+                />
+                <Upload className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
+                <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase">Arraste ou clique</span>
+              </div>
+
+              {/* File List */}
+              <div className="space-y-1.5 md:space-y-2">
+                {files.map((file, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-1.5 md:p-2 rounded-md bg-secondary/30 border border-border/40 group">
+                    <div className="flex items-center gap-2 overflow-hidden min-w-0">
+                      <div className="shrink-0">{getFileIcon(file)}</div>
+                      <span className="text-[10px] md:text-xs truncate text-muted-foreground font-medium">
+                        {file.split('/').pop()}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 opacity-50 md:opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      onClick={() => handleRemoveFile(packName, idx)}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
