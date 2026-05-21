@@ -1,0 +1,85 @@
+
+> @oichat/web@0.1.0 build C:\Users\Rapeizee\Documents\proects\oichat\v0-oi-chat-web-panel\apps\web
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ⚠ `eslint` configuration in next.config.mjs is no longer supported. See more info here: https://nextjs.org/docs/app/api-reference/cli/next#next-lint-options
+ ⚠ Invalid next.config.mjs options detected: 
+ ⚠     Unrecognized key(s) in object: 'eslint'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Environments: .env.local
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Compiled successfully in 21.8s
+   Skipping validation of types
+ ⚠ Minimum recommended TypeScript version is v5.1.0, older versions can potentially be incompatible with Next.js. Detected: 5.0.2
+   Collecting page data using 3 workers ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 3 workers (0/43) ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 3 workers (10/43) 
+   Generating static pages using 3 workers (21/43) 
+   Generating static pages using 3 workers (32/43) 
+ ✓ Generating static pages using 3 workers (43/43) in 3.2s
+   Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/migrate
+├ ƒ /api/agents/[id]
+├ ƒ /api/agents/[id]/delete
+├ ƒ /api/agents/[id]/status
+├ ƒ /api/agents/connect-whatsapp
+├ ƒ /api/agents/create
+├ ƒ /api/agents/waba-callback
+├ ƒ /api/agents/waba-debug
+├ ƒ /api/agents/waba-messages
+├ ƒ /api/agents/waba-register
+├ ƒ /api/agents/waba-templates
+├ ƒ /api/agents/waba-webhook
+├ ƒ /api/agents/waba-webhook/clear
+├ ƒ /api/business-form
+├ ƒ /api/cron/check-subscription
+├ ƒ /api/onboarding/n8n
+├ ƒ /api/payments/process
+├ ƒ /api/profile/update
+├ ƒ /api/stripe/cancel
+├ ƒ /api/stripe/checkout
+├ ƒ /api/stripe/portal
+├ ƒ /api/stripe/webhook
+├ ƒ /api/subscription/refresh
+├ ƒ /api/subscription/start-trial
+├ ƒ /api/subscription/sync
+├ ƒ /api/webhooks/conversion
+├ ƒ /auth/callback
+├ ○ /auth/check-email
+├ ○ /checkout
+├ ƒ /dashboard
+├ ƒ /dashboard/agents/[id]
+├ ƒ /dashboard/analytics
+├ ƒ /dashboard/integrations
+├ ƒ /dashboard/integrations/pushcut
+├ ƒ /dashboard/leads
+├ ƒ /dashboard/performance
+├ ○ /dashboard/remarketing
+├ ƒ /dashboard/settings
+├ ƒ /dashboard/support
+├ ○ /dashboard/waba-test
+├ ○ /login
+├ ƒ /onboarding
+└ ○ /waba-test
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

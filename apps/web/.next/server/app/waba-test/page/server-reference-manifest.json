@@ -1,0 +1,95 @@
+{
+  "node": {
+    "001fa783a4141a489ede81bf43bfa96e16a9ba6ec1": {
+      "workers": {
+        "app/waba-test/page": {
+          "moduleId": 19992,
+          "async": false,
+          "exportedName": "getAgents",
+          "filename": "apps/web/app/waba-test/actions.ts"
+        }
+      },
+      "layer": {
+        "app/waba-test/page": "action-browser"
+      },
+      "exportedName": "getAgents",
+      "filename": "apps/web/app/waba-test/actions.ts"
+    },
+    "4002e0c5a68755772b812f689e4ce4aae00d84f3da": {
+      "workers": {
+        "app/waba-test/page": {
+          "moduleId": 19992,
+          "async": false,
+          "exportedName": "fetchWabaNumbers",
+          "filename": "apps/web/app/waba-test/actions.ts"
+        }
+      },
+      "layer": {
+        "app/waba-test/page": "action-browser"
+      },
+      "exportedName": "fetchWabaNumbers",
+      "filename": "apps/web/app/waba-test/actions.ts"
+    },
+    "40a27585cb067318ad38366d474ffada5b20e98792": {
+      "workers": {
+        "app/waba-test/page": {
+          "moduleId": 19992,
+          "async": false,
+          "exportedName": "fetchWabaTemplates",
+          "filename": "apps/web/app/waba-test/actions.ts"
+        }
+      },
+      "layer": {
+        "app/waba-test/page": "action-browser"
+      },
+      "exportedName": "fetchWabaTemplates",
+      "filename": "apps/web/app/waba-test/actions.ts"
+    },
+    "60bf4327bd3aaf91b3edb9f8b1cfc81b8c5ed1ed5d": {
+      "workers": {
+        "app/waba-test/page": {
+          "moduleId": 19992,
+          "async": false,
+          "exportedName": "createWabaTemplate",
+          "filename": "apps/web/app/waba-test/actions.ts"
+        }
+      },
+      "layer": {
+        "app/waba-test/page": "action-browser"
+      },
+      "exportedName": "createWabaTemplate",
+      "filename": "apps/web/app/waba-test/actions.ts"
+    },
+    "4012cd67a9df344c4ae32312cb8ed2047c6cf5dc62": {
+      "workers": {
+        "app/waba-test/page": {
+          "moduleId": 19992,
+          "async": false,
+          "exportedName": "fetchWabaAccounts",
+          "filename": "apps/web/app/waba-test/actions.ts"
+        }
+      },
+      "layer": {
+        "app/waba-test/page": "action-browser"
+      },
+      "exportedName": "fetchWabaAccounts",
+      "filename": "apps/web/app/waba-test/actions.ts"
+    },
+    "407b15ce7183de6f3e7a3046d2dff8ebac5af25e94": {
+      "workers": {
+        "app/waba-test/page": {
+          "moduleId": 19992,
+          "async": false,
+          "exportedName": "fetchWabaSettings",
+          "filename": "apps/web/app/waba-test/actions.ts"
+        }
+      },
+      "layer": {
+        "app/waba-test/page": "action-browser"
+      },
+      "exportedName": "fetchWabaSettings",
+      "filename": "apps/web/app/waba-test/actions.ts"
+    }
+  },
+  "edge": {}
+}

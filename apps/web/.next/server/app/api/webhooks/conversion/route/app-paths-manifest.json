@@ -1,0 +1,3 @@
+{
+  "/api/webhooks/conversion/route": "app/api/webhooks/conversion/route.js"
+}

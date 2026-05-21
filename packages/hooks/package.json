@@ -1,0 +1,11 @@
+{
+    "name": "@oichat/hooks",
+    "version": "0.0.0",
+    "private": true,
+    "main": "./index.ts",
+    "dependencies": {
+        "react": "19.2.0",
+        "@oichat/types": "workspace:*",
+        "@oichat/api": "workspace:*"
+    }
+}
