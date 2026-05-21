@@ -7,6 +7,7 @@ import { Smartphone, CheckCircle2, AlertCircle, Loader2, Link2, ExternalLink, Re
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import Script from "next/script"
 
 interface WhatsAppConnectProps {
   agentId: string
@@ -49,7 +50,14 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
       }
 
       // @ts-ignore
-      FB.login((response) => {
+      if (typeof window === 'undefined' || !window.FB) {
+        toast.error("Carregando o sistema do Facebook... Tente novamente em alguns segundos.")
+        setIsConnecting(false)
+        return
+      }
+
+      // @ts-ignore
+      window.FB.login((response: any) => {
         if (response.authResponse) {
           window.postMessage({ type: 'FB_LOGIN_SUCCESS', authResponse: response.authResponse }, '*')
           toast.success("Conectando ao WhatsApp...")
@@ -175,6 +183,20 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
           </Button>
         </div>
       </CardContent>
+      <Script 
+        src="https://connect.facebook.net/en_US/sdk.js" 
+        strategy="lazyOnload" 
+        onLoad={() => {
+          if (window.FB) {
+            window.FB.init({
+              appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID!,
+              cookie: true,
+              xfbml: true,
+              version: "v19.0"
+            })
+          }
+        }} 
+      />
     </Card>
   )
 }
