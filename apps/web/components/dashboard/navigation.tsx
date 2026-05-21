@@ -69,7 +69,7 @@ export function Navigation({ variant = "sidebar", onNavigate, isCollapsed = fals
     // Realtime subscription for unread updates
     const supabase = createClient()
     const channel = supabase
-      .channel('nav-unread-leads')
+      .channel(`nav-unread-leads-${Date.now()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads', filter: `user_id=eq.${user.id}` }, (payload) => {
         if (!payload.new.is_read) setUnreadLeads(prev => prev + 1)
       })
