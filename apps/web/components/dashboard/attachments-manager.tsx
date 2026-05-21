@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { FolderOpen, Plus, Trash2, X, Upload, File, FileText, ImageIcon, Music, Video, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -67,14 +68,44 @@ export function AttachmentsManager({
   }
 
   const handleFiles = async (files: FileList, packName: string) => {
-    // Simulated upload for now
-    const newUrls = Array.from(files).map((f) => `https://example.com/simulated-storage/${f.name}`)
+    const supabase = createClient()
+    const newUrls: string[] = []
+    
+    const toastId = toast.loading(`Enviando ${files.length} arquivo(s) para o Supabase...`)
 
-    onAttachmentsChange({
-      ...attachments,
-      [packName]: [...attachments[packName], ...newUrls],
-    })
-    toast.success(`${files.length} arquivo(s) adicionados`)
+    try {
+      for (const file of Array.from(files)) {
+        // Gerar um nome de arquivo único para não sobrescrever
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random().toString(36).substring(2, 10)}_${Date.now()}.${fileExt}`
+        const filePath = `attachments/${fileName}`
+        
+        // Fazer upload para o bucket 'agent-attachments' (certifique-se que ele existe no Supabase)
+        const { error: uploadError } = await supabase.storage
+          .from('agent-attachments')
+          .upload(filePath, file)
+          
+        if (uploadError) {
+          throw uploadError
+        }
+        
+        // Pegar a URL pública do arquivo
+        const { data: { publicUrl } } = supabase.storage
+          .from('agent-attachments')
+          .getPublicUrl(filePath)
+          
+        newUrls.push(publicUrl)
+      }
+
+      onAttachmentsChange({
+        ...attachments,
+        [packName]: [...(attachments[packName] || []), ...newUrls],
+      })
+      toast.success(`${files.length} arquivo(s) enviados com sucesso!`, { id: toastId })
+    } catch (error: any) {
+      console.error("Erro no upload:", error)
+      toast.error(`Falha ao enviar arquivos: ${error.message}`, { id: toastId })
+    }
   }
 
   const handleDrag = (e: React.DragEvent, packName: string) => {
