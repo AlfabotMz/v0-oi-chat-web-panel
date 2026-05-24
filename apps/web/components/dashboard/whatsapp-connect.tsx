@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import Script from "next/script"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 
 interface WhatsAppConnectProps {
   agentId: string
@@ -17,6 +18,48 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
   const [status, setStatus] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isConnecting, setIsConnecting] = useState(false)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // Process mobile redirects
+  useEffect(() => {
+    const code = searchParams.get('code')
+    const error = searchParams.get('error')
+
+    if (code) {
+      setIsConnecting(true)
+      const processMobileRedirect = async () => {
+        try {
+          const res = await fetch('/api/agents/waba-callback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              agent_id: agentId,
+              code: code
+            })
+          })
+          const data = await res.json()
+          if (data.success) {
+            toast.success("WhatsApp conectado com sucesso!")
+            fetchStatus()
+          } else {
+            toast.error(data.error || "Erro ao configurar WhatsApp")
+          }
+        } catch (e) {
+          toast.error("Erro interno ao processar conexão")
+        } finally {
+          setIsConnecting(false)
+          // Limpa os parâmetros da URL para não processar novamente se recarregar
+          router.replace(pathname)
+        }
+      }
+      processMobileRedirect()
+    } else if (error) {
+      toast.error("Conexão cancelada pelo Facebook")
+      router.replace(pathname)
+    }
+  }, [searchParams, agentId, pathname, router])
 
   const fetchStatus = async () => {
     try {
