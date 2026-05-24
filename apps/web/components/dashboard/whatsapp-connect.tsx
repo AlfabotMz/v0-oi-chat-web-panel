@@ -57,30 +57,35 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
       }
 
       // @ts-ignore
-      window.FB.login(async (response: any) => {
+      window.FB.login((response: any) => {
         if (response.authResponse) {
           toast.success("Autenticado! Configurando WhatsApp...")
-          try {
-            const res = await fetch('/api/agents/waba-callback', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                agent_id: agentId,
-                code: response.authResponse.code
+          
+          const processLogin = async () => {
+            try {
+              const res = await fetch('/api/agents/waba-callback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  agent_id: agentId,
+                  code: response.authResponse.code
+                })
               })
-            })
-            const data = await res.json()
-            if (data.success) {
-              toast.success("WhatsApp conectado com sucesso!")
-              fetchStatus()
-            } else {
-              toast.error(data.error || "Erro ao configurar WhatsApp")
+              const data = await res.json()
+              if (data.success) {
+                toast.success("WhatsApp conectado com sucesso!")
+                fetchStatus()
+              } else {
+                toast.error(data.error || "Erro ao configurar WhatsApp")
+              }
+            } catch (e) {
+              toast.error("Erro interno ao processar conexão")
+            } finally {
+              setIsConnecting(false)
             }
-          } catch (e) {
-            toast.error("Erro interno ao processar conexão")
-          } finally {
-            setIsConnecting(false)
           }
+          
+          processLogin()
         } else {
           toast.error("Login cancelado ou não autorizado")
           setIsConnecting(false)
