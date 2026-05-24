@@ -71,6 +71,7 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
         override_default_response_type: true,
         extras: {
           feature: 'whatsapp_embedded_signup',
+          sessionInfoVersion: '3',
           setup: {
             // prefill if needed
           }
