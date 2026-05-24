@@ -56,7 +56,8 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
       }
       processMobileRedirect()
     } else if (error) {
-      toast.error("Conexão cancelada pelo Facebook")
+      const errorMsg = searchParams.get('error_message') || searchParams.get('error_description') || error;
+      toast.error(`Conexão cancelada: ${errorMsg}`)
       router.replace(pathname)
     }
   }, [searchParams, agentId, pathname, router])
@@ -130,7 +131,8 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
           
           processLogin()
         } else {
-          toast.error("Login cancelado ou não autorizado")
+          // No mobile, o SDK dispara isso quando começa o redirect, então não mostramos erro aqui.
+          console.warn("FB.login não retornou authResponse. Aguardando redirect ou cancelamento real.")
           setIsConnecting(false)
         }
       }, {
