@@ -57,10 +57,30 @@ export function WhatsAppConnect({ agentId }: WhatsAppConnectProps) {
       }
 
       // @ts-ignore
-      window.FB.login((response: any) => {
+      window.FB.login(async (response: any) => {
         if (response.authResponse) {
-          window.postMessage({ type: 'FB_LOGIN_SUCCESS', authResponse: response.authResponse }, '*')
-          toast.success("Conectando ao WhatsApp...")
+          toast.success("Autenticado! Configurando WhatsApp...")
+          try {
+            const res = await fetch('/api/agents/waba-callback', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                agent_id: agentId,
+                code: response.authResponse.code
+              })
+            })
+            const data = await res.json()
+            if (data.success) {
+              toast.success("WhatsApp conectado com sucesso!")
+              fetchStatus()
+            } else {
+              toast.error(data.error || "Erro ao configurar WhatsApp")
+            }
+          } catch (e) {
+            toast.error("Erro interno ao processar conexão")
+          } finally {
+            setIsConnecting(false)
+          }
         } else {
           toast.error("Login cancelado ou não autorizado")
           setIsConnecting(false)
