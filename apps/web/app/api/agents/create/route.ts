@@ -60,9 +60,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Name e Prompt são obrigatórios" }, { status: 400 })
     }
 
-    // Validação 1: Limite de Agentes Ativos para Free/Trial/Premium
-    const limit = plan === "premium" ? 2 : 1
-    if (plan === "free" || subStatus === "trial" || plan === "premium") {
+    // Validação 1: Limite de Agentes Ativos para Free/Trial/Premium/Pro
+    const limit = (plan === "premium" || plan === "pro") ? 2 : 1
+    if (plan === "free" || subStatus === "trial" || plan === "premium" || plan === "pro") {
       const { count: activeAgentsCount } = await supabase
         .from("agents")
         .select("*", { count: "exact", head: true })
@@ -74,118 +74,51 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const webhookUrl = getWebhookUrl("api/agents/create-agent")
-    console.log("Chamando webhook n8n:", webhookUrl)
-
-    // Fazer requisição para o webhook n8n
-    let n8nData = null
-    let n8nError = null
-
-    try {
-      const n8nResponse = await fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          name,
-          prompt,
-          product,
-          amount,
-          phone_number,
-          prompt_type,
-          audience,
-          tone,
-          product_description,
-          contact_owner,
-          contact_delivery,
-          prompt_generated,
-          action: "create_agent"
-        }),
-      })
-
-      const contentType = n8nResponse.headers.get("content-type")
-      if (contentType && contentType.includes("application/json")) {
-        n8nData = await n8nResponse.json()
-      } else {
-        const text = await n8nResponse.text()
-        console.warn("Resposta do n8n não é JSON:", text)
-        n8nError = `Resposta inválida do webhook n8n: ${text.substring(0, 100)}`
-      }
-    } catch (err: any) {
-      console.error("Erro ao chamar webhook n8n:", err)
-      n8nError = err.message
-    }
-
-    let responseData = n8nData || {}
-    if (n8nData?.data) {
-      responseData = n8nData.data
-    }
-
-    const isSuccess = responseData.success === true || (responseData.message && responseData.message.toLowerCase().includes("sucesso"))
-
-    let agent = null
-    const agentId = responseData.agent?.agent_id || responseData.agent_id || responseData.id
-
-    if (isSuccess && agentId) {
-      const { data: foundAgent } = await supabase
-        .from("agents")
-        .select("*")
-        .eq("id", agentId)
-        .eq("user_id", user.id)
-        .single()
-      if (foundAgent) agent = foundAgent
-    }
-
     // Determine initial status based on plan limits
     let initialStatus = "active"
-    if (plan === "free" || subStatus === "trial" || plan === "premium") {
+    if (plan === "free" || subStatus === "trial" || plan === "premium" || plan === "pro") {
       const { count: activeCount } = await supabase
         .from("agents")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("status", "active")
 
-      const activeLimit = plan === "premium" ? 2 : 1
+      const activeLimit = (plan === "premium" || plan === "pro") ? 2 : 1
       if (activeCount && activeCount >= activeLimit) initialStatus = "inactive"
     }
 
-    // Fallback: Criar localmente se não existe ainda
-    if (!agent) {
-      console.log("Criando agente localmente (Fallback)...")
-      const { data: newAgent, error: createError } = await supabase
-        .from("agents")
-        .insert({
-          user_id: user.id,
-          name: name,
-          prompt: prompt,
-          product: product,
-          amount: amount,
-          status: initialStatus,
-          phone_number: phone_number || null,
-          prompt_type,
-          audience,
-          tone,
-          product_description,
-          contact_owner: contact_owner || null,
-          contact_delivery: contact_delivery || null,
-          prompt_generated,
-          message_delay: 5, // Default delay to 5 seconds
-          custom_message: "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{product}}\n\n💸 Quantidade: {{quantity}}\n\n💸 Valor: {{price}}\n\n💸 Número: {{phone}}\n\n💸 Local: {{location}}\n\n💸 Data: {{date}}"
-        })
-        .select()
-        .single()
-
-      if (createError) throw createError
-      agent = newAgent
+    // Criar agente localmente
+    const insertData: any = {
+      user_id: user.id,
+      name: name,
+      prompt: prompt,
+      product: product,
+      amount: amount,
+      status: initialStatus,
+      phone_number: phone_number || null,
+      prompt_type,
+      audience,
+      tone,
+      product_description,
+      contact_owner: contact_owner || null,
+      contact_delivery: contact_delivery || null,
+      prompt_generated,
+      message_delay: 5, // Default delay to 5 seconds
+      custom_message: "🚀 Nova Encomenda Recebida!\n\n💸 Produto: {{product}}\n\n💸 Quantidade: {{quantity}}\n\n💸 Valor: {{price}}\n\n💸 Número: {{phone}}\n\n💸 Local: {{location}}\n\n💸 Data: {{date}}"
     }
+
+    const { data: newAgent, error: createError } = await supabase
+      .from("agents")
+      .insert(insertData)
+      .select()
+      .single()
+
+    if (createError) throw createError
 
     return NextResponse.json({
       success: true,
       message: "Agente criado com sucesso!",
-      agent: agent,
-      warning: n8nError ? "Nota: Erro na integração n8n, agente salvo localmente." : undefined
+      agent: newAgent
     })
 
   } catch (error: any) {

@@ -65,7 +65,7 @@ export async function GET(
     if (!token || !phoneId) {
       return NextResponse.json({
         success: true,
-        status: "disconnected",
+        status: { meta_status: "disconnected" },
         connected: false,
         message: "Credenciais da API Oficial não configuradas para este agente.",
       })
@@ -102,7 +102,12 @@ export async function GET(
 
         return NextResponse.json({
           success: true,
-          status: metaStatus.toLowerCase(),
+          status: {
+            meta_status: metaStatus.toLowerCase(),
+            waba_id: agent.waba_id,
+            phone_number_id: phoneId,
+            display_phone_number: agent.phone_number || metaData.display_phone_number || "",
+          },
           connected: true,
           message: `WhatsApp conectado (via ${metaData.id === phoneId ? 'Phone ID' : 'WABA ID'})`,
           details: {
@@ -115,7 +120,7 @@ export async function GET(
         console.error("Erro final na Meta API:", metaData)
         return NextResponse.json({
           success: true,
-          status: "disconnected",
+          status: { meta_status: "disconnected" },
           connected: false,
           message: "O número ou a conta WABA não foram encontrados ou o acesso foi revogado. Isso pode ocorrer se o usuário desconectou o número ou removeu as permissões do aplicativo.",
           error: metaData.error,
@@ -125,7 +130,7 @@ export async function GET(
       console.error("Erro de rede com Meta API:", metaError)
       return NextResponse.json({
         success: false,
-        status: "error",
+        status: { meta_status: "error" },
         connected: false,
         error: metaError.message || "Erro de rede ao verificar status na Meta",
       })
@@ -136,7 +141,7 @@ export async function GET(
       {
         success: false,
         error: error.message || "Erro interno do servidor",
-        status: "disconnected",
+        status: { meta_status: "disconnected" },
         connected: false,
       },
       { status: 500 }

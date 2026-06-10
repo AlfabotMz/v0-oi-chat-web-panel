@@ -38,7 +38,19 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: "Falha na autenticação do Facebook: Não foi possível obter o token" }, { status: 500 })
         }
 
-        const access_token = tokenData.access_token
+        let access_token = tokenData.access_token
+
+        // 1.5 Trocar short-lived token por long-lived token
+        const longLivedTokenUrl = `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${access_token}`
+        const longLivedResponse = await fetch(longLivedTokenUrl)
+        const longLivedData = await longLivedResponse.json()
+
+        if (longLivedResponse.ok && longLivedData.access_token) {
+            access_token = longLivedData.access_token
+            console.log("Token de longo prazo obtido com sucesso.")
+        } else {
+            console.warn("Não foi possível obter o token de longo prazo. Usando token original.", longLivedData)
+        }
 
         // 2. Extrair informações do WhatsApp usando o token (para capturar o WABA ID selecionado pelo usuário)
         const debugUrl = `https://graph.facebook.com/v19.0/debug_token?input_token=${access_token}&access_token=${appId}|${appSecret}`
@@ -77,13 +89,38 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // 4. Atualiza o banco de dados do agente com o token e informações detalhadas
+        // 4. Obter plano do usuário para verificar limite de agentes ativos
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("plan, subscription_status")
+            .eq("id", user.id)
+            .single()
+
+        const plan = profile?.plan || "free"
+        const subStatus = profile?.subscription_status || "free"
+
+        let newStatus = "active"
+        if (plan === "free" || subStatus === "trial" || plan === "premium" || plan === "pro") {
+            const limit = (plan === "premium" || plan === "pro") ? 2 : 1
+            const { count: activeCount } = await supabase
+                .from("agents")
+                .select("*", { count: "exact", head: true })
+                .eq("user_id", user.id)
+                .eq("status", "active")
+                .neq("id", agent_id)
+
+            if (activeCount && activeCount >= limit) {
+                newStatus = "inactive"
+            }
+        }
+
+        // 5. Atualiza o banco de dados do agente com o token e informações detalhadas
         const updateData: any = {
             waba_access_token: access_token,
             waba_id: wabaId,
             waba_phone_number_id: phoneNumberId,
             waba_business_account_id: wabaId,
-            status: "active" // Marca como ativo/conectado
+            status: newStatus // Respeita o limite do plano
         }
 
         if (displayPhoneNumber) {
@@ -103,7 +140,10 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: "Configuração Oficial do WhatsApp concluída com sucesso"
+            message: newStatus === "active" 
+                ? "Configuração Oficial do WhatsApp concluída com sucesso" 
+                : "WhatsApp conectado, mas o agente ficou inativo devido ao limite do seu plano.",
+            status: newStatus
         })
     } catch (error: any) {
         console.error("Erro no waba-callback:", error)

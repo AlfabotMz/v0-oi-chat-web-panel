@@ -22,7 +22,7 @@ stripe.exe
 
 # vercel
 .vercel
-
+.turbo/
 # typescript
 *.tsbuildinfo
 next-env.d.ts

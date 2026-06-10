@@ -49,9 +49,9 @@ export async function PATCH(
 
         // 5. Se estiver tentando ativar o agente (status = 'active')
         if (status === "active") {
-            // 5.1 Verificar limite de agentes ativos para Free/Trial/Premium
-            if (plan === "free" || subStatus === "trial" || plan === "premium") {
-                const limit = plan === "premium" ? 2 : 1
+            // 5.1 Verificar limite de agentes ativos para Free/Trial/Premium/Pro
+            if (plan === "free" || subStatus === "trial" || plan === "premium" || plan === "pro") {
+                const limit = (plan === "premium" || plan === "pro") ? 2 : 1
                 // Contar agentes ativos (excluindo o atual)
                 const { count: activeCount } = await supabase
                     .from("agents")
@@ -61,8 +61,9 @@ export async function PATCH(
                     .neq("id", agentId) // Excluir o próprio agente se ele já estiver ativo
 
                 if (activeCount && activeCount >= limit) {
-                    const errorMsg = plan === "premium"
-                        ? "Limite atingido: Usuários Premium podem ter apenas 2 agentes ativos."
+                    const planName = plan.charAt(0).toUpperCase() + plan.slice(1)
+                    const errorMsg = (plan === "premium" || plan === "pro")
+                        ? `Limite atingido: Usuários ${planName} podem ter apenas 2 agentes ativos.`
                         : "Limite atingido: Usuários Free/Trial podem ter apenas 1 agente ativo."
 
                     return NextResponse.json({
@@ -121,33 +122,6 @@ export async function PATCH(
             throw updateError
         }
 
-        // 7. Sincronização com o Backend (Awaited)
-        // Notificar o backend sobre a atualização do prompt se ele foi alterado
-        if (body.prompt !== undefined) {
-            try {
-                const syncUrl = getWebhookUrl("api/agents/update-prompt")
-                console.log("Iniciando sincronização de prompt:", syncUrl)
-
-                const syncResponse = await fetch(syncUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        agent_id: agentId,
-                        prompt: body.prompt,
-                        action: "update_prompt"
-                    }),
-                })
-
-                if (!syncResponse.ok) {
-                    console.warn(`Sincronização backend (${agentId}) falhou com status: ${syncResponse.status}`)
-                } else {
-                    console.log(`Sincronização backend (${agentId}) concluída com sucesso`)
-                }
-            } catch (err) {
-                console.error("Erro na sincronização backend:", err)
-                // Não bloqueamos o sucesso do Supabase, mas logamos o erro
-            }
-        }
 
         return NextResponse.json({
             success: true,

@@ -13,7 +13,7 @@
  ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
    Creating an optimized production build ...
 [baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
- ✓ Compiled successfully in 21.8s
+ ✓ Compiled successfully in 69s
    Skipping validation of types
  ⚠ Minimum recommended TypeScript version is v5.1.0, older versions can potentially be incompatible with Next.js. Detected: 5.0.2
    Collecting page data using 3 workers ...
@@ -26,7 +26,7 @@
    Generating static pages using 3 workers (10/43) 
    Generating static pages using 3 workers (21/43) 
    Generating static pages using 3 workers (32/43) 
- ✓ Generating static pages using 3 workers (43/43) in 3.2s
+ ✓ Generating static pages using 3 workers (43/43) in 4.9s
    Finalizing page optimization ...
 
 Route (app)
